@@ -1,5 +1,7 @@
-#include <iostream>
+#include "src/networking.h"
 
-int main() {
-    std::cout << "Server! Hello World!" << std::endl;
+int main() {    
+    Networking();
+    
+    return 0;
 }
