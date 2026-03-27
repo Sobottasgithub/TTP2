@@ -34,6 +34,46 @@ int main() {
             &networking,
             serverSocket
         );
+
+        while (true) {
+            if (!networking.isConnected()) {
+                std::wcout << "Disconnect!" << std::endl;
+                break;
+            }
+            
+            std::wcout << "Choose option\n(1) send message\n(2) read messages\nnumber: ";
+            int option;
+            std::cin >> option;
+
+            if (option == 1) {
+                helpers::Packet packet;
+                int method;
+                std::string payload;
+
+                std::wcout << "(int) Method: ";
+                std::cin >> method; // TODO: Check type
+                std::wcout << "(string) Payload";
+                std::cin >> payload;
+                
+                packet.method  = method;
+                packet.payload = payload;
+                pushOrder(packet);
+            } else if (option == 2) {
+                if (!networking.hasSolution()) {
+                    std::wcout << "No Messages!" << std::endl;
+                    continue;
+                }
+                while(networking.hasSolution()) {
+                    helpers::Packet packet = networking.popSolution();
+                    std::wcout << "-- Message --" << std::endl;
+                    std::wcout << "Method:  " << packet.method << std::endl;
+                    std::wcout << "Payload: " << packet.payload << std::endl;
+                    std::wcout << "-------------" << std::endl;
+                }
+            } else {
+                std::wcout << "Invalid!" << std::endl;
+            }
+        }
     }
     
     return 0;
