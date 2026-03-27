@@ -57,7 +57,7 @@ int main() {
                 
                 packet.method  = method;
                 packet.payload = payload;
-                pushOrder(packet);
+                networking.pushOrder(packet);
             } else if (option == 2) {
                 if (!networking.hasSolution()) {
                     std::wcout << "No Messages!" << std::endl;
@@ -67,7 +67,7 @@ int main() {
                     helpers::Packet packet = networking.popSolution();
                     std::wcout << "-- Message --" << std::endl;
                     std::wcout << "Method:  " << packet.method << std::endl;
-                    std::wcout << "Payload: " << packet.payload << std::endl;
+                    std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
                     std::wcout << "-------------" << std::endl;
                 }
             } else {
