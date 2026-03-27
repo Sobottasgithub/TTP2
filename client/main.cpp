@@ -5,14 +5,15 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <thread>
 
 int main() {
     std::string ipAddress;
     int port;
     
-    std::wcout << "Server ipv4: ";
+    std::wcout << "Server ipv4 (string): ";
     std::cin >> ipAddress;
-    std::wcout << "Server port: ";
+    std::wcout << "Server port (int): ";
     std::cin >> port; 
 
 
@@ -25,7 +26,14 @@ int main() {
 
     if(connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) == -1) {
         helpers::Packet responseCode = helpers::receiveMessage(serverSocket);
-        Networking(serverSocket);
+
+        Networking networking;
+
+        std::thread networkThread(
+            &Networking::networkingSession,
+            &networking,
+            serverSocket
+        );
     }
     
     return 0;
