@@ -57,19 +57,31 @@
             cp LICENSE $out/
           '';
         };
+
+        default = pkgs.stdenv.mkDerivation {
+          name = "default";
+          pname = "ttp2-default";
+
+          inherit version;
+          src = ./.;
+
+          buildInputs = packagesList;
+
+        };
       };
 
-      devShells.${system}.default =
-        let devPackages = packagesList ++ [ pkgs.bridge-utils ];
-        in pkgs.mkShell {
-          packages = devPackages;
+      devShells.${system}.default = let
+        devPackages = packagesList ++ [ pkgs.bridge-utils pkgs.clang-tools ];
+      in pkgs.mkShell {
+        packages = devPackages;
 
-          # bring build tools from our package
-          inputsFrom = [ self.packages.${system}.default ];
+        # bring build tools from our package
+        inputsFrom = [ self.packages.${system}.default ];
 
-          shellHook = ''
-            git status
-          '';
-        };
+        shellHook = ''
+          git status
+          cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        '';
+      };
     };
 }

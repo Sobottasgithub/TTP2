@@ -9,7 +9,7 @@ include_directories(include)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 # file(GLOB_RECURSE HEADERS "include/*.h")
 
-add_library(tabnet SHARED src/tabnet.cpp)
+add_library(tabnet SHARED ${SOURCES})
 
 target_include_directories(tabnet PUBLIC include)
 
