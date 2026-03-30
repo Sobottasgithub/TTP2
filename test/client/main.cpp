@@ -1,4 +1,5 @@
-#include "src/networking.h"
+#include "server_session_controller.h"
+#include "helpers.h"
 
 #include <iostream>
 #include <string>
@@ -27,16 +28,16 @@ int main() {
     if(connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) == -1) {
         helpers::Packet responseCode = helpers::receiveMessage(serverSocket);
 
-        Networking networking;
+        ServerSessionController serverSessionController;
 
         std::thread networkThread(
-            &Networking::networkingSession,
-            &networking,
+            &ServerSessionController::networkingSession,
+            &serverSessionController,
             serverSocket
         );
 
         while (true) {
-            if (!networking.isConnected()) {
+            if (!serverSessionController.isConnected()) {
                 std::wcout << "Disconnect!" << std::endl;
                 break;
             }
@@ -57,14 +58,14 @@ int main() {
                 
                 packet.method  = method;
                 packet.payload = payload;
-                networking.pushOrder(packet);
+                serverSessionController.pushOrder(packet);
             } else if (option == 2) {
-                if (!networking.hasSolution()) {
+                if (!serverSessionController.hasSolution()) {
                     std::wcout << "No Messages!" << std::endl;
                     continue;
                 }
-                while(networking.hasSolution()) {
-                    helpers::Packet packet = networking.popSolution();
+                while(serverSessionController.hasSolution()) {
+                    helpers::Packet packet = serverSessionController.popSolution();
                     std::wcout << "-- Message --" << std::endl;
                     std::wcout << "Method:  " << packet.method << std::endl;
                     std::wcout << "Payload: " << packet.payload.c_str() << std::endl;

@@ -19,13 +19,15 @@ class Networking
       int getOrderCollectionSize();
       int getSolutionCollectionSize();
       void pushSolution(helpers::Packet);
-      void pushOrder(helpers::Packet order); 
-      
-    private:
+      void pushOrder(helpers::Packet order);
+
+    protected:
+      bool connected = true;
       int socket;
+            
+    private:
       std::vector<helpers::Packet> orderCollection;
       std::vector<helpers::Packet> solutionCollection;
-      bool connected = true;
       std::mutex mtx;
       helpers::Packet popCollection(std::vector<helpers::Packet> collection);
 };
