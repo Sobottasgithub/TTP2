@@ -11,7 +11,6 @@ class Networking
 {
     public:
       Networking();
-      void networkingSession(int socket);
       bool isConnected();
       bool hasOrder();
       bool hasSolution();
