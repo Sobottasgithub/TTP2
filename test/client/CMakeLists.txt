@@ -8,4 +8,6 @@ file(GLOB_RECURSE SOURCES "./*.cpp" "./*.h")
 
 add_executable(ttp2-client ${SOURCES})
 
+target_link_libraries(ttp2-client PRIVATE tabnet)
+
 install(TARGETS ttp2-client DESTINATION bin)
