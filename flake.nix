@@ -17,15 +17,14 @@
           pname = "ttp2-client";
 
           inherit version;
-          src = ./.;
+          src = ./test/client/.;
 
           buildInputs = packagesList;
 
           configurePhase = ''
             tmpSrc=$PWD/build-src
             mkdir -p $tmpSrc
-            cp -r ${./.}/* $tmpSrc/
-            mv $tmpSrc/CMakeListClient.txt $tmpSrc/CMakeLists.txt
+            cp -r $src/* $tmpSrc/
             mkdir -p build
             cmake -B build -S $tmpSrc -DCMAKE_BUILD_TYPE=Release
           '';
@@ -38,7 +37,6 @@
             cmake --install build --prefix=$out
             mkdir -p $out/bin
             cp build/ttp2-client $out/bin/ttp2-client
-            cp LICENSE $out/
           '';
         };
 
@@ -47,15 +45,14 @@
           pname = "ttp2-server";
 
           inherit version;
-          src = ./.;
+          src = ./test/server/.;
 
           buildInputs = packagesList;
 
           configurePhase = ''
             tmpSrc=$PWD/build-src
             mkdir -p $tmpSrc
-            cp -r ${./.}/* $tmpSrc/
-            mv $tmpSrc/CMakeListServer.txt $tmpSrc/CMakeLists.txt
+            cp -r $src/* $tmpSrc/
             mkdir -p build
             cmake -B build -S $tmpSrc -DCMAKE_BUILD_TYPE=Release
           '';
@@ -68,7 +65,6 @@
             cmake --install build --prefix=$out
             mkdir -p $out/bin
             cp build/ttp2-server $out/bin/ttp2-server
-            cp LICENSE $out/
           '';
 
         };
