@@ -110,3 +110,9 @@ int Networking::getOrderCollectionSize() {
   std::lock_guard<std::mutex> lock(mtx);
   return orderCollection.size();
 }
+
+int Networking::getSolutionCollectionSize() {
+  std::lock_guard<std::mutex> lock(mtx);
+  return solutionCollection.size();
+}
+

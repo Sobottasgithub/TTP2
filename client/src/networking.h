@@ -18,6 +18,7 @@ class Networking
       helpers::Packet popOrder();
       helpers::Packet popSolution();
       int getOrderCollectionSize();
+      int getSolutionCollectionSize();
       void pushSolution(helpers::Packet);
       void pushOrder(helpers::Packet order); 
       
