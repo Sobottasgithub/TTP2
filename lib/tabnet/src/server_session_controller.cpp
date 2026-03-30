@@ -1,5 +1,7 @@
 #include "../include/tabcrypt.h"
 
+#include "../include/methods.h"
+
 #include <iostream>
 
 

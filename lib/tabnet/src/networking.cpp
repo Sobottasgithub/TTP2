@@ -1,6 +1,7 @@
 #include "networking.h"
 
-#include "methods.h"
+#include "../include/methods.h"
+
 #include "helpers.h"
 
 #include <mutex>

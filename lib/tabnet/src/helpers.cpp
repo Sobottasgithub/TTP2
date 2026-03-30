@@ -1,6 +1,6 @@
 #include "helpers.h"
 
-#include "methods.h"
+#include "../include/methods.h"
 
 #include <string>
 #include <regex>
