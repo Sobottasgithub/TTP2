@@ -4,37 +4,36 @@
 
 #include <iostream>
 
-
 void ServerSessionController::networkingSession(int socket) {
   this->socket = socket;
 
   int responseCode = 0;
   while (responseCode >= 0) {
     // Receive solutions
-    helpers::Packet solutionCount = helpers::receiveMessage(socket);
+    Packet solutionCount = receiveMessage(socket);
     if (solutionCount.method == METHODS::size) {
-      responseCode = helpers::sendMessage(socket, METHODS::success, "");
+      responseCode = sendMessage(socket, METHODS::success, "");
       for (int index = 0; index < std::stoi(solutionCount.payload); index++) {
-        helpers::Packet packet = helpers::receiveMessage(socket);
+        Packet packet = receiveMessage(socket);
         pushSolution(packet);
-        responseCode = helpers::sendMessage(socket, METHODS::success, "");
+        responseCode = sendMessage(socket, METHODS::success, "");
       }
     } else {
-      responseCode = helpers::sendMessage(socket, METHODS::failed, "");
+      responseCode = sendMessage(socket, METHODS::failed, "");
       std::wcout << "Something went wrong during receiving size!" << std::endl;
       std::wcout << "Got: " << solutionCount.method << " instead of " << METHODS::size << " (size)" << std::endl;
     }
 
-    helpers::Packet ready = helpers::receiveMessage(socket);
+    Packet ready = receiveMessage(socket);
       
     // Send orders
     int orderCollectionSize = getOrderCollectionSize();
-    responseCode = helpers::sendMessage(socket, METHODS::size, std::to_string(orderCollectionSize));
+    responseCode = sendMessage(socket, METHODS::size, std::to_string(orderCollectionSize));
     if (orderCollectionSize > 0) {
-      if (helpers::receiveMessage(socket).method == METHODS::success) {
+      if (receiveMessage(socket).method == METHODS::success) {
         for(int index = 0; index < orderCollectionSize; index++) {
-          responseCode = helpers::sendPacket(socket, popOrder());
-          helpers::Packet response = helpers::receiveMessage(socket);
+          responseCode = sendPacket(socket, popOrder());
+          Packet response = receiveMessage(socket);
           if (response.method != METHODS::success) {
             std::wcout << "Send order to node failed: got " << response.method << std::endl;
           }

@@ -1,5 +1,4 @@
 #include "server_session_controller.h"
-#include "helpers.h"
 
 #include <iostream>
 #include <string>
@@ -26,9 +25,9 @@ int main() {
     serverAddress.sin_addr.s_addr = inet_addr(ipAddress.c_str());
 
     if(connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) == -1) {
-        helpers::Packet responseCode = helpers::receiveMessage(serverSocket);
-
         ServerSessionController serverSessionController;
+
+        ServerSessionController::Packet responseCode = serverSessionController.receiveMessage(serverSocket);
 
         std::thread networkThread(
             &ServerSessionController::networkingSession,
@@ -47,7 +46,7 @@ int main() {
             std::cin >> option;
 
             if (option == 1) {
-                helpers::Packet packet;
+                ServerSessionController::Packet packet;
                 int method;
                 std::string payload;
 
@@ -65,7 +64,7 @@ int main() {
                     continue;
                 }
                 while(serverSessionController.hasSolution()) {
-                    helpers::Packet packet = serverSessionController.popSolution();
+                    ServerSessionController::Packet packet = serverSessionController.popSolution();
                     std::wcout << "-- Message --" << std::endl;
                     std::wcout << "Method:  " << packet.method << std::endl;
                     std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
