@@ -10,7 +10,7 @@
 int main() {
     std::string ipAddress;
     int port;
-    
+
     std::wcout << "Server ipv4 (string): ";
     std::cin >> ipAddress;
     std::wcout << "Server port (int): ";
