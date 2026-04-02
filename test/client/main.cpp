@@ -27,8 +27,6 @@ int main() {
     if(connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) == -1) {
         ServerSessionController serverSessionController;
 
-        ServerSessionController::Packet responseCode = serverSessionController.receiveMessage(serverSocket);
-
         std::thread networkThread(
             &ServerSessionController::networkingSession,
             &serverSessionController,

@@ -3,9 +3,13 @@
 #include "../include/methods.h"
 
 #include <iostream>
+#include <sys/socket.h>
 
 void ServerSessionController::networkingSession(int socket) {
   this->socket = socket;
+
+  // Compleate Handshake
+  ServerSessionController::Packet responseCode = receiveMessage(socket);
 
   int responseCode = 0;
   while (responseCode >= 0) {
