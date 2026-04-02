@@ -1,1 +1,1 @@
-asn1c -no-gen-example packets.asn1
+asn1c packets.asn1

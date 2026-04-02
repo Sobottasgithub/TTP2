@@ -80,6 +80,10 @@
         inputsFrom = [ self.packages.${system}.default ];
 
         shellHook = ''
+          cd lib/tabnet/src/asn1/
+          ./build-asn1.sh
+          cd
+
           git status
         '';
       };
