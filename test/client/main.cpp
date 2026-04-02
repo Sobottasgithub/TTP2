@@ -1,4 +1,4 @@
-#include "server_session_controller.h"
+#include "client_session_controller.h"
 
 #include <iostream>
 #include <string>
@@ -25,16 +25,16 @@ int main() {
     serverAddress.sin_addr.s_addr = inet_addr(ipAddress.c_str());
 
     if(connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) == -1) {
-        ServerSessionController serverSessionController;
+        ClientSessionController clientSessionController;
 
         std::thread networkThread(
-            &ServerSessionController::networkingSession,
-            &serverSessionController,
+            &ClientSessionController::networkingSession,
+            &clientSessionController,
             serverSocket
         );
 
         while (true) {
-            if (!serverSessionController.isConnected()) {
+            if (!clientSessionController.isConnected()) {
                 std::wcout << "Disconnect!" << std::endl;
                 break;
             }
@@ -44,7 +44,7 @@ int main() {
             std::cin >> option;
 
             if (option == 1) {
-                ServerSessionController::Packet packet;
+                ClientSessionController::Packet packet;
                 int method;
                 std::string payload;
 
@@ -55,14 +55,14 @@ int main() {
                 
                 packet.method  = method;
                 packet.payload = payload;
-                serverSessionController.pushOrder(packet);
+                clientSessionController.pushOrder(packet);
             } else if (option == 2) {
-                if (!serverSessionController.hasSolution()) {
+                if (!clientSessionController.hasSolution()) {
                     std::wcout << "No Messages!" << std::endl;
                     continue;
                 }
-                while(serverSessionController.hasSolution()) {
-                    ServerSessionController::Packet packet = serverSessionController.popSolution();
+                while(clientSessionController.hasSolution()) {
+                    ClientSessionController::Packet packet = clientSessionController.popSolution();
                     std::wcout << "-- Message --" << std::endl;
                     std::wcout << "Method:  " << packet.method << std::endl;
                     std::wcout << "Payload: " << packet.payload.c_str() << std::endl;

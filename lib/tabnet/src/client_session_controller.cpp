@@ -7,64 +7,60 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-void ClientSessionController::networkingSession(int serverSocket, int clientSocket) {
-  
+
+void ServerSessionController::networkingSession(int socket) {
+  this->socket = socket;
+
   // Compleate Handshake
-  int responseCode = ClientSessionController::sendMessage(clientSocket, METHODS::handshake, "");
-  if (responseCode < 0) {
-    std::wcout << "Socket: " << clientSocket << " closed during the handshake!" << std::endl;
-    close(clientSocket);
+  Packet handshakePacket = receiveMessage(socket);
+  if (handshakePacket.method != METHODS::handshake) {
+    std::wcout << "Handshake failed!" << std::endl;
     connected = false;
+    close(socket);
     return;
   }
 
-  while (true) {
-    // Hand back finished solution 
-    int solutionCollectionSize = getSolutionCollectionSize();
-    responseCode = sendMessage(clientSocket, METHODS::size, std::to_string(solutionCollectionSize));
-    ClientSessionController::Packet response = receiveMessage(clientSocket);
-    if (response.method == METHODS::success) {
-      for(int index = 0; index < solutionCollectionSize; index++) {
-        // Send data
-        ClientSessionController::Packet solution = popSolution();
-        responseCode = sendPacket(clientSocket, solution);
-        ClientSessionController::Packet response = receiveMessage(clientSocket);
-        if (response.method != METHODS::success) {
-          std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
-          std::wcout << "With following payload" << response.payload.c_str() << std::endl;
-        }
-      }
-    } else if (response.method == METHODS::failed) {
-      std::wcout << "Something went wrong while sending the size! Master response: " << response.payload.c_str() << std::endl;
-    } else {
-      std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
-      std::wcout << "With following payload" << response.payload.c_str() << std::endl;
-    }
-
-    responseCode = sendMessage(clientSocket, METHODS::ready, "");
-    
-    //receive
-    ClientSessionController::Packet receivedPacket = receiveMessage(clientSocket);
-    if (receivedPacket.method == METHODS::size) {
-      int count = std::stoi(receivedPacket.payload);
-      if (count != 0) {
-        responseCode = sendMessage(clientSocket, METHODS::success, "");
-        for(int i = 0; i < count; i++) {
-          Packet order = receiveMessage(clientSocket);
-          pushOrder(order);
-          responseCode = sendMessage(clientSocket, METHODS::success, "");
-        }
+  int responseCode = 0;
+  while (responseCode >= 0) {
+    // Receive solution(s)
+    Packet solutionCount = receiveMessage(socket);
+    if (solutionCount.method == METHODS::size) {
+      responseCode = sendMessage(socket, METHODS::success, "");
+      for (int index = 0; index < std::stoi(solutionCount.payload); index++) {
+        Packet packet = receiveMessage(socket);
+        pushSolution(packet);
+        responseCode = sendMessage(socket, METHODS::success, "");
       }
     } else {
-      std::wcout << "Expected: " << METHODS::size << " (size) got: " << receivedPacket.method << std::endl;
-      responseCode = sendMessage(clientSocket, METHODS::failed, "Expected method size");
+      responseCode = sendMessage(socket, METHODS::failed, "");
+      std::wcout << "Something went wrong during receiving size!" << std::endl;
+      std::wcout << "Got: " << solutionCount.method << " instead of " << METHODS::size << " (size)" << std::endl;
     }
 
-    // Controlled shutdown of this thread, if the master crashes
+    Packet ready = receiveMessage(socket);
+      
+    // Send order(s)
+    int orderCollectionSize = getOrderCollectionSize();
+    responseCode = sendMessage(socket, METHODS::size, std::to_string(orderCollectionSize));
+    if (orderCollectionSize > 0) {
+      if (receiveMessage(socket).method == METHODS::success) {
+        for(int index = 0; index < orderCollectionSize; index++) {
+          responseCode = sendPacket(socket, popOrder());
+          Packet response = receiveMessage(socket);
+          if (response.method != METHODS::success) {
+            std::wcout << "Send order to node failed: got " << response.method << std::endl;
+          }
+        }
+      } else {
+        std::wcout << "Send of size failed!" << std::endl;
+      }
+    }
+
     if (responseCode < 0) {
-      std::wcout << "Socket: " << clientSocket << " closed!" << std::endl;
-      close(clientSocket);
-      return;
-    }    
+        responseCode = 0;
+        connected = false;
+        break;
+    }
   }
+  connected = false;
 }
