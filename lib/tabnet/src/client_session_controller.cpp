@@ -7,8 +7,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-
-void ServerSessionController::networkingSession(int socket) {
+void ClientSessionController::networkingSession(int socket) {
   this->socket = socket;
 
   // Compleate Handshake

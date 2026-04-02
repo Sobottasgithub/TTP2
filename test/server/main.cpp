@@ -1,5 +1,50 @@
-//#include "src/.h"
+#include "server_session_controller.h"
 
-int main() {    
+#include <iostream>
+#include <string>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <thread>
+
+int main() {
+    std::string interface;
+    int port;
+
+    std::wcout << "Interface (string): ";
+    std::cin >> interface;
+    std::wcout << "Port (int): ";
+    std::cin >> port;
+
+    ServerSessionController serverSessionController;
+    std::string containerIP = serverSessionController.getLocalIpAddress(interface);
+
+    sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(port);
+    serverAddress.sin_addr.s_addr = inet_addr(containerIP.c_str());
+
+    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+
+    // On new request: open new ServerSessionController
+    std::vector<std::thread> threadCollection;
+    threadCollection.reserve(100);
+    listen(serverSocket, 5);
+    while (true) {
+        int clientSocket = accept(serverSocket, nullptr, nullptr);
+        std::wcout << "clientSocket: " << clientSocket << std::endl;
+        threadCollection.push_back(std::thread(&ServerSessionController::networkingSession,
+                                               &serverSessionController, serverSocket, clientSocket));
+    }
+
+    std::wcout << "Terminated!" << std::endl;
+
+    for (auto &socketThread : threadCollection) {
+        if (socketThread.joinable()) {
+          socketThread.join();
+        }
+    }
+    
     return 0;
 }
