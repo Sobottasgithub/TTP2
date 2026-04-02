@@ -82,7 +82,7 @@
         shellHook = ''
           cd lib/tabnet/src/asn1/
           ./build-asn1.sh
-          cd
+          cd ../../../../
 
           git status
         '';
