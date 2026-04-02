@@ -71,7 +71,8 @@
       };
 
       devShells.${system}.default = let
-        devPackages = packagesList ++ [ pkgs.bridge-utils pkgs.clang-tools ];
+        devPackages = packagesList
+          ++ [ pkgs.bridge-utils pkgs.clang-tools pkgs.asn1c ];
       in pkgs.mkShell {
         packages = devPackages;
 
@@ -80,7 +81,6 @@
 
         shellHook = ''
           git status
-          cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
         '';
       };
     };
