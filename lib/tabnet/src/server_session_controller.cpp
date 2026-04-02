@@ -4,12 +4,21 @@
 
 #include <iostream>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+
 
 void ServerSessionController::networkingSession(int socket) {
   this->socket = socket;
 
   // Compleate Handshake
-  ServerSessionController::Packet responseCode = receiveMessage(socket);
+  ServerSessionController::Packet handshakePacket = receiveMessage(socket);
+  if (handshakePacket.method != METHODS::handshake) {
+    std::wcout << "Handshake failed!" << std::endl;
+    connected = false;
+    close(socket);
+    return;
+  }
 
   int responseCode = 0;
   while (responseCode >= 0) {

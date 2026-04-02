@@ -5,6 +5,7 @@ enum METHODS {
   empty = 10,
   success = 100,
   ready = 110,
+  handshake = 111,
   failed = 200,
   ip = 300,
   

@@ -5,13 +5,18 @@
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 #include <unistd.h>
 
 void ClientSessionController::networkingSession(int serverSocket, int clientSocket) {
+  
   // Compleate Handshake
-  int responseCode = ClientSessionController::sendMessage(clientSocket, METHODS::success, ""); 
+  int responseCode = ClientSessionController::sendMessage(clientSocket, METHODS::handshake, "");
+  if (responseCode < 0) {
+    std::wcout << "Socket: " << clientSocket << " closed during the handshake!" << std::endl;
+    close(clientSocket);
+    connected = false;
+    return;
+  }
 
   while (true) {
     // Hand back finished solution 
