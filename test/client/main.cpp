@@ -8,6 +8,12 @@
 #include <thread>
 
 int main() {
+    ClientSessionController clientSessionController;
+    clientSessionController.testAsn1();
+
+
+    return 0;
+    
     std::string ipAddress;
     int port;
 

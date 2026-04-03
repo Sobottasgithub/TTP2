@@ -7,6 +7,51 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+extern "C" {
+#include "asn1/Packet.h"
+#include "asn1/asn_application.h"
+#include "asn1/asn_internal.h"
+}
+
+static int ClientSessionController::write_callback(const void *buffer, size_t size, void *app_key) {
+    auto *vec = reinterpret_cast<std::vector<uint8_t> *>(app_key);
+    const uint8_t *data = reinterpret_cast<const uint8_t *>(buffer);
+
+    vec->insert(vec->end(), data, data + size);
+    return 0;
+}
+
+void ClientSessionController::testAsn1() {
+  std::wcout << "Start test ASN1" << std::endl;
+  Packet_t *msg = (Packet_t*)calloc(1, sizeof(Packet_t));
+
+  msg->method = 41;
+  const char *payload = "Hello world!";
+  OCTET_STRING_fromBuf(&msg.payload, payload, strlen(payload));
+
+ std::vector<uint8_t> bytes;
+
+  asn_enc_rval_t rval = der_encode(
+      &asn_DEF_TestMessage,
+      &msg,
+      write_callback,
+      &bytes
+  );
+
+  if (rval.encoded == -1) {
+      std::cerr << "Encode failed\n";
+      return 1;
+  }
+
+  std::wcout << "Encoded bytes: " << bytes.size() << "\n";
+
+  for (auto b : bytes)
+      printf("%02X ", b);
+
+  printf("\n");
+}
+
+
 void ClientSessionController::networkingSession(int socket) {
   this->socket = socket;
 

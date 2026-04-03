@@ -7,6 +7,8 @@ class ClientSessionController: public Networking
 {
     public:
       void networkingSession(int socket);
+      void testAsn1();
+      static int write_callback(const void *buffer, size_t size, void *app_key); 
 };
 
 #endif

@@ -72,7 +72,7 @@
 
       devShells.${system}.default = let
         devPackages = packagesList
-          ++ [ pkgs.bridge-utils pkgs.clang-tools pkgs.asn1c ];
+          ++ [ pkgs.bridge-utils pkgs.clang-tools pkgs.libtasn1 ];
       in pkgs.mkShell {
         packages = devPackages;
 
@@ -80,9 +80,9 @@
         inputsFrom = [ self.packages.${system}.default ];
 
         shellHook = ''
-          cd lib/tabnet/src/asn1/
-          ./build-asn1.sh
-          cd ../../../../
+          cd lib/tabnet/src/
+          ./build-asn1-packets.sh
+          cd ../../../
 
           git status
         '';
