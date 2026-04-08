@@ -14,33 +14,29 @@ extern const asn1_static_node packets_asn1_tab[];
 
 
 void ClientSessionController::testAsn1() {
+  // Load asn1 schema from the _tab.c file
   asn1_node definitions = nullptr;
-
-  // Load the ASN.1 schema from the generated table
-  int ret = asn1_array2tree(packets_asn1_tab, &definitions, nullptr);
-
-  if (ret != ASN1_SUCCESS) {
-      std::wcout << "Failed to load ASN.1 definitions\n";
+  int responseCode = asn1_array2tree(packets_asn1_tab, &definitions, nullptr);
+  if (responseCode != ASN1_SUCCESS) {
+      std::wcout << "Failed to load ASN.1 definitions" << std::endl;
       return;
   }
+  std::wcout << "ASN.1 definitions loaded" << std::endl;
 
-  std::cout << "ASN.1 definitions loaded!\n";
-
-  // Example: create an element (replace with your actual type)
+  // TEST: Packets.Packet
   asn1_node node = nullptr;
-  ret = asn1_create_element(definitions, "Packets.MyType", &node);
-
-  if (ret != ASN1_SUCCESS) {
-      std::wcout << "Failed to create element\n";
+  responseCode = asn1_create_element(definitions, "Packets.Packet", &node);
+  if (responseCode != ASN1_SUCCESS) {
+      std::wcout << "Failed to create Packets.Packet" << std::endl;
       return;
   }
 
-  // Example: set values
-  int value = 42;
-  asn1_write_value(node, "field1", &value, sizeof(value));
-  asn1_write_value(node, "field2", "hello", 1);
+  int method = METHODS::test;
+  std::string payload = "Hello world";
+  asn1_write_value(node, "method", &method, sizeof(method));
+  asn1_write_value(node, "payload", &payload, 1);
 
-  std::wcout << "ASN.1 object created and filled\n";
+  std::wcout << "ASN.1 object filled with data!" << std::endl;
 
   // Cleanup
   asn1_delete_structure(&node);
