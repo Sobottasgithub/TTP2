@@ -12,7 +12,7 @@ include_directories(
   ${LIBTASN1_INCLUDE_DIRS}
 )
 
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.c")
 # file(GLOB_RECURSE HEADERS "include/*.h")
 
 add_library(tabnet SHARED ${SOURCES} ${LIBTASN1_LIBRARIES})
@@ -23,7 +23,7 @@ target_include_directories(tabnet PUBLIC
 )
 
 # Link against the libtasn1 library
-target_link_libraries(tabnet PRIVATE ${LIBTASN1_LIBRARIES})
+target_link_libraries(tabnet PRIVATE tasn1)
 
 install(TARGETS tabnet DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
