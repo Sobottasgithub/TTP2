@@ -8,49 +8,44 @@
 #include <unistd.h>
 
 extern "C" {
-#include "asn1/Packet.h"
-#include "asn1/asn_application.h"
-#include "asn1/asn_internal.h"
+#include <libtasn1.h>
+extern const asn1_static_node packets_asn1_tab[];
 }
 
-static int ClientSessionController::write_callback(const void *buffer, size_t size, void *app_key) {
-    auto *vec = reinterpret_cast<std::vector<uint8_t> *>(app_key);
-    const uint8_t *data = reinterpret_cast<const uint8_t *>(buffer);
-
-    vec->insert(vec->end(), data, data + size);
-    return 0;
-}
 
 void ClientSessionController::testAsn1() {
-  std::wcout << "Start test ASN1" << std::endl;
-  Packet_t *msg = (Packet_t*)calloc(1, sizeof(Packet_t));
+  asn1_node definitions = nullptr;
 
-  msg->method = 41;
-  const char *payload = "Hello world!";
-  OCTET_STRING_fromBuf(&msg.payload, payload, strlen(payload));
+  // Load the ASN.1 schema from the generated table
+  int ret = asn1_array2tree(packets_asn1_tab, &definitions, nullptr);
 
- std::vector<uint8_t> bytes;
-
-  asn_enc_rval_t rval = der_encode(
-      &asn_DEF_TestMessage,
-      &msg,
-      write_callback,
-      &bytes
-  );
-
-  if (rval.encoded == -1) {
-      std::cerr << "Encode failed\n";
-      return 1;
+  if (ret != ASN1_SUCCESS) {
+      std::wcout << "Failed to load ASN.1 definitions\n";
+      return;
   }
 
-  std::wcout << "Encoded bytes: " << bytes.size() << "\n";
+  std::cout << "ASN.1 definitions loaded!\n";
 
-  for (auto b : bytes)
-      printf("%02X ", b);
+  // Example: create an element (replace with your actual type)
+  asn1_node node = nullptr;
+  ret = asn1_create_element(definitions, "Packets.MyType", &node);
 
-  printf("\n");
+  if (ret != ASN1_SUCCESS) {
+      std::wcout << "Failed to create element\n";
+      return;
+  }
+
+  // Example: set values
+  int value = 42;
+  asn1_write_value(node, "field1", &value, sizeof(value));
+  asn1_write_value(node, "field2", "hello", 1);
+
+  std::wcout << "ASN.1 object created and filled\n";
+
+  // Cleanup
+  asn1_delete_structure(&node);
+  asn1_delete_structure(&definitions);
 }
-
 
 void ClientSessionController::networkingSession(int socket) {
   this->socket = socket;

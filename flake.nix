@@ -9,7 +9,7 @@
       pkgs = import nixpkgs { inherit system; };
 
       version = "1.2";
-      packagesList = with pkgs; [ cmake gcc gnumake ];
+      packagesList = with pkgs; [ cmake gcc gnumake libtasn1 ];
     in {
       packages.${system} = {
         client = pkgs.stdenv.mkDerivation {

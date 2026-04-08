@@ -1,0 +1,8 @@
+Packets DEFINITIONS EXPLICIT TAGS ::= BEGIN
+
+Packet ::= SEQUENCE {
+	method INTEGER,
+	payload UTF8String
+} 
+
+END
