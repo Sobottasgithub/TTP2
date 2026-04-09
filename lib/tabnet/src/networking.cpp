@@ -3,13 +3,13 @@
 #include "../include/methods.h"
 
 #include <mutex>
+#include <netinet/in.h>
 #include <string>
-#include <map>
 #include <iostream>
 #include <regex>
 #include <cstring>
 #include <sys/socket.h>
-#include <thread>
+#include <arpa/inet.h>
 
 extern "C" {
 #include <libtasn1.h>
@@ -108,8 +108,9 @@ int Networking::sendMessage(int socket, int method, std::string payload) {
       return -1;
   }
 
-  std::wcout << "Encoded to " << derLen << " bytes." << std::endl;
-  // TODO: Send message!
+  uint32_t size = htonl(derLen); // Convert to bytes
+  sendBytes(socket, reinterpret_cast<char*>(&size), sizeof(size)); // [1] Send size (4 bytes)
+  sendBytes(socket, reinterpret_cast<char*>(buffer.data()), derLen); // [2] Send data
 
   asn1_delete_structure(&packet);
   asn1_delete_structure(&definitions);
@@ -131,11 +132,13 @@ Networking::Packet Networking::receiveMessage(int socket) {
 
   asn1_create_element(definitions, "Packets.Packet", &packet);
 
-  // TODO: Receive message and write into buffer below:
-  //std::vector<unsigned char> buffer(derLen);
-  std::vector<unsigned char> buffer(128); // WARNING: temp only!
-  int derLen = buffer.size(); // WARNING: temp only!
-  
+  uint32_t size;  
+  receiveBytes(socket, reinterpret_cast<unsigned char*>(&size), sizeof(size)); // [1] Receive size
+  int derLen = ntohl(size);
+  // [2] Receive data
+  std::vector<unsigned char> buffer(size);
+  receiveBytes(socket, buffer.data(), size);
+
   if (asn1_der_decoding(&packet, buffer.data(), derLen, errorDescription) != ASN1_SUCCESS) {
     std::cerr << "Decode error: " << errorDescription << std::endl;
     return data;
@@ -171,4 +174,29 @@ bool Networking::isNumeric(const std::string& string) {
       R"(^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$)"
   );
   return std::regex_match(string, numberRegex);
+}
+
+ssize_t Networking::receiveBytes(int socket, unsigned char* buffer, size_t max) {
+    size_t receivedBytes = 0;
+    while (receivedBytes < max) {
+        ssize_t received = recv(socket, buffer + receivedBytes, max - receivedBytes, 0);
+        
+        if (received == 0) return 0;
+        if (received < 0) return -1;
+        
+        receivedBytes += received;
+    }
+    return receivedBytes;
+}
+
+ssize_t Networking::sendBytes(int socket, const char* buffer, size_t max) {
+    size_t sentBytes = 0;
+    while (sentBytes < max) {
+        ssize_t sent = send(socket, buffer + sentBytes, max - sentBytes, 0);
+        
+        if (sent <= 0) return -1;
+        
+        sentBytes += sent;
+    }
+    return sentBytes;
 }

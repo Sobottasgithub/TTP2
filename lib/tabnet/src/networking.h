@@ -39,6 +39,8 @@ class Networking
       std::vector<Packet> solutionCollection;
       std::mutex mtx;
       Packet popCollection(std::vector<Packet> collection);
+      ssize_t receiveBytes(int socket, unsigned char* buffer, size_t max);
+      ssize_t sendBytes(int socket, const char* buffer, size_t max);
 };
 
 #endif
