@@ -7,7 +7,6 @@ class ClientSessionController: public Networking
 {
     public:
       void networkingSession(int socket);
-      void testAsn1();
 };
 
 #endif

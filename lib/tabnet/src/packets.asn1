@@ -1,8 +1,8 @@
-Packets DEFINITIONS EXPLICIT TAGS ::= BEGIN
+Packets DEFINITIONS ::= BEGIN
 
 Packet ::= SEQUENCE {
 	method INTEGER,
-	payload UTF8String
+	payload OCTET STRING
 } 
 
 END

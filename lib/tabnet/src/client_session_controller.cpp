@@ -7,42 +7,6 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-extern "C" {
-#include <libtasn1.h>
-extern const asn1_static_node packets_asn1_tab[];
-}
-
-
-void ClientSessionController::testAsn1() {
-  // Load asn1 schema from the _tab.c file
-  asn1_node definitions = nullptr;
-  int responseCode = asn1_array2tree(packets_asn1_tab, &definitions, nullptr);
-  if (responseCode != ASN1_SUCCESS) {
-      std::wcout << "Failed to load ASN.1 definitions" << std::endl;
-      return;
-  }
-  std::wcout << "ASN.1 definitions loaded" << std::endl;
-
-  // TEST: Packets.Packet
-  asn1_node node = nullptr;
-  responseCode = asn1_create_element(definitions, "Packets.Packet", &node);
-  if (responseCode != ASN1_SUCCESS) {
-      std::wcout << "Failed to create Packets.Packet" << std::endl;
-      return;
-  }
-
-  int method = METHODS::test;
-  std::string payload = "Hello world";
-  asn1_write_value(node, "method", &method, sizeof(method));
-  asn1_write_value(node, "payload", &payload, 1);
-
-  std::wcout << "ASN.1 object filled with data!" << std::endl;
-
-  // Cleanup
-  asn1_delete_structure(&node);
-  asn1_delete_structure(&definitions);
-}
-
 void ClientSessionController::networkingSession(int socket) {
   this->socket = socket;
 
