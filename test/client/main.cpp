@@ -8,12 +8,6 @@
 #include <thread>
 
 int main() {
-    ClientSessionController clientSessionController;
-    clientSessionController.testAsn1();
-
-
-    return 0;
-    
     std::string ipAddress;
     int port;
 
@@ -21,7 +15,6 @@ int main() {
     std::cin >> ipAddress;
     std::wcout << "Server port (int): ";
     std::cin >> port; 
-
 
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -44,7 +37,7 @@ int main() {
                 std::wcout << "Disconnect!" << std::endl;
                 break;
             }
-            
+    
             std::wcout << "Choose option\n(1) send message\n(2) read messages\nnumber: ";
             int option;
             std::cin >> option;
@@ -58,7 +51,7 @@ int main() {
                 std::cin >> method; // TODO: Check type
                 std::wcout << "(string) Payload";
                 std::cin >> payload;
-                
+        
                 packet.method  = method;
                 packet.payload = payload;
                 clientSessionController.pushOrder(packet);
@@ -79,6 +72,6 @@ int main() {
             }
         }
     }
-    
+
     return 0;
 }
