@@ -49,7 +49,7 @@ int main() {
 
                 std::wcout << "(int) Method: ";
                 std::cin >> method; // TODO: Check type
-                std::wcout << "(string) Payload";
+                std::wcout << "(string) Payload: ";
                 std::cin >> payload;
         
                 packet.method  = method;
