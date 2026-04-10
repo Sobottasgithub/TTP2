@@ -12,6 +12,7 @@ void ClientSessionController::networkingSession(int socket) {
 
   // Compleate Handshake
   Packet handshakePacket = receiveMessage(socket);
+  int responseCode = sendMessage(socket, METHODS::handshake, "hello");
   if (handshakePacket.method != METHODS::handshake) {
     std::wcout << "Handshake failed!" << std::endl;
     connected = false;
@@ -19,7 +20,7 @@ void ClientSessionController::networkingSession(int socket) {
     return;
   }
 
-  int responseCode = 0;
+  responseCode = 0;
   while (responseCode >= 0) {
     // Receive solution(s)
     Packet solutionCount = receiveMessage(socket);

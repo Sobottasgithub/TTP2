@@ -10,9 +10,9 @@
 #include <arpa/inet.h>
 
 void ServerSessionController::networkingSession(int serverSocket, int clientSocket) {
-  
   // Compleate Handshake
-  int responseCode = ServerSessionController::sendMessage(clientSocket, METHODS::handshake, "");
+  int responseCode = sendMessage(clientSocket, METHODS::handshake, "hello");
+  Packet handshakePacket = receiveMessage(clientSocket);
   if (responseCode < 0) {
     std::wcout << "Socket: " << clientSocket << " closed during the handshake!" << std::endl;
     close(clientSocket);
