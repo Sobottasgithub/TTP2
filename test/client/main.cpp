@@ -23,7 +23,7 @@ int main() {
     serverAddress.sin_port = htons(port);
     serverAddress.sin_addr.s_addr = inet_addr(ipAddress.c_str());
 
-    if(connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) == -1) {
+    if(connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) == 0) {
         ClientSessionController clientSessionController;
 
         std::thread networkThread(
