@@ -6,8 +6,12 @@
 class ServerSessionController: public Networking
 {
     public:
-      void networkingSession(int serverSocket, int clientSocket);
+      ServerSessionController(int serverSocket, int clientSocket);
+      void networkingSession();
       std::string getLocalIpAddress(std::string interface);
+    private:
+      int serverSocket;
+      int clientSocket;
 };
 
 #endif

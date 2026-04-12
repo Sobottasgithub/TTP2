@@ -16,8 +16,6 @@ extern "C" {
 extern const asn1_static_node packets_asn1_tab[];
 }
 
-Networking::Networking() {}
-
 bool Networking::hasSolution() {
   std::lock_guard<std::mutex> lock(mtx);
   return !solutionCollection.empty();

@@ -9,7 +9,12 @@
 #include <ifaddrs.h>
 #include <arpa/inet.h>
 
-void ServerSessionController::networkingSession(int serverSocket, int clientSocket) {
+ServerSessionController::ServerSessionController(int serverSocket, int clientSocket) {
+  this->serverSocket = serverSocket;
+  this->clientSocket = clientSocket;
+}
+
+void ServerSessionController::networkingSession() {
   // Compleate Handshake
   int responseCode = sendMessage(clientSocket, METHODS::handshake, "hello");
   Packet handshakePacket = receiveMessage(clientSocket);
@@ -53,6 +58,7 @@ void ServerSessionController::networkingSession(int serverSocket, int clientSock
         responseCode = sendMessage(clientSocket, METHODS::success, "");
         for(int i = 0; i < count; i++) {
           Packet order = receiveMessage(clientSocket);
+          std::wcout << "received order!!!!!" << std::endl;
           pushOrder(order);
           responseCode = sendMessage(clientSocket, METHODS::success, "");
         }

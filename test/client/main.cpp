@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <thread>
+#include <memory>
 
 int main() {
     std::string ipAddress;
@@ -24,16 +25,14 @@ int main() {
     serverAddress.sin_addr.s_addr = inet_addr(ipAddress.c_str());
 
     if(connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) == 0) {
-        ClientSessionController clientSessionController;
+        auto clientSessionController = std::make_shared<ClientSessionController>(serverSocket);
 
-        std::thread networkThread(
-            &ClientSessionController::networkingSession,
-            &clientSessionController,
-            serverSocket
-        );
+        std::thread networkThread([clientSessionController]() {
+            clientSessionController->networkingSession();
+        });
 
         while (true) {
-            if (!clientSessionController.isConnected()) {
+            if (!clientSessionController->isConnected()) {
                 std::wcout << "Disconnect!" << std::endl;
                 break;
             }
@@ -54,14 +53,14 @@ int main() {
         
                 packet.method  = method;
                 packet.payload = payload;
-                clientSessionController.pushOrder(packet);
+                clientSessionController->pushOrder(packet);
             } else if (option == 2) {
-                if (!clientSessionController.hasSolution()) {
+                if (!clientSessionController->hasSolution()) {
                     std::wcout << "No Messages!" << std::endl;
                     continue;
                 }
-                while(clientSessionController.hasSolution()) {
-                    ClientSessionController::Packet packet = clientSessionController.popSolution();
+                while(clientSessionController->hasSolution()) {
+                    ClientSessionController::Packet packet = clientSessionController->popSolution();
                     std::wcout << "-- Message --" << std::endl;
                     std::wcout << "Method:  " << packet.method << std::endl;
                     std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
@@ -71,6 +70,7 @@ int main() {
                 std::wcout << "Invalid!" << std::endl;
             }
         }
+        networkThread.detach();
     }
 
     return 0;

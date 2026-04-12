@@ -13,7 +13,6 @@ class Networking
         std::string payload;  
       };
 
-      Networking();
       bool isConnected();
       bool hasOrder();
       bool hasSolution();
@@ -30,11 +29,9 @@ class Networking
 
     protected:
       bool connected = true;
-      int socket;
-
+      
       bool isNumeric(const std::string& string);
             
-    private:
       std::vector<Packet> orderCollection;
       std::vector<Packet> solutionCollection;
       std::mutex mtx;
