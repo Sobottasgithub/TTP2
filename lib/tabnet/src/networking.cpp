@@ -134,8 +134,10 @@ Networking::Packet Networking::receiveMessage(int socket) {
   receiveBytes(socket, reinterpret_cast<unsigned char*>(&size), sizeof(size)); // [1] Receive size
   int derLen = ntohl(size);
   // [2] Receive data
-  std::vector<unsigned char> buffer(size);
-  receiveBytes(socket, buffer.data(), size);
+  // std::vector<char> buffer(size);
+  // receiveBytes(socket, buffer.data(), size);
+  std::vector<char> buffer(size);
+  recv(socket, buffer.data(), size, 0);
 
   if (asn1_der_decoding(&packet, buffer.data(), derLen, errorDescription) != ASN1_SUCCESS) {
     std::cerr << "Decode error: " << errorDescription << std::endl;

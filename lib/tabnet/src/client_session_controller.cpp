@@ -8,13 +8,11 @@
 #include <unistd.h>
 
 ClientSessionController::ClientSessionController(int &socket) {
-  std::wcout << "Constructor of networking called!" << std::endl;
   this->socket = socket;
 }
 
 
 void ClientSessionController::networkingSession() {
-  std::wcout << "NETWORKING SESSION" << std::endl;
   // Compleate Handshake
   Packet handshakePacket = receiveMessage(socket);
   int responseCode = sendMessage(socket, METHODS::handshake, "hello");
@@ -24,15 +22,11 @@ void ClientSessionController::networkingSession() {
     close(socket);
     return;
   }
-
-  std::wcout << "after handshake" << std::endl;
-  
+ 
   responseCode = 0;
   while (responseCode >= 0) {
-    std::wcout << "Cycle1" << std::endl;
     // Receive solution(s)
     Packet solutionCount = receiveMessage(socket);
-    std::wcout << "Helloi world!" << std::endl;
     if (solutionCount.method == METHODS::size) {
       responseCode = sendMessage(socket, METHODS::success, "");
       for (int index = 0; index < std::stoi(solutionCount.payload); index++) {
@@ -51,9 +45,7 @@ void ClientSessionController::networkingSession() {
     // Send order(s)
     int orderCollectionSize = getOrderCollectionSize();
     responseCode = sendMessage(socket, METHODS::size, std::to_string(orderCollectionSize));
-    std::wcout << "cycle send" << std::endl;
     if (orderCollectionSize > 0) {
-      std::wcout << "orderColelctionSize: " << orderCollectionSize << std::endl;
       if (receiveMessage(socket).method == METHODS::success) {
         for(int index = 0; index < orderCollectionSize; index++) {
           responseCode = sendPacket(socket, popOrder());
