@@ -41,9 +41,9 @@ int main() {
     
     while (true) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        if (serverSessionController->hasOrder()) {
+        if (serverSessionController->hasRequest()) {
             std::wcout << "Received request!" << std::endl;
-            ServerSessionController::Packet packet = serverSessionController->popOrder();
+            ServerSessionController::Packet packet = serverSessionController->popRequest();
             serverSessionController->pushSolution(packet);
         }
     }

@@ -53,7 +53,7 @@ int main() {
         
                 packet.method  = method;
                 packet.payload = payload;
-                clientSessionController->pushOrder(packet);
+                clientSessionController->pushRequest(packet);
             } else if (option == 2) {
                 if (!clientSessionController->hasSolution()) {
                     std::wcout << "No Messages!" << std::endl;

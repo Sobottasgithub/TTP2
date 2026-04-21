@@ -41,16 +41,16 @@ void ClientSessionController::networkingSession() {
 
     Packet ready = receiveMessage(socket);
       
-    // Send order(s)
-    int orderCollectionSize = getOrderCollectionSize();
-    responseCode = sendMessage(socket, METHODS::size, std::to_string(orderCollectionSize));
-    if (orderCollectionSize > 0) {
+    // Send request(s)
+    int requestCollectionSize = getRequestCollectionSize();
+    responseCode = sendMessage(socket, METHODS::size, std::to_string(requestCollectionSize));
+    if (requestCollectionSize > 0) {
       if (receiveMessage(socket).method == METHODS::success) {
-        for(int index = 0; index < orderCollectionSize; index++) {
-          responseCode = sendPacket(socket, popOrder());
+        for(int index = 0; index < requestCollectionSize; index++) {
+          responseCode = sendPacket(socket, popRequest());
           Packet response = receiveMessage(socket);
           if (response.method != METHODS::success) {
-            std::wcout << "Send order to node failed: got " << response.method << std::endl;
+            std::wcout << "Send request to node failed: got " << response.method << std::endl;
           }
         }
         responseCode = sendMessage(socket, METHODS::ready, "");

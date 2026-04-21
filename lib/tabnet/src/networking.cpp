@@ -21,9 +21,9 @@ bool Networking::hasSolution() {
   return !solutionCollection.empty();
 }
 
-bool Networking::hasOrder() {
+bool Networking::hasRequest() {
   std::lock_guard<std::mutex> lock(mtx);
-  return !orderCollection.empty();
+  return !requestCollection.empty();
 }
 
 bool Networking::isConnected() {
@@ -31,12 +31,12 @@ bool Networking::isConnected() {
   return connected;
 }
 
-Networking::Packet Networking::popOrder() {
+Networking::Packet Networking::popRequest() {
   std::lock_guard<std::mutex> lock(mtx);
-  if (!orderCollection.empty()) {
-    Networking::Packet firstOrder = orderCollection[0];
-    orderCollection.erase(orderCollection.begin());  
-    return firstOrder;
+  if (!requestCollection.empty()) {
+    Networking::Packet firstRequest = requestCollection[0];
+    requestCollection.erase(requestCollection.begin());  
+    return firstRequest;
   }
   Networking::Packet emptyPacket;
   return emptyPacket;
@@ -45,9 +45,9 @@ Networking::Packet Networking::popOrder() {
 Networking::Packet Networking::popSolution() {
   std::lock_guard<std::mutex> lock(mtx);
   if (!solutionCollection.empty()) {
-    Networking::Packet firstOrder = solutionCollection[0];
+    Networking::Packet firstSolution = solutionCollection[0];
     solutionCollection.erase(solutionCollection.begin());  
-    return firstOrder;
+    return firstSolution;
   }
   Networking::Packet emptyPacket;
   return emptyPacket;
@@ -58,14 +58,14 @@ void Networking::pushSolution(Networking::Packet solution) {
   solutionCollection.push_back(solution);
 }
 
-void Networking::pushOrder(Networking::Packet order) {
+void Networking::pushRequest(Networking::Packet request) {
   std::lock_guard<std::mutex> lock(mtx);
-  orderCollection.push_back(order);
+  requestCollection.push_back(request);
 }
 
-int Networking::getOrderCollectionSize() {
+int Networking::getRequestCollectionSize() {
   std::lock_guard<std::mutex> lock(mtx);
-  return orderCollection.size();
+  return requestCollection.size();
 }
 
 int Networking::getSolutionCollectionSize() {

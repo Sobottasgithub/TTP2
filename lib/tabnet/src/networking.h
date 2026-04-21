@@ -14,14 +14,14 @@ class Networking
       };
 
       bool isConnected();
-      bool hasOrder();
+      bool hasRequest();
       bool hasSolution();
-      Packet popOrder();
+      Packet popRequest();
       Packet popSolution();
-      int getOrderCollectionSize();
+      int getRequestCollectionSize();
       int getSolutionCollectionSize();
       void pushSolution(Packet);
-      void pushOrder(Packet order);
+      void pushRequest(Packet request);
   
       int sendMessage(int socket, int method, std::string payload);
       int sendPacket(int socket, Packet packet);
@@ -32,7 +32,7 @@ class Networking
       
       bool isNumeric(const std::string& string);
             
-      std::vector<Packet> orderCollection;
+      std::vector<Packet> requestCollection;
       std::vector<Packet> solutionCollection;
       std::mutex mtx;
       ssize_t receiveBytes(int socket, unsigned char* buffer, size_t max);

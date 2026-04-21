@@ -50,15 +50,15 @@ void ServerSessionController::networkingSession() {
 
     responseCode = sendMessage(clientSocket, METHODS::ready, "");
     
-    // Receive order(s)
+    // Receive request(s)
     Packet receivedPacket = receiveMessage(clientSocket);
     if (receivedPacket.method == METHODS::size) {
       int count = std::stoi(receivedPacket.payload);
       if (count != 0) {
         responseCode = sendMessage(clientSocket, METHODS::success, "");
         for(int i = 0; i < count; i++) {
-          Packet order = receiveMessage(clientSocket);
-          pushOrder(order);
+          Packet request = receiveMessage(clientSocket);
+          pushRequest(request);
           responseCode = sendMessage(clientSocket, METHODS::success, "");
         }
         response = receiveMessage(clientSocket); // receive ready
