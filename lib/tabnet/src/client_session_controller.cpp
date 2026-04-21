@@ -7,19 +7,22 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
-void ClientSessionController::networkingSession(int socket) {
+ClientSessionController::ClientSessionController(int &socket) {
   this->socket = socket;
+}
 
+void ClientSessionController::networkingSession() {
   // Compleate Handshake
   Packet handshakePacket = receiveMessage(socket);
+  int responseCode = sendMessage(socket, METHODS::handshake, "");
   if (handshakePacket.method != METHODS::handshake) {
     std::wcout << "Handshake failed!" << std::endl;
     connected = false;
     close(socket);
     return;
   }
-
-  int responseCode = 0;
+ 
+  responseCode = 0;
   while (responseCode >= 0) {
     // Receive solution(s)
     Packet solutionCount = receiveMessage(socket);
@@ -50,14 +53,17 @@ void ClientSessionController::networkingSession(int socket) {
             std::wcout << "Send order to node failed: got " << response.method << std::endl;
           }
         }
+        responseCode = sendMessage(socket, METHODS::ready, "");
       } else {
         std::wcout << "Send of size failed!" << std::endl;
+        responseCode = sendMessage(socket, METHODS::ready, "");
       }
     }
 
     if (responseCode < 0) {
         responseCode = 0;
         connected = false;
+        std::wcout << "Client shut down!" << std::endl;
         break;
     }
   }

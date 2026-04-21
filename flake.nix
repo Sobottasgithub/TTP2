@@ -9,7 +9,7 @@
       pkgs = import nixpkgs { inherit system; };
 
       version = "1.2";
-      packagesList = with pkgs; [ cmake gcc gnumake ];
+      packagesList = with pkgs; [ cmake gcc gnumake libtasn1 ];
     in {
       packages.${system} = {
         client = pkgs.stdenv.mkDerivation {
@@ -71,7 +71,8 @@
       };
 
       devShells.${system}.default = let
-        devPackages = packagesList ++ [ pkgs.bridge-utils pkgs.clang-tools ];
+        devPackages = packagesList
+          ++ [ pkgs.bridge-utils pkgs.clang-tools pkgs.libtasn1 ];
       in pkgs.mkShell {
         packages = devPackages;
 
@@ -79,8 +80,11 @@
         inputsFrom = [ self.packages.${system}.default ];
 
         shellHook = ''
+          cd lib/tabnet/src/
+          ./build-asn1-packets.sh
+          cd ../../../
+
           git status
-          cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
         '';
       };
     };

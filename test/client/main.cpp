@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <thread>
+#include <memory>
 
 int main() {
     std::string ipAddress;
@@ -16,7 +17,6 @@ int main() {
     std::wcout << "Server port (int): ";
     std::cin >> port; 
 
-
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
     sockaddr_in serverAddress;
@@ -24,21 +24,19 @@ int main() {
     serverAddress.sin_port = htons(port);
     serverAddress.sin_addr.s_addr = inet_addr(ipAddress.c_str());
 
-    if(connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) == -1) {
-        ClientSessionController clientSessionController;
+    if(connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress)) == 0) {
+        auto clientSessionController = std::make_shared<ClientSessionController>(serverSocket);
 
-        std::thread networkThread(
-            &ClientSessionController::networkingSession,
-            &clientSessionController,
-            serverSocket
-        );
+        std::thread networkThread([clientSessionController]() {
+            clientSessionController->networkingSession();
+        });
 
         while (true) {
-            if (!clientSessionController.isConnected()) {
+            if (!clientSessionController->isConnected()) {
                 std::wcout << "Disconnect!" << std::endl;
                 break;
             }
-            
+    
             std::wcout << "Choose option\n(1) send message\n(2) read messages\nnumber: ";
             int option;
             std::cin >> option;
@@ -50,29 +48,30 @@ int main() {
 
                 std::wcout << "(int) Method: ";
                 std::cin >> method; // TODO: Check type
-                std::wcout << "(string) Payload";
+                std::wcout << "(string) Payload: ";
                 std::cin >> payload;
-                
+        
                 packet.method  = method;
                 packet.payload = payload;
-                clientSessionController.pushOrder(packet);
+                clientSessionController->pushOrder(packet);
             } else if (option == 2) {
-                if (!clientSessionController.hasSolution()) {
+                if (!clientSessionController->hasSolution()) {
                     std::wcout << "No Messages!" << std::endl;
                     continue;
                 }
-                while(clientSessionController.hasSolution()) {
-                    ClientSessionController::Packet packet = clientSessionController.popSolution();
-                    std::wcout << "-- Message --" << std::endl;
+                while(clientSessionController->hasSolution()) {
+                    ClientSessionController::Packet packet = clientSessionController->popSolution();
+                    std::wcout << "------ Message ------" << std::endl;
                     std::wcout << "Method:  " << packet.method << std::endl;
                     std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
-                    std::wcout << "-------------" << std::endl;
+                    std::wcout << "---------------------" << std::endl;
                 }
             } else {
                 std::wcout << "Invalid!" << std::endl;
             }
         }
+        networkThread.detach();
     }
-    
+
     return 0;
 }

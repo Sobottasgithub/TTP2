@@ -6,6 +6,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <thread>
+#include <memory>
+#include <chrono>
 
 int main() {
     std::string interface;
@@ -16,8 +18,8 @@ int main() {
     std::wcout << "Port (int): ";
     std::cin >> port;
 
-    ServerSessionController serverSessionController;
-    std::string containerIP = serverSessionController.getLocalIpAddress(interface);
+    ServerSessionController tempServerSessionController(1, 1);
+    std::string containerIP = tempServerSessionController.getLocalIpAddress(interface);
 
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
@@ -27,24 +29,27 @@ int main() {
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 
-    // On new request: open new ServerSessionController
-    std::vector<std::thread> threadCollection;
-    threadCollection.reserve(100);
     listen(serverSocket, 5);
+    int clientSocket = accept(serverSocket, nullptr, nullptr);
+    std::wcout << "clientSocket: " << clientSocket << std::endl;
+
+    auto serverSessionController = std::make_shared<ServerSessionController>(serverSocket, clientSocket);
+
+    std::thread networkingSession([serverSessionController]() {
+        serverSessionController->networkingSession();
+    });
+    
     while (true) {
-        int clientSocket = accept(serverSocket, nullptr, nullptr);
-        std::wcout << "clientSocket: " << clientSocket << std::endl;
-        threadCollection.push_back(std::thread(&ServerSessionController::networkingSession,
-                                               &serverSessionController, serverSocket, clientSocket));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        if (serverSessionController->hasOrder()) {
+            std::wcout << "Received request!" << std::endl;
+            ServerSessionController::Packet packet = serverSessionController->popOrder();
+            serverSessionController->pushSolution(packet);
+        }
     }
 
     std::wcout << "Terminated!" << std::endl;
-
-    for (auto &socketThread : threadCollection) {
-        if (socketThread.joinable()) {
-          socketThread.join();
-        }
-    }
+    networkingSession.detach();
     
     return 0;
 }

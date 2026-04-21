@@ -9,10 +9,15 @@
 #include <ifaddrs.h>
 #include <arpa/inet.h>
 
-void ServerSessionController::networkingSession(int serverSocket, int clientSocket) {
-  
+ServerSessionController::ServerSessionController(int serverSocket, int clientSocket) {
+  this->serverSocket = serverSocket;
+  this->clientSocket = clientSocket;
+}
+
+void ServerSessionController::networkingSession() {
   // Compleate Handshake
-  int responseCode = ServerSessionController::sendMessage(clientSocket, METHODS::handshake, "");
+  int responseCode = sendMessage(clientSocket, METHODS::handshake, "");
+  Packet handshakePacket = receiveMessage(clientSocket);
   if (responseCode < 0) {
     std::wcout << "Socket: " << clientSocket << " closed during the handshake!" << std::endl;
     close(clientSocket);
@@ -56,10 +61,12 @@ void ServerSessionController::networkingSession(int serverSocket, int clientSock
           pushOrder(order);
           responseCode = sendMessage(clientSocket, METHODS::success, "");
         }
+        response = receiveMessage(clientSocket); // receive ready
       }
     } else {
       std::wcout << "Expected: " << METHODS::size << " (size) got: " << receivedPacket.method << std::endl;
       responseCode = sendMessage(clientSocket, METHODS::failed, "Expected method size");
+      response = receiveMessage(clientSocket); // receive ready
     }
 
     // Controlled shutdown of this thread, if the master crashes
@@ -67,7 +74,7 @@ void ServerSessionController::networkingSession(int serverSocket, int clientSock
       std::wcout << "Socket: " << clientSocket << " closed!" << std::endl;
       close(clientSocket);
       return;
-    }    
+    }
   }
 }
 
