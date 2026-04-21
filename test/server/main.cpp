@@ -40,14 +40,11 @@ int main() {
     });
     
     while (true) {
-        std::wcout << "Checking for messages..." << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         if (serverSessionController->hasOrder()) {
-            std::wcout << "Has order!" << std::endl;
+            std::wcout << "Received request!" << std::endl;
             ServerSessionController::Packet packet = serverSessionController->popOrder();
-            std::wcout << "Order poped: " << packet.method <<  std::endl;
             serverSessionController->pushSolution(packet);
-            std::wcout << "Solution pushed - Done!" << std::endl;
         }
     }
 

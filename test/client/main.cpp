@@ -61,10 +61,10 @@ int main() {
                 }
                 while(clientSessionController->hasSolution()) {
                     ClientSessionController::Packet packet = clientSessionController->popSolution();
-                    std::wcout << "-- Message --" << std::endl;
+                    std::wcout << "------ Message ------" << std::endl;
                     std::wcout << "Method:  " << packet.method << std::endl;
                     std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
-                    std::wcout << "-------------" << std::endl;
+                    std::wcout << "---------------------" << std::endl;
                 }
             } else {
                 std::wcout << "Invalid!" << std::endl;

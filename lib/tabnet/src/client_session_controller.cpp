@@ -49,7 +49,6 @@ void ClientSessionController::networkingSession() {
         for(int index = 0; index < orderCollectionSize; index++) {
           responseCode = sendPacket(socket, popOrder());
           Packet response = receiveMessage(socket);
-          std::wcout << "send order!" << std::endl;
           if (response.method != METHODS::success) {
             std::wcout << "Send order to node failed: got " << response.method << std::endl;
           }

@@ -58,7 +58,6 @@ void ServerSessionController::networkingSession() {
         responseCode = sendMessage(clientSocket, METHODS::success, "");
         for(int i = 0; i < count; i++) {
           Packet order = receiveMessage(clientSocket);
-          std::wcout << "received order!!!!!" << std::endl;
           pushOrder(order);
           responseCode = sendMessage(clientSocket, METHODS::success, "");
         }
