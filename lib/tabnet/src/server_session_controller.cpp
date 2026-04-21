@@ -62,10 +62,12 @@ void ServerSessionController::networkingSession() {
           pushOrder(order);
           responseCode = sendMessage(clientSocket, METHODS::success, "");
         }
+        response = receiveMessage(clientSocket); // receive ready
       }
     } else {
       std::wcout << "Expected: " << METHODS::size << " (size) got: " << receivedPacket.method << std::endl;
       responseCode = sendMessage(clientSocket, METHODS::failed, "Expected method size");
+      response = receiveMessage(clientSocket); // receive ready
     }
 
     // Controlled shutdown of this thread, if the master crashes
@@ -73,7 +75,7 @@ void ServerSessionController::networkingSession() {
       std::wcout << "Socket: " << clientSocket << " closed!" << std::endl;
       close(clientSocket);
       return;
-    }    
+    }
   }
 }
 

@@ -55,8 +55,10 @@ void ClientSessionController::networkingSession() {
             std::wcout << "Send order to node failed: got " << response.method << std::endl;
           }
         }
+        responseCode = sendMessage(socket, METHODS::ready, "");
       } else {
         std::wcout << "Send of size failed!" << std::endl;
+        responseCode = sendMessage(socket, METHODS::ready, "");
       }
     }
 
