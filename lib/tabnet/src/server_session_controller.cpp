@@ -9,6 +9,8 @@
 #include <ifaddrs.h>
 #include <arpa/inet.h>
 
+ServerSessionController::ServerSessionController() {}
+
 ServerSessionController::ServerSessionController(int serverSocket, int clientSocket) {
   this->serverSocket = serverSocket;
   this->clientSocket = clientSocket;

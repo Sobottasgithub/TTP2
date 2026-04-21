@@ -18,7 +18,7 @@ int main() {
     std::wcout << "Port (int): ";
     std::cin >> port;
 
-    ServerSessionController tempServerSessionController(1, 1);
+    ServerSessionController tempServerSessionController;
     std::string containerIP = tempServerSessionController.getLocalIpAddress(interface);
 
     sockaddr_in serverAddress;

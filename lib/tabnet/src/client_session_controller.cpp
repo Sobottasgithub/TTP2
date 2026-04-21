@@ -7,6 +7,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 
+ClientSessionController::ClientSessionController() {}
+
 ClientSessionController::ClientSessionController(int &socket) {
   this->socket = socket;
 }
