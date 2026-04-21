@@ -16,7 +16,7 @@ ServerSessionController::ServerSessionController(int serverSocket, int clientSoc
 
 void ServerSessionController::networkingSession() {
   // Compleate Handshake
-  int responseCode = sendMessage(clientSocket, METHODS::handshake, "hello");
+  int responseCode = sendMessage(clientSocket, METHODS::handshake, "");
   Packet handshakePacket = receiveMessage(clientSocket);
   if (responseCode < 0) {
     std::wcout << "Socket: " << clientSocket << " closed during the handshake!" << std::endl;

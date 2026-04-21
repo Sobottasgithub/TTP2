@@ -11,11 +11,10 @@ ClientSessionController::ClientSessionController(int &socket) {
   this->socket = socket;
 }
 
-
 void ClientSessionController::networkingSession() {
   // Compleate Handshake
   Packet handshakePacket = receiveMessage(socket);
-  int responseCode = sendMessage(socket, METHODS::handshake, "hello");
+  int responseCode = sendMessage(socket, METHODS::handshake, "");
   if (handshakePacket.method != METHODS::handshake) {
     std::wcout << "Handshake failed!" << std::endl;
     connected = false;
