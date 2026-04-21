@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <thread>
+#include <memory>
 #include <chrono>
 
 int main() {
@@ -31,25 +32,27 @@ int main() {
     listen(serverSocket, 5);
     int clientSocket = accept(serverSocket, nullptr, nullptr);
     std::wcout << "clientSocket: " << clientSocket << std::endl;
-    
-    ServerSessionController serverSessionController(serverSocket, clientSocket);
-    std::thread networkingSession = std::thread(&ServerSessionController::networkingSession,
-                                                &serverSessionController
-                                               );
 
+    auto serverSessionController = std::make_shared<ServerSessionController>(serverSocket, clientSocket);
+
+    std::thread networkingSession([serverSessionController]() {
+        serverSessionController->networkingSession();
+    });
+    
     while (true) {
         std::wcout << "Checking for messages..." << std::endl;
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        if (serverSessionController.hasOrder()) {
+        if (serverSessionController->hasOrder()) {
             std::wcout << "Has order!" << std::endl;
+            ServerSessionController::Packet packet = serverSessionController->popOrder();
+            std::wcout << "Order poped: " << packet.method <<  std::endl;
+            serverSessionController->pushSolution(packet);
+            std::wcout << "Solution pushed - Done!" << std::endl;
         }
     }
 
     std::wcout << "Terminated!" << std::endl;
-
-    if (networkingSession.joinable()) {
-      networkingSession.join();
-    }
+    networkingSession.detach();
     
     return 0;
 }
