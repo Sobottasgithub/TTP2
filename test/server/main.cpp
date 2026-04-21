@@ -39,7 +39,7 @@ int main() {
         serverSessionController->networkingSession();
     });
     
-    while (true) {
+    while (serverSessionController->isConnected()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         if (serverSessionController->hasRequest()) {
             std::wcout << "Received request!" << std::endl;

@@ -14,6 +14,7 @@ class Networking
       };
 
       bool isConnected();
+      void disconnect();
       bool hasRequest();
       bool hasResponse();
       Packet popRequest();

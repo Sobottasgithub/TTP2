@@ -17,13 +17,13 @@ void ClientSessionController::networkingSession() {
   int responseCode = sendMessage(socket, METHODS::handshake, "");
   if (handshakePacket.method != METHODS::handshake) {
     std::wcout << "Handshake failed!" << std::endl;
-    connected = false;
+    disconnect();
     close(socket);
     return;
   }
  
   responseCode = 0;
-  while (responseCode >= 0) {
+  while (isConnected()) {
     // Receive response(s)
     Packet responseCount = receiveMessage(socket);
     if (responseCount.method == METHODS::size) {
@@ -61,9 +61,9 @@ void ClientSessionController::networkingSession() {
     }
 
     if (responseCode < 0) {
-        responseCode = 0;
-        connected = false;
-        std::wcout << "Client shut down!" << std::endl;
+        std::wcout << "Stream failed with response code: " << responseCode << std::endl;
+        disconnect();
+        close(socket);
         break;
     }
   }

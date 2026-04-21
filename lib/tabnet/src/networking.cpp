@@ -31,6 +31,11 @@ bool Networking::isConnected() {
   return connected;
 }
 
+void Networking::disconnect() {
+  std::lock_guard<std::mutex> lock(mtx);
+  connected = false;
+}
+
 Networking::Packet Networking::popRequest() {
   std::lock_guard<std::mutex> lock(mtx);
   if (!requestQueue.empty()) {

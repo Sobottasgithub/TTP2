@@ -21,11 +21,11 @@ void ServerSessionController::networkingSession() {
   if (responseCode < 0) {
     std::wcout << "Socket: " << clientSocket << " closed during the handshake!" << std::endl;
     close(clientSocket);
-    connected = false;
+    disconnect();
     return;
   }
 
-  while (true) {
+  while (isConnected()) {
     // Send response(s)
     int responseQueueSize = getResponseQueueSize();
     responseCode = sendMessage(clientSocket, METHODS::size, std::to_string(responseQueueSize));
@@ -72,6 +72,7 @@ void ServerSessionController::networkingSession() {
     // Controlled shutdown of this thread, if the master crashes
     if (responseCode < 0) {
       std::wcout << "Socket: " << clientSocket << " closed!" << std::endl;
+      disconnect();
       close(clientSocket);
       return;
     }

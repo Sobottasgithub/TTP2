@@ -37,7 +37,7 @@ int main() {
                 break;
             }
     
-            std::wcout << "Choose option\n(1) send message\n(2) read messages\nnumber: ";
+            std::wcout << "Choose option\n(1) send message\n(2) read messages\n(3) exit\nnumber: ";
             int option;
             std::cin >> option;
 
@@ -66,6 +66,8 @@ int main() {
                     std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
                     std::wcout << "---------------------" << std::endl;
                 }
+            } else if (option == 3) {
+              clientSessionController->disconnect();  
             } else {
                 std::wcout << "Invalid!" << std::endl;
             }
