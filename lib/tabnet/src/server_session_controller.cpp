@@ -27,11 +27,11 @@ void ServerSessionController::networkingSession() {
 
   while (true) {
     // Send response(s)
-    int responseCollectionSize = getResponseCollectionSize();
-    responseCode = sendMessage(clientSocket, METHODS::size, std::to_string(responseCollectionSize));
+    int responseQueueSize = getResponseQueueSize();
+    responseCode = sendMessage(clientSocket, METHODS::size, std::to_string(responseQueueSize));
     Packet response = receiveMessage(clientSocket);
     if (response.method == METHODS::success) {
-      for(int index = 0; index < responseCollectionSize; index++) {
+      for(int index = 0; index < responseQueueSize; index++) {
         // Send data
         Packet response = popResponse();
         responseCode = sendPacket(clientSocket, response);

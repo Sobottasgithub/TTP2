@@ -42,11 +42,11 @@ void ClientSessionController::networkingSession() {
     Packet ready = receiveMessage(socket);
       
     // Send request(s)
-    int requestCollectionSize = getRequestCollectionSize();
-    responseCode = sendMessage(socket, METHODS::size, std::to_string(requestCollectionSize));
-    if (requestCollectionSize > 0) {
+    int requestQueueSize = getRequestQueueSize();
+    responseCode = sendMessage(socket, METHODS::size, std::to_string(requestQueueSize));
+    if (requestQueueSize > 0) {
       if (receiveMessage(socket).method == METHODS::success) {
-        for(int index = 0; index < requestCollectionSize; index++) {
+        for(int index = 0; index < requestQueueSize; index++) {
           responseCode = sendPacket(socket, popRequest());
           Packet response = receiveMessage(socket);
           if (response.method != METHODS::success) {

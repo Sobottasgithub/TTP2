@@ -18,8 +18,8 @@ class Networking
       bool hasResponse();
       Packet popRequest();
       Packet popResponse();
-      int getRequestCollectionSize();
-      int getResponseCollectionSize();
+      int getRequestQueueSize();
+      int getResponseQueueSize();
       void pushResponse(Packet);
       void pushRequest(Packet request);
   
@@ -32,8 +32,8 @@ class Networking
       
       bool isNumeric(const std::string& string);
             
-      std::vector<Packet> requestCollection;
-      std::vector<Packet> responseCollection;
+      std::vector<Packet> requestQueue;
+      std::vector<Packet> responseQueue;
       std::mutex mtx;
       ssize_t receiveBytes(int socket, unsigned char* buffer, size_t max);
       ssize_t sendBytes(int socket, const char* buffer, size_t max);

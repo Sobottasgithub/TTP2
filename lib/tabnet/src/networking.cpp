@@ -18,12 +18,12 @@ extern const asn1_static_node packets_asn1_tab[];
 
 bool Networking::hasResponse() {
   std::lock_guard<std::mutex> lock(mtx);
-  return !responseCollection.empty();
+  return !responseQueue.empty();
 }
 
 bool Networking::hasRequest() {
   std::lock_guard<std::mutex> lock(mtx);
-  return !requestCollection.empty();
+  return !requestQueue.empty();
 }
 
 bool Networking::isConnected() {
@@ -33,9 +33,9 @@ bool Networking::isConnected() {
 
 Networking::Packet Networking::popRequest() {
   std::lock_guard<std::mutex> lock(mtx);
-  if (!requestCollection.empty()) {
-    Networking::Packet firstRequest = requestCollection[0];
-    requestCollection.erase(requestCollection.begin());  
+  if (!requestQueue.empty()) {
+    Networking::Packet firstRequest = requestQueue[0];
+    requestQueue.erase(requestQueue.begin());  
     return firstRequest;
   }
   Networking::Packet emptyPacket;
@@ -44,9 +44,9 @@ Networking::Packet Networking::popRequest() {
 
 Networking::Packet Networking::popResponse() {
   std::lock_guard<std::mutex> lock(mtx);
-  if (!responseCollection.empty()) {
-    Networking::Packet firstResponse = responseCollection[0];
-    responseCollection.erase(responseCollection.begin());  
+  if (!responseQueue.empty()) {
+    Networking::Packet firstResponse = responseQueue[0];
+    responseQueue.erase(responseQueue.begin());  
     return firstResponse;
   }
   Networking::Packet emptyPacket;
@@ -55,22 +55,22 @@ Networking::Packet Networking::popResponse() {
 
 void Networking::pushResponse(Networking::Packet response) {
   std::lock_guard<std::mutex> lock(mtx);
-  responseCollection.push_back(response);
+  responseQueue.push_back(response);
 }
 
 void Networking::pushRequest(Networking::Packet request) {
   std::lock_guard<std::mutex> lock(mtx);
-  requestCollection.push_back(request);
+  requestQueue.push_back(request);
 }
 
-int Networking::getRequestCollectionSize() {
+int Networking::getRequestQueueSize() {
   std::lock_guard<std::mutex> lock(mtx);
-  return requestCollection.size();
+  return requestQueue.size();
 }
 
-int Networking::getResponseCollectionSize() {
+int Networking::getResponseQueueSize() {
   std::lock_guard<std::mutex> lock(mtx);
-  return responseCollection.size();
+  return responseQueue.size();
 }
 
 int Networking::sendPacket(int socket, Networking::Packet packet) {
