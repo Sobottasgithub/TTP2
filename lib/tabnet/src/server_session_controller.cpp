@@ -26,16 +26,16 @@ void ServerSessionController::networkingSession() {
   }
 
   while (true) {
-    // Send solution(s)
-    int solutionCollectionSize = getSolutionCollectionSize();
-    responseCode = sendMessage(clientSocket, METHODS::size, std::to_string(solutionCollectionSize));
+    // Send response(s)
+    int responseCollectionSize = getResponseCollectionSize();
+    responseCode = sendMessage(clientSocket, METHODS::size, std::to_string(responseCollectionSize));
     Packet response = receiveMessage(clientSocket);
     if (response.method == METHODS::success) {
-      for(int index = 0; index < solutionCollectionSize; index++) {
+      for(int index = 0; index < responseCollectionSize; index++) {
         // Send data
-        Packet solution = popSolution();
-        responseCode = sendPacket(clientSocket, solution);
-        Packet response = receiveMessage(clientSocket);
+        Packet response = popResponse();
+        responseCode = sendPacket(clientSocket, response);
+        response = receiveMessage(clientSocket);
         if (response.method != METHODS::success) {
           std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
           std::wcout << "With following payload" << response.payload.c_str() << std::endl;

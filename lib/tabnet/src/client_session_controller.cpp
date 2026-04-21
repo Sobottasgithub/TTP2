@@ -24,19 +24,19 @@ void ClientSessionController::networkingSession() {
  
   responseCode = 0;
   while (responseCode >= 0) {
-    // Receive solution(s)
-    Packet solutionCount = receiveMessage(socket);
-    if (solutionCount.method == METHODS::size) {
+    // Receive response(s)
+    Packet responseCount = receiveMessage(socket);
+    if (responseCount.method == METHODS::size) {
       responseCode = sendMessage(socket, METHODS::success, "");
-      for (int index = 0; index < std::stoi(solutionCount.payload); index++) {
+      for (int index = 0; index < std::stoi(responseCount.payload); index++) {
         Packet packet = receiveMessage(socket);
-        pushSolution(packet);
+        pushResponse(packet);
         responseCode = sendMessage(socket, METHODS::success, "");
       }
     } else {
       responseCode = sendMessage(socket, METHODS::failed, "");
       std::wcout << "Something went wrong during receiving size!" << std::endl;
-      std::wcout << "Got: " << solutionCount.method << " instead of " << METHODS::size << " (size)" << std::endl;
+      std::wcout << "Got: " << responseCount.method << " instead of " << METHODS::size << " (size)" << std::endl;
     }
 
     Packet ready = receiveMessage(socket);

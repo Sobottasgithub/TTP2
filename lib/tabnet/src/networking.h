@@ -15,12 +15,12 @@ class Networking
 
       bool isConnected();
       bool hasRequest();
-      bool hasSolution();
+      bool hasResponse();
       Packet popRequest();
-      Packet popSolution();
+      Packet popResponse();
       int getRequestCollectionSize();
-      int getSolutionCollectionSize();
-      void pushSolution(Packet);
+      int getResponseCollectionSize();
+      void pushResponse(Packet);
       void pushRequest(Packet request);
   
       int sendMessage(int socket, int method, std::string payload);
@@ -33,7 +33,7 @@ class Networking
       bool isNumeric(const std::string& string);
             
       std::vector<Packet> requestCollection;
-      std::vector<Packet> solutionCollection;
+      std::vector<Packet> responseCollection;
       std::mutex mtx;
       ssize_t receiveBytes(int socket, unsigned char* buffer, size_t max);
       ssize_t sendBytes(int socket, const char* buffer, size_t max);

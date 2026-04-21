@@ -55,12 +55,12 @@ int main() {
                 packet.payload = payload;
                 clientSessionController->pushRequest(packet);
             } else if (option == 2) {
-                if (!clientSessionController->hasSolution()) {
+                if (!clientSessionController->hasResponse()) {
                     std::wcout << "No Messages!" << std::endl;
                     continue;
                 }
-                while(clientSessionController->hasSolution()) {
-                    ClientSessionController::Packet packet = clientSessionController->popSolution();
+                while(clientSessionController->hasResponse()) {
+                    ClientSessionController::Packet packet = clientSessionController->popResponse();
                     std::wcout << "------ Message ------" << std::endl;
                     std::wcout << "Method:  " << packet.method << std::endl;
                     std::wcout << "Payload: " << packet.payload.c_str() << std::endl;

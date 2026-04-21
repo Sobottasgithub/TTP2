@@ -16,9 +16,9 @@ extern "C" {
 extern const asn1_static_node packets_asn1_tab[];
 }
 
-bool Networking::hasSolution() {
+bool Networking::hasResponse() {
   std::lock_guard<std::mutex> lock(mtx);
-  return !solutionCollection.empty();
+  return !responseCollection.empty();
 }
 
 bool Networking::hasRequest() {
@@ -42,20 +42,20 @@ Networking::Packet Networking::popRequest() {
   return emptyPacket;
 }
 
-Networking::Packet Networking::popSolution() {
+Networking::Packet Networking::popResponse() {
   std::lock_guard<std::mutex> lock(mtx);
-  if (!solutionCollection.empty()) {
-    Networking::Packet firstSolution = solutionCollection[0];
-    solutionCollection.erase(solutionCollection.begin());  
-    return firstSolution;
+  if (!responseCollection.empty()) {
+    Networking::Packet firstResponse = responseCollection[0];
+    responseCollection.erase(responseCollection.begin());  
+    return firstResponse;
   }
   Networking::Packet emptyPacket;
   return emptyPacket;
 }
 
-void Networking::pushSolution(Networking::Packet solution) {
+void Networking::pushResponse(Networking::Packet response) {
   std::lock_guard<std::mutex> lock(mtx);
-  solutionCollection.push_back(solution);
+  responseCollection.push_back(response);
 }
 
 void Networking::pushRequest(Networking::Packet request) {
@@ -68,9 +68,9 @@ int Networking::getRequestCollectionSize() {
   return requestCollection.size();
 }
 
-int Networking::getSolutionCollectionSize() {
+int Networking::getResponseCollectionSize() {
   std::lock_guard<std::mutex> lock(mtx);
-  return solutionCollection.size();
+  return responseCollection.size();
 }
 
 int Networking::sendPacket(int socket, Networking::Packet packet) {

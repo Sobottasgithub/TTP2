@@ -44,7 +44,7 @@ int main() {
         if (serverSessionController->hasRequest()) {
             std::wcout << "Received request!" << std::endl;
             ServerSessionController::Packet packet = serverSessionController->popRequest();
-            serverSessionController->pushSolution(packet);
+            serverSessionController->pushResponse(packet);
         }
     }
 
