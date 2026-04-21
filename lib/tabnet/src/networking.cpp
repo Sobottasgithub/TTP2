@@ -32,18 +32,21 @@ bool Networking::isConnected() {
 }
 
 Networking::Packet Networking::popOrder() {
-  return popCollection(orderCollection);
+  std::lock_guard<std::mutex> lock(mtx);
+  if (!orderCollection.empty()) {
+    Networking::Packet firstOrder = orderCollection[0];
+    orderCollection.erase(orderCollection.begin());  
+    return firstOrder;
+  }
+  Networking::Packet emptyPacket;
+  return emptyPacket;
 }
 
 Networking::Packet Networking::popSolution() {
-  return popCollection(solutionCollection);
-}
-
-Networking::Packet Networking::popCollection(std::vector<Networking::Packet> collection) {
   std::lock_guard<std::mutex> lock(mtx);
-  if (!collection.empty()) {
-    Networking::Packet firstOrder = collection[0];
-    collection.erase(collection.begin());  
+  if (!solutionCollection.empty()) {
+    Networking::Packet firstOrder = solutionCollection[0];
+    solutionCollection.erase(solutionCollection.begin());  
     return firstOrder;
   }
   Networking::Packet emptyPacket;
