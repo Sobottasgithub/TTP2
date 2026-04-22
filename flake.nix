@@ -1,5 +1,5 @@
 {
-  description = "Tablo Transfere Protocol 2";
+  description = "Tablo Transfer Protocol 2";
 
   inputs = { nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable"; };
 
@@ -14,7 +14,6 @@
       packages.${system} = {
         client = pkgs.stdenv.mkDerivation {
           name = "client";
-          pname = "ttp2-client";
 
           inherit version;
           src = ./.;
@@ -37,7 +36,6 @@
 
         server = pkgs.stdenv.mkDerivation {
           name = "server";
-          pname = "ttp2-server";
 
           inherit version;
           src = ./.;
@@ -60,7 +58,6 @@
 
         default = pkgs.stdenv.mkDerivation {
           name = "default";
-          pname = "ttp2-default";
 
           inherit version;
           src = ./.;
