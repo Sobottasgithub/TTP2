@@ -13,7 +13,7 @@
     in {
       packages.${system} = {
         client = pkgs.stdenv.mkDerivation {
-          name = "client";
+          pname = "ttp2-client";
 
           inherit version;
           src = ./.;
@@ -35,7 +35,7 @@
         };
 
         server = pkgs.stdenv.mkDerivation {
-          name = "server";
+          pname = "ttp2-server";
 
           inherit version;
           src = ./.;
@@ -57,13 +57,12 @@
         };
 
         default = pkgs.stdenv.mkDerivation {
-          name = "default";
+          pname = "default";
 
           inherit version;
           src = ./.;
 
           buildInputs = packagesList;
-
         };
       };
 
