@@ -9,6 +9,28 @@
 #include <memory>
 #include <chrono>
 
+void clientManager(int serverSocket, int clientSocket) {
+    std::wcout << "clientSocket: " << clientSocket << std::endl;
+
+    auto serverSessionController = std::make_shared<ServerSessionController>(serverSocket, clientSocket);
+
+    std::thread networkingSession([serverSessionController]() {
+        serverSessionController->networkingSession();
+    });
+    
+    while (serverSessionController->isConnected()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        if (serverSessionController->hasRequest()) {
+            std::wcout << "Received request!" << std::endl;
+            ServerSessionController::Packet packet = serverSessionController->popRequest();
+            serverSessionController->pushResponse(packet);
+        }
+    }
+
+    std::wcout << "Terminated!" << std::endl;
+    networkingSession.detach();    
+}
+
 int main() {
     std::string interface;
     int port;
@@ -30,26 +52,16 @@ int main() {
     bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 
     listen(serverSocket, 5);
-    int clientSocket = accept(serverSocket, nullptr, nullptr);
-    std::wcout << "clientSocket: " << clientSocket << std::endl;
-
-    auto serverSessionController = std::make_shared<ServerSessionController>(serverSocket, clientSocket);
-
-    std::thread networkingSession([serverSessionController]() {
-        serverSessionController->networkingSession();
-    });
-    
-    while (serverSessionController->isConnected()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        if (serverSessionController->hasRequest()) {
-            std::wcout << "Received request!" << std::endl;
-            ServerSessionController::Packet packet = serverSessionController->popRequest();
-            serverSessionController->pushResponse(packet);
-        }
+    std::vector<std::thread> clientConnections;
+    while (true) {
+        int clientSocket = accept(serverSocket, nullptr, nullptr);
+        std::wcout << "New clientSocket: " << clientSocket << std::endl;
+        clientConnections.push_back(std::thread(
+                                       clientManager,
+                                       serverSocket,
+                                       clientSocket
+                                    ));
     }
 
-    std::wcout << "Terminated!" << std::endl;
-    networkingSession.detach();
-    
     return 0;
 }
