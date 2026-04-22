@@ -11,4 +11,4 @@ add_subdirectory(test/client)
 add_subdirectory(test/server)
 
 # Test executables
-add_subdirectory(lib/tabnet)
+add_subdirectory(lib/ttp2)

@@ -77,7 +77,7 @@
         inputsFrom = [ self.packages.${system}.default ];
 
         shellHook = ''
-          cd lib/tabnet/src/
+          cd lib/ttp2/src/
           ./build-asn1-packets.sh
           cd ../../../
 
