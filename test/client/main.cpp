@@ -8,15 +8,39 @@
 #include <arpa/inet.h>
 #include <thread>
 #include <memory>
+#include <regex>
+
+bool isNumeric(const std::string& string) {
+  static const std::regex numberRegex(
+      R"(^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$)"
+  );
+  return std::regex_match(string, numberRegex);
+}
+
+std::string requestString(const std::string& message) {
+    std::string userInput;
+    std::wcout << message.c_str();
+    std::getline(std::cin, userInput);
+    return userInput;
+}
+
+int requestInt(const std::string& message) {
+    std::string userInput;
+
+    while (true) {
+        std::wcout << message.c_str();
+        std::getline(std::cin, userInput);
+
+        if (isNumeric(userInput)) {
+            return std::stoi(userInput);
+        }
+        std::wcout << "Invalid input! Try again\n";
+    }
+}
 
 int main() {
-    std::string ipAddress;
-    int port;
-
-    std::wcout << "Server ipv4 (string): ";
-    std::cin >> ipAddress;
-    std::wcout << "Server port (int): ";
-    std::cin >> port; 
+    std::string ipAddress = requestString("Server ipv4 (string): ");
+    int port = requestInt("Server port (int): ");
 
     int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -37,21 +61,13 @@ int main() {
                 std::wcout << "Disconnect!" << std::endl;
                 break;
             }
-    
-            std::wcout << "Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Exit\nnumber: ";
-            int option;
-            std::cin >> option;
 
+            int option = requestInt("Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Exit\nnumber: ");
             if (option == 1) {
+                int method = requestInt("(int) Method: ");
+                std::string payload = requestString("(string) Payload: ");
+                
                 ClientSessionController::Packet packet;
-                int method;
-                std::string payload;
-
-                std::wcout << "(int) Method: ";
-                std::cin >> method; // TODO: Check type
-                std::wcout << "(string) Payload: ";
-                std::cin >> payload;
-        
                 packet.method  = method;
                 packet.payload = payload;
                 clientSessionController->pushRequest(packet);
@@ -69,18 +85,12 @@ int main() {
                 }
             } else if (option == 3) {
                 std::wcout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
-                std::wcout << "Choose option\n(1) Send continious stream\n(2) Send n packages\nnumber: " << std::endl;
-                std::cin >> option;
+                option = requestInt("Choose option\n(1) Send continious stream\n(2) Send n packages\nnumber: ");
                 if (option == 1) {
+                    int method = requestInt("(int) Method: ");
+                    std::string payload = requestString("(string) Payload: ");
+                
                     ClientSessionController::Packet packet;
-                    int method;
-                    std::string payload;
-
-                    std::wcout << "(int) Method: ";
-                    std::cin >> method;
-                    std::wcout << "(string) Payload: ";
-                    std::cin >> payload;
-
                     packet.method  = method;
                     packet.payload = payload;
 
@@ -98,18 +108,11 @@ int main() {
                         }
                     }
                 } else if (option == 2) {
+                    int count = requestInt("(int) Packet count: ");
+                    int method = requestInt("(int) Method: ");
+                    std::string payload = requestString("(string) Payload: ");
+                
                     ClientSessionController::Packet packet;
-                    int count;
-                    int method;
-                    std::string payload;
-
-                    std::wcout << "(int) Packet count: ";
-                    std::cin >> count;
-                    std::wcout << "(int) Method: ";
-                    std::cin >> method;
-                    std::wcout << "(string) Payload: ";
-                    std::cin >> payload;
-
                     packet.method  = method;
                     packet.payload = payload;
 

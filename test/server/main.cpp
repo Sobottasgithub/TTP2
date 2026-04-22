@@ -8,10 +8,37 @@
 #include <thread>
 #include <memory>
 #include <chrono>
+#include <regex>
+
+bool isNumeric(const std::string& string) {
+  static const std::regex numberRegex(
+      R"(^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$)"
+  );
+  return std::regex_match(string, numberRegex);
+}
+
+std::string requestString(const std::string& message) {
+    std::string userInput;
+    std::wcout << message.c_str();
+    std::getline(std::cin, userInput);
+    return userInput;
+}
+
+int requestInt(const std::string& message) {
+    std::string userInput;
+
+    while (true) {
+        std::wcout << message.c_str();
+        std::getline(std::cin, userInput);
+
+        if (isNumeric(userInput)) {
+            return std::stoi(userInput);
+        }
+        std::wcout << "Invalid input! Try again\n";
+    }
+}
 
 void clientManager(int serverSocket, int clientSocket) {
-    std::wcout << "clientSocket: " << clientSocket << std::endl;
-
     auto serverSessionController = std::make_shared<ServerSessionController>(serverSocket, clientSocket);
 
     std::thread networkingSession([serverSessionController]() {
@@ -32,13 +59,8 @@ void clientManager(int serverSocket, int clientSocket) {
 }
 
 int main() {
-    std::string interface;
-    int port;
-
-    std::wcout << "Interface (string): ";
-    std::cin >> interface;
-    std::wcout << "Port (int): ";
-    std::cin >> port;
+    std::string interface = requestString("Interface (string): ");
+    int port = requestInt("Server port (int): ");
 
     ServerSessionController tempServerSessionController;
     std::string containerIP = tempServerSessionController.getLocalIpAddress(interface);
