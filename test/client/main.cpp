@@ -1,5 +1,6 @@
 #include "client_session_controller.h"
 
+#include <atomic>
 #include <iostream>
 #include <string>
 #include <netinet/in.h>
@@ -37,7 +38,7 @@ int main() {
                 break;
             }
     
-            std::wcout << "Choose option\n(1) send message\n(2) read messages\n(3) exit\nnumber: ";
+            std::wcout << "Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Exit\nnumber: ";
             int option;
             std::cin >> option;
 
@@ -67,6 +68,68 @@ int main() {
                     std::wcout << "---------------------" << std::endl;
                 }
             } else if (option == 3) {
+                std::wcout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
+                std::wcout << "Choose option\n(1) Send continious stream\n(2) Send n packages\nnumber: " << std::endl;
+                std::cin >> option;
+                if (option == 1) {
+                    ClientSessionController::Packet packet;
+                    int method;
+                    std::string payload;
+
+                    std::wcout << "(int) Method: ";
+                    std::cin >> method;
+                    std::wcout << "(string) Payload: ";
+                    std::cin >> payload;
+
+                    packet.method  = method;
+                    packet.payload = payload;
+
+                    while (true) {
+                        for (int index = 0; index < 10; index++) {
+                            clientSessionController->pushRequest(packet);
+                        }
+                        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                        while(clientSessionController->hasResponse()) {
+                            ClientSessionController::Packet packet = clientSessionController->popResponse();
+                            std::wcout << "------ Message ------" << std::endl;
+                            std::wcout << "Method:  " << packet.method << std::endl;
+                            std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
+                            std::wcout << "---------------------" << std::endl;
+                        }
+                    }
+                } else if (option == 2) {
+                    ClientSessionController::Packet packet;
+                    int count;
+                    int method;
+                    std::string payload;
+
+                    std::wcout << "(int) Packet count: ";
+                    std::cin >> count;
+                    std::wcout << "(int) Method: ";
+                    std::cin >> method;
+                    std::wcout << "(string) Payload: ";
+                    std::cin >> payload;
+
+                    packet.method  = method;
+                    packet.payload = payload;
+
+                    for (int index = 0; index < count; index++) {
+                        clientSessionController->pushRequest(packet);
+                    }
+                    while (count != 0) {
+                        if (clientSessionController->hasResponse()) {
+                            ClientSessionController::Packet packet = clientSessionController->popResponse();
+                            std::wcout << "------ Message ------" << std::endl;
+                            std::wcout << "Method:  " << packet.method << std::endl;
+                            std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
+                            std::wcout << "---------------------" << std::endl;
+                            count--;
+                        }
+                    }                
+                } else {
+                    std::wcout << "Invalid!" << std::endl;
+                }
+            } else if (option == 4) {
               clientSessionController->disconnect();  
             } else {
                 std::wcout << "Invalid!" << std::endl;
