@@ -49,15 +49,16 @@ void ClientSessionController::networkingSession() {
     Packet response = receiveMessage(socket);
     if (response.method != METHODS::success) {
       std::wcout << "something went wrong while sending the size!" << std::endl;
-    }
-    for(int index = 0; index < requestQueueSize; index++) {
-      responseCode = sendPacket(socket, popRequest());
-      Packet response = receiveMessage(socket);
-      if (response.method != METHODS::success) {
-        std::wcout << "Send request to node failed: got " << response.method << std::endl;
+    } else {
+      for(int index = 0; index < requestQueueSize; index++) {
+        responseCode = sendPacket(socket, popRequest());
+        Packet response = receiveMessage(socket);
+        if (response.method != METHODS::success) {
+          std::wcout << "Send request to node failed: got " << response.method << std::endl;
+        }
       }
     }
-
+    
     responseCode = sendMessage(socket, METHODS::ready, "");
 
     if (responseCode < 0) {
