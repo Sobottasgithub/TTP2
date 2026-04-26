@@ -72,3 +72,5 @@ nix run .#client
 ```
 
 # How does it work?
+In the background the networkingSession of the clientSessionController and the serverSessionController do the following:
+<img width="700" height="800" alt="TTP2Protocol-Done" src="https://github.com/user-attachments/assets/67ec87ff-1300-4601-a7ec-3b17c006bd46" />
