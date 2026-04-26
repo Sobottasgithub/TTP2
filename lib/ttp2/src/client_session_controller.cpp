@@ -46,21 +46,19 @@ void ClientSessionController::networkingSession() {
     // Send request(s)
     int requestQueueSize = getRequestQueueSize();
     responseCode = sendMessage(socket, METHODS::size, std::to_string(requestQueueSize));
-    if (requestQueueSize > 0) {
-      if (receiveMessage(socket).method == METHODS::success) {
-        for(int index = 0; index < requestQueueSize; index++) {
-          responseCode = sendPacket(socket, popRequest());
-          Packet response = receiveMessage(socket);
-          if (response.method != METHODS::success) {
-            std::wcout << "Send request to node failed: got " << response.method << std::endl;
-          }
-        }
-        responseCode = sendMessage(socket, METHODS::ready, "");
-      } else {
-        std::wcout << "Send of size failed!" << std::endl;
-        responseCode = sendMessage(socket, METHODS::ready, "");
+    Packet response = receiveMessage(socket);
+    if (response.method != METHODS::success) {
+      std::wcout << "something went wrong while sending the size!" << std::endl;
+    }
+    for(int index = 0; index < requestQueueSize; index++) {
+      responseCode = sendPacket(socket, popRequest());
+      Packet response = receiveMessage(socket);
+      if (response.method != METHODS::success) {
+        std::wcout << "Send request to node failed: got " << response.method << std::endl;
       }
     }
+
+    responseCode = sendMessage(socket, METHODS::ready, "");
 
     if (responseCode < 0) {
         std::wcout << "Stream failed with response code: " << responseCode << std::endl;

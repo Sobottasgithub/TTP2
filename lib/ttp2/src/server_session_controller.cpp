@@ -55,22 +55,20 @@ void ServerSessionController::networkingSession() {
     // Receive request(s)
     Packet receivedPacket = receiveMessage(clientSocket);
     if (receivedPacket.method == METHODS::size) {
+      responseCode = sendMessage(clientSocket, METHODS::success, "");
       int count = std::stoi(receivedPacket.payload);
-      if (count != 0) {
+      for(int index = 0; index < count; index++) {
+        Packet request = receiveMessage(clientSocket);
+        pushRequest(request);
         responseCode = sendMessage(clientSocket, METHODS::success, "");
-        for(int i = 0; i < count; i++) {
-          Packet request = receiveMessage(clientSocket);
-          pushRequest(request);
-          responseCode = sendMessage(clientSocket, METHODS::success, "");
-        }
-        response = receiveMessage(clientSocket); // receive ready
       }
     } else {
       std::wcout << "Expected: " << METHODS::size << " (size) got: " << receivedPacket.method << std::endl;
       responseCode = sendMessage(clientSocket, METHODS::failed, "Expected method size");
-      response = receiveMessage(clientSocket); // receive ready
     }
 
+    response = receiveMessage(clientSocket); // receive ready
+    
     // Controlled shutdown of this thread, if the master crashes
     if (responseCode < 0) {
       std::wcout << "Socket: " << clientSocket << " closed!" << std::endl;
