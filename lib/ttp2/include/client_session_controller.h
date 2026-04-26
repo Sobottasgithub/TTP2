@@ -6,6 +6,7 @@
 class ClientSessionController: public Networking
 {
     public:
+      ClientSessionController();
       ClientSessionController(int &socket);
       void networkingSession();
 

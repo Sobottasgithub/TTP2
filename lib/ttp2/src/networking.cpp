@@ -16,14 +16,14 @@ extern "C" {
 extern const asn1_static_node packets_asn1_tab[];
 }
 
-bool Networking::hasSolution() {
+bool Networking::hasResponse() {
   std::lock_guard<std::mutex> lock(mtx);
-  return !solutionCollection.empty();
+  return !responseQueue.empty();
 }
 
-bool Networking::hasOrder() {
+bool Networking::hasRequest() {
   std::lock_guard<std::mutex> lock(mtx);
-  return !orderCollection.empty();
+  return !requestQueue.empty();
 }
 
 bool Networking::isConnected() {
@@ -31,46 +31,51 @@ bool Networking::isConnected() {
   return connected;
 }
 
-Networking::Packet Networking::popOrder() {
+void Networking::disconnect() {
   std::lock_guard<std::mutex> lock(mtx);
-  if (!orderCollection.empty()) {
-    Networking::Packet firstOrder = orderCollection[0];
-    orderCollection.erase(orderCollection.begin());  
-    return firstOrder;
+  connected = false;
+}
+
+Networking::Packet Networking::popRequest() {
+  std::lock_guard<std::mutex> lock(mtx);
+  if (!requestQueue.empty()) {
+    Networking::Packet firstRequest = requestQueue[0];
+    requestQueue.erase(requestQueue.begin());  
+    return firstRequest;
   }
   Networking::Packet emptyPacket;
   return emptyPacket;
 }
 
-Networking::Packet Networking::popSolution() {
+Networking::Packet Networking::popResponse() {
   std::lock_guard<std::mutex> lock(mtx);
-  if (!solutionCollection.empty()) {
-    Networking::Packet firstOrder = solutionCollection[0];
-    solutionCollection.erase(solutionCollection.begin());  
-    return firstOrder;
+  if (!responseQueue.empty()) {
+    Networking::Packet firstResponse = responseQueue[0];
+    responseQueue.erase(responseQueue.begin());  
+    return firstResponse;
   }
   Networking::Packet emptyPacket;
   return emptyPacket;
 }
 
-void Networking::pushSolution(Networking::Packet solution) {
+void Networking::pushResponse(Networking::Packet response) {
   std::lock_guard<std::mutex> lock(mtx);
-  solutionCollection.push_back(solution);
+  responseQueue.push_back(response);
 }
 
-void Networking::pushOrder(Networking::Packet order) {
+void Networking::pushRequest(Networking::Packet request) {
   std::lock_guard<std::mutex> lock(mtx);
-  orderCollection.push_back(order);
+  requestQueue.push_back(request);
 }
 
-int Networking::getOrderCollectionSize() {
+int Networking::getRequestQueueSize() {
   std::lock_guard<std::mutex> lock(mtx);
-  return orderCollection.size();
+  return requestQueue.size();
 }
 
-int Networking::getSolutionCollectionSize() {
+int Networking::getResponseQueueSize() {
   std::lock_guard<std::mutex> lock(mtx);
-  return solutionCollection.size();
+  return responseQueue.size();
 }
 
 int Networking::sendPacket(int socket, Networking::Packet packet) {
