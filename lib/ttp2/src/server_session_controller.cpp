@@ -35,8 +35,8 @@ void ServerSessionController::networkingSession() {
     if (response.method == METHODS::success) {
       for(int index = 0; index < responseQueueSize; index++) {
         // Send data
-        Packet response = popResponse();
-        responseCode = sendPacket(clientSocket, response);
+        Packet responsePacket = popResponse();
+        responseCode = sendPacket(clientSocket, responsePacket);
         response = receiveMessage(clientSocket);
         if (response.method != METHODS::success) {
           std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
@@ -53,18 +53,18 @@ void ServerSessionController::networkingSession() {
     responseCode = sendMessage(clientSocket, METHODS::ready, "");
     
     // Receive request(s)
-    Packet receivedPacket = receiveMessage(clientSocket);
-    if (receivedPacket.method == METHODS::size) {
+    Packet requestCount = receiveMessage(clientSocket);
+    if (requestCount.method == METHODS::size) {
       responseCode = sendMessage(clientSocket, METHODS::success, "");
-      int count = std::stoi(receivedPacket.payload);
-      for(int index = 0; index < count; index++) {
-        Packet request = receiveMessage(clientSocket);
-        pushRequest(request);
+      for (int index = 0; index < std::stoi(requestCount.payload); index++) {
+        Packet packet = receiveMessage(clientSocket);
+        pushRequest(packet);
         responseCode = sendMessage(clientSocket, METHODS::success, "");
       }
     } else {
-      std::wcout << "Expected: " << METHODS::size << " (size) got: " << receivedPacket.method << std::endl;
-      responseCode = sendMessage(clientSocket, METHODS::failed, "Expected method size");
+      responseCode = sendMessage(clientSocket, METHODS::failed, "");
+      std::wcout << "Something went wrong during receiving size!" << std::endl;
+      std::wcout << "Got: " << requestCount.method << " instead of " << METHODS::size << " (size)" << std::endl;
     }
 
     response = receiveMessage(clientSocket); // receive ready

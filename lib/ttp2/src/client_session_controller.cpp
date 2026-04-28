@@ -47,16 +47,22 @@ void ClientSessionController::networkingSession() {
     int requestQueueSize = getRequestQueueSize();
     responseCode = sendMessage(socket, METHODS::size, std::to_string(requestQueueSize));
     Packet response = receiveMessage(socket);
-    if (response.method != METHODS::success) {
-      std::wcout << "something went wrong while sending the size!" << std::endl;
-    } else {
+    if (response.method == METHODS::success) {
       for(int index = 0; index < requestQueueSize; index++) {
-        responseCode = sendPacket(socket, popRequest());
-        Packet response = receiveMessage(socket);
+        // Send data
+        Packet request = popRequest();
+        responseCode = sendPacket(socket, request);
+        response = receiveMessage(socket);
         if (response.method != METHODS::success) {
-          std::wcout << "Send request to node failed: got " << response.method << std::endl;
+          std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
+          std::wcout << "With following payload" << response.payload.c_str() << std::endl;
         }
       }
+    } else if (response.method == METHODS::failed) {
+      std::wcout << "Something went wrong while sending the size! Master response: " << response.payload.c_str() << std::endl;
+    } else {
+      std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
+      std::wcout << "With following payload" << response.payload.c_str() << std::endl;
     }
     
     responseCode = sendMessage(socket, METHODS::ready, "");
