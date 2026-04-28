@@ -92,13 +92,13 @@ int main() {
                 
                     ClientSessionController::Packet packet;
                     packet.method  = method;
-                    packet.payload = payload;
 
+                    int count = 0;
                     while (true) {
-                        for (int index = 0; index < 10; index++) {
-                            clientSessionController->pushRequest(packet);
-                        }
-                        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+                        count++;
+                        packet.payload = payload + std::to_string(count);
+                        clientSessionController->pushRequest(packet);
+                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
                         while(clientSessionController->hasResponse()) {
                             ClientSessionController::Packet packet = clientSessionController->popResponse();
                             std::wcout << "------ Message ------" << std::endl;

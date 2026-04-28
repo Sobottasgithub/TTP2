@@ -47,7 +47,7 @@ void clientManager(int serverSocket, int clientSocket) {
 
     int messageCounter = 0;
     while (serverSessionController->isConnected()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         if (serverSessionController->hasRequest()) {
             messageCounter++;
             std::wcout << "Received request" << messageCounter << "!" << std::endl;
