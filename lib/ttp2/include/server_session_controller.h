@@ -13,6 +13,10 @@ class ServerSessionController: public Networking
     private:
       int serverSocket;
       int clientSocket;
+
+      void sendResponseSession();
+      void receiveRequestSession();
+      void validateConnection(int responseCode);
 };
 
 #endif

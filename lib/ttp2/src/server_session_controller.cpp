@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <ifaddrs.h>
 #include <arpa/inet.h>
+#include <thread>
 
 ServerSessionController::ServerSessionController() {}
 
@@ -27,55 +28,24 @@ void ServerSessionController::networkingSession() {
     return;
   }
 
+  std::thread receiveRequestSessionThread([this]() {
+      this->receiveRequestSession();
+  });
+
+  std::thread sendResponseSessionThread([this]() {
+      this->sendResponseSession();
+  });
+ 
   while (isConnected()) {
-    // Send response(s)
-    int responseQueueSize = getResponseQueueSize();
-    responseCode = sendMessage(clientSocket, METHODS::size, std::to_string(responseQueueSize));
-    Packet response = receiveMessage(clientSocket);
-    if (response.method == METHODS::success) {
-      for(int index = 0; index < responseQueueSize; index++) {
-        // Send data
-        Packet responsePacket = popResponse();
-        responseCode = sendPacket(clientSocket, responsePacket);
-        response = receiveMessage(clientSocket);
-        if (response.method != METHODS::success) {
-          std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
-          std::wcout << "With following payload" << response.payload.c_str() << std::endl;
-        }
-      }
-    } else if (response.method == METHODS::failed) {
-      std::wcout << "Something went wrong while sending the size! Master response: " << response.payload.c_str() << std::endl;
-    } else {
-      std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
-      std::wcout << "With following payload" << response.payload.c_str() << std::endl;
-    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  }
 
-    responseCode = sendMessage(clientSocket, METHODS::ready, "");
-    
-    // Receive request(s)
-    Packet requestCount = receiveMessage(clientSocket);
-    if (requestCount.method == METHODS::size) {
-      responseCode = sendMessage(clientSocket, METHODS::success, "");
-      for (int index = 0; index < std::stoi(requestCount.payload); index++) {
-        Packet packet = receiveMessage(clientSocket);
-        pushRequest(packet);
-        responseCode = sendMessage(clientSocket, METHODS::success, "");
-      }
-    } else {
-      responseCode = sendMessage(clientSocket, METHODS::failed, "");
-      std::wcout << "Something went wrong during receiving size!" << std::endl;
-      std::wcout << "Got: " << requestCount.method << " instead of " << METHODS::size << " (size)" << std::endl;
-    }
+  if (receiveRequestSessionThread.joinable()) {
+    receiveRequestSessionThread.join();
+  }
 
-    response = receiveMessage(clientSocket); // receive ready
-    
-    // Controlled shutdown of this thread, if the master crashes
-    if (responseCode < 0) {
-      std::wcout << "Socket: " << clientSocket << " closed!" << std::endl;
-      disconnect();
-      close(clientSocket);
-      return;
-    }
+  if (sendResponseSessionThread.joinable()) {
+    sendResponseSessionThread.join();
   }
 }
 
@@ -109,3 +79,34 @@ std::string ServerSessionController::getLocalIpAddress(std::string interface) {
   freeifaddrs(ifaddr);
   return result;
 }
+
+void ServerSessionController::sendResponseSession() {
+  while (isConnected()) {
+    Packet responsePacket = popResponse();
+    int responseCode = sendPacket(clientSocket, responsePacket);
+    Packet response = receiveMessage(clientSocket);
+    if (response.method != METHODS::success) {
+      std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
+      std::wcout << "With following payload" << response.payload.c_str() << std::endl;
+    }
+    validateConnection(responseCode);
+  }
+}
+
+void ServerSessionController::receiveRequestSession() {
+  while (isConnected()) {
+    Packet packet = receiveMessage(clientSocket);
+    pushRequest(packet);
+    int responseCode = sendMessage(clientSocket, METHODS::success, "");
+    validateConnection(responseCode);
+  }
+}
+
+void ServerSessionController::validateConnection(int responseCode) {
+  if (responseCode < 0) {
+      std::wcout << "Stream failed with response code: " << responseCode << std::endl;
+      disconnect();
+      close(clientSocket);
+  }
+}
+
