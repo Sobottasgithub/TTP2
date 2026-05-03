@@ -15,7 +15,6 @@ class ClientSessionController: public Networking
 
       void sendRequestSession();
       void receiveResponseSession();
-      void validateConnection(int responseCode);
 };
 
 #endif
