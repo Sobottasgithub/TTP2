@@ -82,14 +82,16 @@ std::string ServerSessionController::getLocalIpAddress(std::string interface) {
 
 void ServerSessionController::sendResponseSession() {
   while (isConnected()) {
-    Packet responsePacket = popResponse();
-    int responseCode = sendPacket(clientSocket, responsePacket);
-    Packet response = receiveMessage(clientSocket);
-    if (response.method != METHODS::success) {
-      std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
-      std::wcout << "With following payload" << response.payload.c_str() << std::endl;
+    if (hasResponse()) {
+      Packet responsePacket = popResponse();
+      int responseCode = sendPacket(clientSocket, responsePacket);
+      Packet response = receiveMessage(clientSocket);
+      if (response.method != METHODS::success) {
+        std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
+        std::wcout << "With following payload" << response.payload.c_str() << std::endl;
+      }
+      validateConnection(responseCode);
     }
-    validateConnection(responseCode);
   }
 }
 
