@@ -50,8 +50,6 @@ void ClientSessionController::receiveResponseSession() {
   while (isConnected()) {
     Packet packet = receiveMessage(socket);
     pushResponse(packet);
-    int responseCode = sendMessage(socket, METHODS::success, "");
-    validateConnection(responseCode);
   }
 }
 
@@ -60,20 +58,6 @@ void ClientSessionController::sendRequestSession() {
     if (hasRequest()) {
       Packet request = popRequest();
       int responseCode = sendPacket(socket, request);
-      Packet response = receiveMessage(socket);
-      if (response.method != METHODS::success) {
-        std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
-        std::wcout << "With following payload" << response.payload.c_str() << std::endl;
-      }
-      validateConnection(responseCode);
     }
-  }
-}
-
-void ClientSessionController::validateConnection(int responseCode) {
-  if (responseCode < 0) {
-      std::wcout << "Stream failed with response code: " << responseCode << std::endl;
-      disconnect();
-      close(socket);
   }
 }

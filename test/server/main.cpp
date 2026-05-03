@@ -72,13 +72,13 @@ int main() {
     serverAddress.sin_port = htons(port);
     serverAddress.sin_addr.s_addr = inet_addr(containerIP.c_str());
 
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    int serverSocket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
     bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 
     listen(serverSocket, 5);
     std::vector<std::thread> clientConnections;
     while (true) {
-        int clientSocket = accept(serverSocket, nullptr, nullptr);
+        int clientSocket = accept4(serverSocket, nullptr, nullptr, SOCK_NONBLOCK);
         std::wcout << "New clientSocket: " << clientSocket << std::endl;
         clientConnections.push_back(std::thread(
                                        clientManager,

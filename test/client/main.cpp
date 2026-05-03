@@ -42,7 +42,7 @@ int main() {
     std::string ipAddress = requestString("Server ipv4 (string): ");
     int port = requestInt("Server port (int): ");
 
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    int serverSocket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
