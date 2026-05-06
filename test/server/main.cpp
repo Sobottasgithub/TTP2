@@ -9,6 +9,7 @@
 #include <memory>
 #include <chrono>
 #include <regex>
+#include <sys/epoll.h>
 
 bool isNumeric(const std::string& string) {
   static const std::regex numberRegex(
@@ -75,16 +76,39 @@ int main() {
     int serverSocket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
     bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
 
+    // Create epoll
+    int epollFd = epoll_create1(0);
+    if (epollFd == -1) {
+        std::wcout << "Failed to create epoll!" << std::endl;
+    }
+    // Set epoll action for server
+    struct epoll_event serverEvents;
+    serverEvents.events = EPOLLIN | EPOLLOUT;
+    serverEvents.data.fd = serverSocket;
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, serverSocket, &serverEvents) == -1) {
+        std::wcout << "Failed to set epoll_ctl!" << std::endl;
+        return 1;
+    }
+
     listen(serverSocket, 5);
     std::vector<std::thread> clientConnections;
     while (true) {
-        int clientSocket = accept4(serverSocket, nullptr, nullptr, SOCK_NONBLOCK);
-        std::wcout << "New clientSocket: " << clientSocket << std::endl;
-        clientConnections.push_back(std::thread(
-                                       clientManager,
-                                       serverSocket,
-                                       clientSocket
-                                    ));
+        const int MAX_EVENTS = 10;
+        struct epoll_event events[MAX_EVENTS];
+        int epollRequestCount = epoll_wait(epollFd, events, MAX_EVENTS, -1);
+        
+        for (int index = 0; index < epollRequestCount; ++index) {
+            if (events[index].data.fd == serverSocket) {
+                int clientSocket = accept4(serverSocket, nullptr, nullptr, SOCK_NONBLOCK);
+                std::wcout << "New clientSocket: " << clientSocket << std::endl;
+
+                clientConnections.push_back(std::thread(
+                                               clientManager,
+                                               serverSocket,
+                                               clientSocket
+                                            ));
+            }
+        }
     }
 
     return 0;

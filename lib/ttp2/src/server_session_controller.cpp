@@ -9,6 +9,7 @@
 #include <ifaddrs.h>
 #include <arpa/inet.h>
 #include <thread>
+#include <sys/epoll.h>
 
 ServerSessionController::ServerSessionController() {}
 
@@ -18,6 +19,18 @@ ServerSessionController::ServerSessionController(int serverSocket, int clientSoc
 }
 
 void ServerSessionController::networkingSession() {
+  epollFd = epoll_create1(0);
+  if (epollFd == -1) {
+      std::wcout << "Failed to create epoll!" << std::endl;
+  }
+
+  clientEvent.events = EPOLLIN | EPOLLOUT;
+  clientEvent.data.fd = clientSocket;
+  if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &clientEvent) == -1) {
+      std::wcout << "Failed to set epoll_ctl for client!" << std::endl;
+      return;
+  }
+
   // Compleate Handshake
   int responseCode = sendMessage(clientSocket, METHODS::handshake, "");
   Packet handshakePacket = receiveMessage(clientSocket);
@@ -91,8 +104,17 @@ void ServerSessionController::sendResponseSession() {
 
 void ServerSessionController::receiveRequestSession() {
   while (isConnected()) {
-    Packet packet = receiveMessage(clientSocket);
-    pushRequest(packet);
+    const int MAX_EVENTS = 10;
+    struct epoll_event incomingEvents[MAX_EVENTS];
+
+    int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
+    for (int index = 0; index < eventCount; ++index) {
+        int fd = incomingEvents[index].data.fd;
+        if (incomingEvents[index].events & EPOLLIN) {
+          Packet packet = receiveMessage(clientSocket);
+          pushRequest(packet);
+        }
+    }
   }
 }
 
