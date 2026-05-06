@@ -21,7 +21,7 @@ void ClientSessionController::networkingSession() {
       std::wcout << "Failed to create epoll!" << std::endl;
   }
 
-  serverEvent.events = EPOLLIN | EPOLLOUT;
+  serverEvent.events = EPOLLIN;
   serverEvent.data.fd = socket;
   if (epoll_ctl(epollFd, EPOLL_CTL_ADD, socket, &serverEvent) == -1) {
       std::wcout << "Failed to set epoll_ctl for client!" << std::endl;
