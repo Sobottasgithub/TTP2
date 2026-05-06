@@ -31,16 +31,6 @@ void ServerSessionController::networkingSession() {
       return;
   }
 
-  // Compleate Handshake
-  int responseCode = sendMessage(clientSocket, METHODS::handshake, "");
-  Packet handshakePacket = receiveMessage(clientSocket);
-  if (responseCode < 0) {
-    std::wcout << "Socket: " << clientSocket << " closed during the handshake!" << std::endl;
-    close(clientSocket);
-    disconnect();
-    return;
-  }
-
   std::thread receiveRequestSessionThread([this]() {
       this->receiveRequestSession();
   });

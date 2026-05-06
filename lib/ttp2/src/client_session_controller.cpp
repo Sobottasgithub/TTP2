@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <thread>
+#include <sys/epoll.h>
 
 ClientSessionController::ClientSessionController() {}
 
@@ -15,14 +16,16 @@ ClientSessionController::ClientSessionController(int &socket) {
 }
 
 void ClientSessionController::networkingSession() {
-  // Compleate Handshake
-  Packet handshakePacket = receiveMessage(socket);
-  int responseCode = sendMessage(socket, METHODS::handshake, "");
-  if (handshakePacket.method != METHODS::handshake) {
-    std::wcout << "Handshake failed!" << std::endl;
-    disconnect();
-    close(socket);
-    return;
+  epollFd = epoll_create1(0);
+  if (epollFd == -1) {
+      std::wcout << "Failed to create epoll!" << std::endl;
+  }
+
+  serverEvent.events = EPOLLIN | EPOLLOUT;
+  serverEvent.data.fd = socket;
+  if (epoll_ctl(epollFd, EPOLL_CTL_ADD, socket, &serverEvent) == -1) {
+      std::wcout << "Failed to set epoll_ctl for client!" << std::endl;
+      return;
   }
 
   std::thread sendRequestSessionThread([this]() {
@@ -30,7 +33,7 @@ void ClientSessionController::networkingSession() {
   });
 
   std::thread receiveResponseSessionThread([this]() {
-      this->sendRequestSession();
+      this->receiveResponseSession();
   });
  
   while (isConnected()) {
@@ -48,8 +51,17 @@ void ClientSessionController::networkingSession() {
 
 void ClientSessionController::receiveResponseSession() {
   while (isConnected()) {
-    Packet packet = receiveMessage(socket);
-    pushResponse(packet);
+    const int MAX_EVENTS = 10;
+    struct epoll_event incomingEvents[MAX_EVENTS];
+
+    int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
+    for (int index = 0; index < eventCount; ++index) {
+        int fd = incomingEvents[index].data.fd;
+        if (incomingEvents[index].events & EPOLLIN) {
+          Packet packet = receiveMessage(socket);
+          pushResponse(packet);
+        }
+    }
   }
 }
 
