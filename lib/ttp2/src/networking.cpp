@@ -164,10 +164,11 @@ Networking::Packet Networking::receiveMessage(int socket) {
   int method = methodVal;
   
   // Read payload
-  std::vector<char> payloadStr(128);
-  int payloadLen = payloadStr.size();
+  int payloadLen = 0;
+  int result = asn1_read_value(packet, "payload", nullptr, &payloadLen);
+  std::vector<char> payloadStr(payloadLen);
   asn1_read_value(packet, "payload", payloadStr.data(), &payloadLen);
-  std::string payload = std::string(payloadStr.data(), payloadLen);
+  std::string payload(payloadStr.data(), payloadLen);
 
   asn1_delete_structure(&packet);
   asn1_delete_structure(&definitions);
