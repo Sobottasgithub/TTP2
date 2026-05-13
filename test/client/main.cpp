@@ -98,7 +98,6 @@ int main() {
                         count++;
                         packet.payload = payload + std::to_string(count);
                         clientSessionController->pushRequest(packet);
-                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
                         while(clientSessionController->hasResponse()) {
                             ClientSessionController::Packet packet = clientSessionController->popResponse();
                             std::wcout << "------ Message ------" << std::endl;

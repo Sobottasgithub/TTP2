@@ -62,19 +62,19 @@ std::string ServerSessionController::getLocalIpAddress(std::string interface) {
 
   // Iterate through interfaces
   for (auto *ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-      if (!ifa->ifa_addr) continue;
+    if (!ifa->ifa_addr) continue;
 
-      if (ifa->ifa_addr->sa_family == AF_INET) {
-          auto *addr = reinterpret_cast<struct sockaddr_in *>(ifa->ifa_addr);
-          char ip[INET_ADDRSTRLEN];
-          inet_ntop(AF_INET, &addr->sin_addr, ip, sizeof(ip));
+    if (ifa->ifa_addr->sa_family == AF_INET) {
+      auto *addr = reinterpret_cast<struct sockaddr_in *>(ifa->ifa_addr);
+      char ip[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, &addr->sin_addr, ip, sizeof(ip));
 
-          // Docker containers typically use eth0
-          if (std::string(ifa->ifa_name) == interface) {
-              result = ip;
-              break;
-          }
+      // Docker containers typically use eth0
+      if (std::string(ifa->ifa_name) == interface) {
+          result = ip;
+          break;
       }
+    }
   }
 
   freeifaddrs(ifaddr);
@@ -96,12 +96,23 @@ void ServerSessionController::receiveRequestSession() {
     struct epoll_event incomingEvents[MAX_EVENTS];
 
     int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
+    
     for (int index = 0; index < eventCount; ++index) {
-        int fd = incomingEvents[index].data.fd;
-        if (incomingEvents[index].events & EPOLLIN) {
-          Packet packet = receiveMessage(clientSocket);
+      int fd = incomingEvents[index].data.fd;
+      if (incomingEvents[index].events & (EPOLLHUP | EPOLLERR)) {
+        sessionBuffers.erase(fd);
+        close(fd);
+        continue;
+      }
+      if (incomingEvents[index].events & EPOLLIN) {
+        while (true) {
+          Packet packet = receiveMessage(fd);
+          if (packet.method == -1) {
+            break;
+          }
           pushRequest(packet);
         }
+      }
     }
   }
 }
