@@ -1,7 +1,7 @@
 #ifndef CLIENT_SESSION_CONTROLLER_H
 #define CLIENT_SESSION_CONTROLLER_H
 
-#include "../src/networking.h"
+#include "networking.h"
 #include <sys/epoll.h>
 
 class ClientSessionController: public Networking

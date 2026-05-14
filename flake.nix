@@ -11,7 +11,7 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
 
-      version = "1.2";
+      version = "1.3";
 
       commonDeps = with pkgs; [
         cmake
@@ -66,6 +66,7 @@
           };
         in
         {
+          inherit lib;
 
           client = mkTTP2Package {
             pname = "ttp2-client";

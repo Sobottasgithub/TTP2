@@ -1,7 +1,7 @@
 #ifndef SERVER_SESSION_CONTROLLER_H
 #define SERVER_SESSION_CONTROLLER_H
 
-#include "../src/networking.h"
+#include "networking.h"
 #include <sys/epoll.h>
 
 class ServerSessionController: public Networking

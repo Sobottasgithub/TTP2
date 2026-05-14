@@ -1,4 +1,4 @@
-#include "networking.h"
+#include "../include/networking.h"
 
 #include <arpa/inet.h>
 #include <cstring>
@@ -79,13 +79,16 @@ int Networking::sendPacket(int socket, Networking::Packet packet) {
   return sendMessage(socket, packet.id, packet.method, packet.payload);
 }
 
-int Networking::sendMessage(int socket, int id, int method, std::string payload) {
+int Networking::sendMessage(int socket, int id, int method,
+                            std::string payload) {
   asn1_node definitions = nullptr;
   asn1_node packet = nullptr;
   char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
 
-  if (asn1_array2tree(packets_asn1_tab, &definitions, errorDescription) !=ASN1_SUCCESS) {
-    std::wcout << "Error in sendMessage when loading asn1:  " << errorDescription << std::endl;
+  if (asn1_array2tree(packets_asn1_tab, &definitions, errorDescription) !=
+      ASN1_SUCCESS) {
+    std::wcout << "Error in sendMessage when loading asn1:  "
+               << errorDescription << std::endl;
     return -1;
   }
 
@@ -105,16 +108,15 @@ int Networking::sendMessage(int socket, int id, int method, std::string payload)
   std::vector<unsigned char> buffer(derLen);
   if (asn1_der_coding(packet, "", buffer.data(), &derLen, errorDescription) !=
       ASN1_SUCCESS) {
-    std::wcout << "Error while encoding packet: " << errorDescription << std::endl;
+    std::wcout << "Error while encoding packet: " << errorDescription
+               << std::endl;
     return -1;
   }
 
   uint32_t size = htonl(derLen);
-  sendBytes(socket, reinterpret_cast<char *>(&size),
-            sizeof(size));
-  sendBytes(socket, reinterpret_cast<char *>(buffer.data()),
-            derLen);
-  
+  sendBytes(socket, reinterpret_cast<char *>(&size), sizeof(size));
+  sendBytes(socket, reinterpret_cast<char *>(buffer.data()), derLen);
+
   asn1_delete_structure(&packet);
   asn1_delete_structure(&definitions);
 
@@ -171,7 +173,8 @@ Networking::Packet Networking::receiveMessage(int socket) {
 
   asn1_create_element(definitions, "Packets.Packet", &packet);
 
-  if (asn1_der_decoding(&packet, derBuffer.data(), derLen, errorDescription) == ASN1_SUCCESS) {
+  if (asn1_der_decoding(&packet, derBuffer.data(), derLen, errorDescription) ==
+      ASN1_SUCCESS) {
     unsigned char idBin[8];
     int idLen = sizeof(idBin);
     if (asn1_read_value(packet, "id", idBin, &idLen) == ASN1_SUCCESS) {
@@ -181,10 +184,11 @@ Networking::Packet Networking::receiveMessage(int socket) {
       }
       data.id = static_cast<int>(idValue);
     }
-  
+
     unsigned char methodBin[8];
     int methodLen = sizeof(methodBin);
-    if (asn1_read_value(packet, "method", methodBin, &methodLen) == ASN1_SUCCESS) {
+    if (asn1_read_value(packet, "method", methodBin, &methodLen) ==
+        ASN1_SUCCESS) {
       long methodValue = 0;
       for (int i = 0; i < methodLen; i++) {
         methodValue = (methodValue << 8) | methodBin[i];
