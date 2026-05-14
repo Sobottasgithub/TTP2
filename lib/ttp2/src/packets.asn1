@@ -1,6 +1,7 @@
 Packets DEFINITIONS EXPLICIT TAGS ::= BEGIN
 
 Packet ::= SEQUENCE {
+	id INTEGER,
 	method INTEGER,
 	payload OCTET STRING
 } 

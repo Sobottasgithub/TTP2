@@ -1,11 +1,11 @@
 #include "../include/client_session_controller.h"
 
-#include "../include/methods.h"
-
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <thread>
+#include <sys/epoll.h>
 
 ClientSessionController::ClientSessionController() {}
 
@@ -14,59 +14,71 @@ ClientSessionController::ClientSessionController(int &socket) {
 }
 
 void ClientSessionController::networkingSession() {
-  // Compleate Handshake
-  Packet handshakePacket = receiveMessage(socket);
-  int responseCode = sendMessage(socket, METHODS::handshake, "");
-  if (handshakePacket.method != METHODS::handshake) {
-    std::wcout << "Handshake failed!" << std::endl;
-    disconnect();
-    close(socket);
-    return;
+  epollFd = epoll_create1(0);
+  if (epollFd == -1) {
+      std::wcout << "Failed to create epoll!" << std::endl;
   }
- 
-  responseCode = 0;
-  while (isConnected()) {
-    // Receive response(s)
-    Packet responseCount = receiveMessage(socket);
-    if (responseCount.method == METHODS::size) {
-      responseCode = sendMessage(socket, METHODS::success, "");
-      for (int index = 0; index < std::stoi(responseCount.payload); index++) {
-        Packet packet = receiveMessage(socket);
-        pushResponse(packet);
-        responseCode = sendMessage(socket, METHODS::success, "");
-      }
-    } else {
-      responseCode = sendMessage(socket, METHODS::failed, "");
-      std::wcout << "Something went wrong during receiving size!" << std::endl;
-      std::wcout << "Got: " << responseCount.method << " instead of " << METHODS::size << " (size)" << std::endl;
-    }
 
-    Packet ready = receiveMessage(socket);
-      
-    // Send request(s)
-    int requestQueueSize = getRequestQueueSize();
-    responseCode = sendMessage(socket, METHODS::size, std::to_string(requestQueueSize));
-    Packet response = receiveMessage(socket);
-    if (response.method != METHODS::success) {
-      std::wcout << "something went wrong while sending the size!" << std::endl;
-    } else {
-      for(int index = 0; index < requestQueueSize; index++) {
-        responseCode = sendPacket(socket, popRequest());
-        Packet response = receiveMessage(socket);
-        if (response.method != METHODS::success) {
-          std::wcout << "Send request to node failed: got " << response.method << std::endl;
+  serverEvent.events = EPOLLIN;
+  serverEvent.data.fd = socket;
+  if (epoll_ctl(epollFd, EPOLL_CTL_ADD, socket, &serverEvent) == -1) {
+      std::wcout << "Failed to set epoll_ctl for client!" << std::endl;
+      return;
+  }
+
+  std::thread sendRequestSessionThread([this]() {
+      this->sendRequestSession();
+  });
+
+  std::thread receiveResponseSessionThread([this]() {
+      this->receiveResponseSession();
+  });
+ 
+  while (isConnected()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  }
+
+  if (sendRequestSessionThread.joinable()) {
+    sendRequestSessionThread.join();
+  }
+
+  if (receiveResponseSessionThread.joinable()) {
+    receiveResponseSessionThread.join();
+  }
+}
+
+void ClientSessionController::receiveResponseSession() {
+  while (isConnected()) {
+    const int MAX_EVENTS = 10;
+    struct epoll_event incomingEvents[MAX_EVENTS];
+
+    int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
+    
+    for (int index = 0; index < eventCount; ++index) {
+      int fd = incomingEvents[index].data.fd;
+      if (incomingEvents[index].events & (EPOLLHUP | EPOLLERR)) {
+        sessionBuffers.erase(fd);
+        close(fd);
+        continue;
+      }
+      if (incomingEvents[index].events & EPOLLIN) {
+        while (true) {
+          Packet packet = receiveMessage(fd);
+          if (packet.method == -1) {
+            break;
+          }
+          pushResponse(packet);
         }
       }
     }
-    
-    responseCode = sendMessage(socket, METHODS::ready, "");
+  }
+}
 
-    if (responseCode < 0) {
-        std::wcout << "Stream failed with response code: " << responseCode << std::endl;
-        disconnect();
-        close(socket);
-        break;
+void ClientSessionController::sendRequestSession() {
+  while (isConnected()) {
+    if (hasRequest()) {
+      Packet request = popRequest();
+      int responseCode = sendPacket(socket, request);
     }
   }
-  connected = false;
 }

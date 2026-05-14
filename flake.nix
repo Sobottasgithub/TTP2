@@ -76,9 +76,7 @@
         inputsFrom = [ self.packages.${system}.default ];
 
         shellHook = ''
-          cd lib/ttp2/src/
           ./build-asn1-packets.sh
-          cd ../../../
 
           git status
         '';

@@ -1,13 +1,13 @@
 #include "../include/server_session_controller.h"
 
-#include "../include/methods.h"
-
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
 #include <ifaddrs.h>
 #include <arpa/inet.h>
+#include <thread>
+#include <sys/epoll.h>
 
 ServerSessionController::ServerSessionController() {}
 
@@ -17,65 +17,36 @@ ServerSessionController::ServerSessionController(int serverSocket, int clientSoc
 }
 
 void ServerSessionController::networkingSession() {
-  // Compleate Handshake
-  int responseCode = sendMessage(clientSocket, METHODS::handshake, "");
-  Packet handshakePacket = receiveMessage(clientSocket);
-  if (responseCode < 0) {
-    std::wcout << "Socket: " << clientSocket << " closed during the handshake!" << std::endl;
-    close(clientSocket);
-    disconnect();
-    return;
+  epollFd = epoll_create1(0);
+  if (epollFd == -1) {
+      std::wcout << "Failed to create epoll!" << std::endl;
   }
 
-  while (isConnected()) {
-    // Send response(s)
-    int responseQueueSize = getResponseQueueSize();
-    responseCode = sendMessage(clientSocket, METHODS::size, std::to_string(responseQueueSize));
-    Packet response = receiveMessage(clientSocket);
-    if (response.method == METHODS::success) {
-      for(int index = 0; index < responseQueueSize; index++) {
-        // Send data
-        Packet response = popResponse();
-        responseCode = sendPacket(clientSocket, response);
-        response = receiveMessage(clientSocket);
-        if (response.method != METHODS::success) {
-          std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
-          std::wcout << "With following payload" << response.payload.c_str() << std::endl;
-        }
-      }
-    } else if (response.method == METHODS::failed) {
-      std::wcout << "Something went wrong while sending the size! Master response: " << response.payload.c_str() << std::endl;
-    } else {
-      std::wcout << "Expected: " << METHODS::success << " (success) or " << METHODS::failed << " (failed), but got " << response.method << std::endl;
-      std::wcout << "With following payload" << response.payload.c_str() << std::endl;
-    }
-
-    responseCode = sendMessage(clientSocket, METHODS::ready, "");
-    
-    // Receive request(s)
-    Packet receivedPacket = receiveMessage(clientSocket);
-    if (receivedPacket.method == METHODS::size) {
-      responseCode = sendMessage(clientSocket, METHODS::success, "");
-      int count = std::stoi(receivedPacket.payload);
-      for(int index = 0; index < count; index++) {
-        Packet request = receiveMessage(clientSocket);
-        pushRequest(request);
-        responseCode = sendMessage(clientSocket, METHODS::success, "");
-      }
-    } else {
-      std::wcout << "Expected: " << METHODS::size << " (size) got: " << receivedPacket.method << std::endl;
-      responseCode = sendMessage(clientSocket, METHODS::failed, "Expected method size");
-    }
-
-    response = receiveMessage(clientSocket); // receive ready
-    
-    // Controlled shutdown of this thread, if the master crashes
-    if (responseCode < 0) {
-      std::wcout << "Socket: " << clientSocket << " closed!" << std::endl;
-      disconnect();
-      close(clientSocket);
+  clientEvent.events = EPOLLIN;
+  clientEvent.data.fd = clientSocket;
+  if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &clientEvent) == -1) {
+      std::wcout << "Failed to set epoll_ctl for client!" << std::endl;
       return;
-    }
+  }
+
+  std::thread receiveRequestSessionThread([this]() {
+      this->receiveRequestSession();
+  });
+
+  std::thread sendResponseSessionThread([this]() {
+      this->sendResponseSession();
+  });
+ 
+  while (isConnected()) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  }
+
+  if (receiveRequestSessionThread.joinable()) {
+    receiveRequestSessionThread.join();
+  }
+
+  if (sendResponseSessionThread.joinable()) {
+    sendResponseSessionThread.join();
   }
 }
 
@@ -91,21 +62,58 @@ std::string ServerSessionController::getLocalIpAddress(std::string interface) {
 
   // Iterate through interfaces
   for (auto *ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-      if (!ifa->ifa_addr) continue;
+    if (!ifa->ifa_addr) continue;
 
-      if (ifa->ifa_addr->sa_family == AF_INET) {
-          auto *addr = reinterpret_cast<struct sockaddr_in *>(ifa->ifa_addr);
-          char ip[INET_ADDRSTRLEN];
-          inet_ntop(AF_INET, &addr->sin_addr, ip, sizeof(ip));
+    if (ifa->ifa_addr->sa_family == AF_INET) {
+      auto *addr = reinterpret_cast<struct sockaddr_in *>(ifa->ifa_addr);
+      char ip[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, &addr->sin_addr, ip, sizeof(ip));
 
-          // Docker containers typically use eth0
-          if (std::string(ifa->ifa_name) == interface) {
-              result = ip;
-              break;
-          }
+      // Docker containers typically use eth0
+      if (std::string(ifa->ifa_name) == interface) {
+          result = ip;
+          break;
       }
+    }
   }
 
   freeifaddrs(ifaddr);
   return result;
 }
+
+void ServerSessionController::sendResponseSession() {
+  while (isConnected()) {
+    if (hasResponse()) {
+      Packet responsePacket = popResponse();
+      int responseCode = sendPacket(clientSocket, responsePacket);
+    }
+  }
+}
+
+void ServerSessionController::receiveRequestSession() {
+  while (isConnected()) {
+    const int MAX_EVENTS = 10;
+    struct epoll_event incomingEvents[MAX_EVENTS];
+
+    int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
+    
+    for (int index = 0; index < eventCount; ++index) {
+      int fd = incomingEvents[index].data.fd;
+      if (incomingEvents[index].events & (EPOLLHUP | EPOLLERR)) {
+        sessionBuffers.erase(fd);
+        close(fd);
+        continue;
+      }
+      if (incomingEvents[index].events & EPOLLIN) {
+        while (true) {
+          Packet packet = receiveMessage(fd);
+          if (packet.method == -1) {
+            break;
+          }
+          pushRequest(packet);
+        }
+      }
+    }
+  }
+}
+

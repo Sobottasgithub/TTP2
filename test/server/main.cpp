@@ -6,9 +6,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <thread>
-#include <memory>
-#include <chrono>
 #include <regex>
+#include <sys/epoll.h>
 
 bool isNumeric(const std::string& string) {
   static const std::regex numberRegex(
@@ -45,13 +44,10 @@ void clientManager(int serverSocket, int clientSocket) {
         serverSessionController->networkingSession();
     });
 
-    int messageCounter = 0;
     while (serverSessionController->isConnected()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         if (serverSessionController->hasRequest()) {
-            messageCounter++;
-            std::wcout << "Received request" << messageCounter << "!" << std::endl;
             ServerSessionController::Packet packet = serverSessionController->popRequest();
+            std::wcout << "Received packet id: " << packet.id << std::endl;
             serverSessionController->pushResponse(packet);
         }
     }
@@ -72,19 +68,45 @@ int main() {
     serverAddress.sin_port = htons(port);
     serverAddress.sin_addr.s_addr = inet_addr(containerIP.c_str());
 
-    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+    int serverSocket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+    if(bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
+        std::wcout << "Bind failed!" << std::endl;
+        return -1;
+    }
+
+    // Create epoll
+    int epollFd = epoll_create1(0);
+    if (epollFd == -1) {
+        std::wcout << "Failed to create epoll!" << std::endl;
+    }
+    // Set epoll action for server
+    struct epoll_event serverEvents;
+    serverEvents.events = EPOLLIN | EPOLLOUT;
+    serverEvents.data.fd = serverSocket;
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, serverSocket, &serverEvents) == -1) {
+        std::wcout << "Failed to set epoll_ctl!" << std::endl;
+        return 1;
+    }
 
     listen(serverSocket, 5);
     std::vector<std::thread> clientConnections;
     while (true) {
-        int clientSocket = accept(serverSocket, nullptr, nullptr);
-        std::wcout << "New clientSocket: " << clientSocket << std::endl;
-        clientConnections.push_back(std::thread(
-                                       clientManager,
-                                       serverSocket,
-                                       clientSocket
-                                    ));
+        const int MAX_EVENTS = 10;
+        struct epoll_event events[MAX_EVENTS];
+        int epollRequestCount = epoll_wait(epollFd, events, MAX_EVENTS, -1);
+        
+        for (int index = 0; index < epollRequestCount; ++index) {
+            if (events[index].data.fd == serverSocket) {
+                int clientSocket = accept4(serverSocket, nullptr, nullptr, SOCK_NONBLOCK);
+                std::wcout << "New clientSocket: " << clientSocket << std::endl;
+
+                clientConnections.push_back(std::thread(
+                                               clientManager,
+                                               serverSocket,
+                                               clientSocket
+                                            ));
+            }
+        }
     }
 
     return 0;

@@ -2,6 +2,7 @@
 #define SERVER_SESSION_CONTROLLER_H
 
 #include "../src/networking.h"
+#include <sys/epoll.h>
 
 class ServerSessionController: public Networking
 {
@@ -13,6 +14,12 @@ class ServerSessionController: public Networking
     private:
       int serverSocket;
       int clientSocket;
+
+      int epollFd;
+      struct epoll_event clientEvent;
+
+      void sendResponseSession();
+      void receiveRequestSession();
 };
 
 #endif
