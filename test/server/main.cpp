@@ -44,14 +44,10 @@ void clientManager(int serverSocket, int clientSocket) {
         serverSessionController->networkingSession();
     });
 
-    int messageCounter = 0;
     while (serverSessionController->isConnected()) {
         if (serverSessionController->hasRequest()) {
-            messageCounter++;
-            // std::wcout << "Received request" << messageCounter << "!" << std::endl;
             ServerSessionController::Packet packet = serverSessionController->popRequest();
-            std::string payload = packet.payload;
-            std::wcout << "payload: " << payload.c_str() << std::endl;
+            std::wcout << "Received packet id: " << packet.id << std::endl;
             serverSessionController->pushResponse(packet);
         }
     }

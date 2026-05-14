@@ -62,6 +62,7 @@ int main() {
         clientSessionController->networkingSession();
     });
 
+    int count = 0;
     while (true) {
         if (!clientSessionController->isConnected()) {
             std::wcout << "Disconnect!" << std::endl;
@@ -74,8 +75,10 @@ int main() {
             std::string payload = requestString("(string) Payload: ");
         
             ClientSessionController::Packet packet;
+            packet.id = count;
             packet.method  = method;
             packet.payload = payload;
+            count++;
             clientSessionController->pushRequest(packet);
         } else if (option == 2) {
             if (!clientSessionController->hasResponse()) {
@@ -85,6 +88,7 @@ int main() {
             while(clientSessionController->hasResponse()) {
                 ClientSessionController::Packet packet = clientSessionController->popResponse();
                 std::wcout << "------ Message ------" << std::endl;
+                std::wcout << "ID: " << packet.id << std::endl;
                 std::wcout << "Method:  " << packet.method << std::endl;
                 std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
                 std::wcout << "---------------------" << std::endl;
@@ -99,14 +103,15 @@ int main() {
                 ClientSessionController::Packet packet;
                 packet.method  = method;
 
-                int count = 0;
                 while (true) {
+                    packet.id = count;
+                    packet.payload = payload;
                     count++;
-                    packet.payload = payload + std::to_string(count);
                     clientSessionController->pushRequest(packet);
                     while(clientSessionController->hasResponse()) {
                         ClientSessionController::Packet packet = clientSessionController->popResponse();
                         std::wcout << "------ Message ------" << std::endl;
+                        std::wcout << "ID: " << packet.id << std::endl;
                         std::wcout << "Method:  " << packet.method << std::endl;
                         std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
                         std::wcout << "---------------------" << std::endl;
@@ -118,8 +123,10 @@ int main() {
                 std::string payload = requestString("(string) Payload: ");
         
                 ClientSessionController::Packet packet;
+                packet.id = count;
                 packet.method  = method;
                 packet.payload = payload;
+                count++;
 
                 for (int index = 0; index < count; index++) {
                     clientSessionController->pushRequest(packet);
@@ -128,6 +135,7 @@ int main() {
                     if (clientSessionController->hasResponse()) {
                         ClientSessionController::Packet packet = clientSessionController->popResponse();
                         std::wcout << "------ Message ------" << std::endl;
+                        std::wcout << "ID: " << packet.id << std::endl;
                         std::wcout << "Method:  " << packet.method << std::endl;
                         std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
                         std::wcout << "---------------------" << std::endl;

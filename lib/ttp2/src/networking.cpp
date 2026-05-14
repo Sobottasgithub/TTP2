@@ -76,51 +76,45 @@ int Networking::getResponseQueueSize() {
 }
 
 int Networking::sendPacket(int socket, Networking::Packet packet) {
-  return sendMessage(socket, packet.method, packet.payload);
+  return sendMessage(socket, packet.id, packet.method, packet.payload);
 }
 
-int Networking::sendMessage(int socket, int method, std::string payload) {
+int Networking::sendMessage(int socket, int id, int method, std::string payload) {
   asn1_node definitions = nullptr;
   asn1_node packet = nullptr;
   char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
 
-  // Load asn1 definition
-  if (asn1_array2tree(packets_asn1_tab, &definitions, errorDescription) !=
-      ASN1_SUCCESS) {
-    std::wcout << "Error in sendMessage when loading asn1:  "
-               << errorDescription << std::endl;
+  if (asn1_array2tree(packets_asn1_tab, &definitions, errorDescription) !=ASN1_SUCCESS) {
+    std::wcout << "Error in sendMessage when loading asn1:  " << errorDescription << std::endl;
     return -1;
   }
 
   asn1_create_element(definitions, "Packets.Packet", &packet);
 
-  // Integers must be written as strings in asn1
+  std::string idString = std::to_string(id);
+  asn1_write_value(packet, "id", idString.c_str(), 0);
+
   std::string methodString = std::to_string(method);
   asn1_write_value(packet, "method", methodString.c_str(), 0);
 
-  // Octet Strings must be written as raw bytes
   const char *messageChar = payload.c_str();
   asn1_write_value(packet, "payload", messageChar, strlen(messageChar));
 
-  // Encode
   int derLen = 0;
-  // Get future len of encoded packet
   asn1_der_coding(packet, "", nullptr, &derLen, nullptr);
   std::vector<unsigned char> buffer(derLen);
-  // Write encoded packet to buffer
   if (asn1_der_coding(packet, "", buffer.data(), &derLen, errorDescription) !=
       ASN1_SUCCESS) {
-    std::wcout << "Error while encoding packet: " << errorDescription
-               << std::endl;
+    std::wcout << "Error while encoding packet: " << errorDescription << std::endl;
     return -1;
   }
 
-  uint32_t size = htonl(derLen); // Convert to bytes
+  uint32_t size = htonl(derLen);
   sendBytes(socket, reinterpret_cast<char *>(&size),
-            sizeof(size)); // [1] Send size (4 bytes)
+            sizeof(size));
   sendBytes(socket, reinterpret_cast<char *>(buffer.data()),
-            derLen); // [2] Send data
-
+            derLen);
+  
   asn1_delete_structure(&packet);
   asn1_delete_structure(&definitions);
 
@@ -128,7 +122,7 @@ int Networking::sendMessage(int socket, int method, std::string payload) {
 }
 
 Networking::Packet Networking::receiveMessage(int socket) {
-  Networking::Packet data = {-1, ""};
+  Networking::Packet data = {-1, -1, ""};
   unsigned char temp[4096];
   while (true) {
     ssize_t n = recv(socket, temp, sizeof(temp), 0);
@@ -177,17 +171,25 @@ Networking::Packet Networking::receiveMessage(int socket) {
 
   asn1_create_element(definitions, "Packets.Packet", &packet);
 
-  if (asn1_der_decoding(&packet, derBuffer.data(), derLen, errorDescription) ==
-      ASN1_SUCCESS) {
+  if (asn1_der_decoding(&packet, derBuffer.data(), derLen, errorDescription) == ASN1_SUCCESS) {
+    unsigned char idBin[8];
+    int idLen = sizeof(idBin);
+    if (asn1_read_value(packet, "id", idBin, &idLen) == ASN1_SUCCESS) {
+      long idValue = 0;
+      for (int i = 0; i < idLen; i++) {
+        idValue = (idValue << 8) | idBin[i];
+      }
+      data.id = static_cast<int>(idValue);
+    }
+  
     unsigned char methodBin[8];
     int methodLen = sizeof(methodBin);
-    if (asn1_read_value(packet, "method", methodBin, &methodLen) ==
-        ASN1_SUCCESS) {
-      long methodVal = 0;
+    if (asn1_read_value(packet, "method", methodBin, &methodLen) == ASN1_SUCCESS) {
+      long methodValue = 0;
       for (int i = 0; i < methodLen; i++) {
-        methodVal = (methodVal << 8) | methodBin[i];
+        methodValue = (methodValue << 8) | methodBin[i];
       }
-      data.method = static_cast<int>(methodVal);
+      data.method = static_cast<int>(methodValue);
     }
 
     int payloadLen = 0;
