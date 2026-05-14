@@ -1,31 +1,52 @@
 {
   description = "Tablo Transfer Protocol 2";
 
-  inputs = { nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable"; };
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+  };
 
-  outputs = { self, nixpkgs }:
+  outputs =
+    { self, nixpkgs }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
 
       version = "1.2";
-      packagesList = with pkgs; [ cmake gcc gnumake libtasn1 ];
-    in {
-      packages.${system} = {
-        client = pkgs.stdenv.mkDerivation {
-          pname = "ttp2-client";
 
-          inherit version;
+      commonDeps = with pkgs; [
+        cmake
+        gcc
+        gnumake
+        libtasn1
+      ];
+
+      mkTTP2Package =
+        {
+          pname,
+          buildTarget,
+          enableLib ? false,
+          enableClient ? false,
+          enableServer ? false,
+          extraInputs ? [ ],
+        }:
+        pkgs.stdenv.mkDerivation {
+          inherit pname version;
           src = ./.;
 
-          buildInputs = packagesList;
+          buildInputs = commonDeps ++ extraInputs;
 
           configurePhase = ''
-            cmake -B build -S $src -DCMAKE_BUILD_TYPE=Release
+            cmake -B build -S $src \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DDEF_TTP2=${if enableLib then "ON" else "OFF"} \
+              -DDEF_CLIENT=${if enableClient then "ON" else "OFF"} \
+              -DDEF_SERVER=${if enableServer then "ON" else "OFF"}
           '';
 
           buildPhase = ''
-            cmake --build build
+            cmake --build build \
+              --target ${buildTarget} \
+              -j$NIX_BUILD_CORES
           '';
 
           installPhase = ''
@@ -34,50 +55,51 @@
           '';
         };
 
-        server = pkgs.stdenv.mkDerivation {
-          pname = "ttp2-server";
+    in
+    {
+      packages.${system} =
+        let
+          lib = mkTTP2Package {
+            pname = "libttp2";
+            buildTarget = "ttp2";
+            enableLib = true;
+          };
+        in
+        {
 
-          inherit version;
-          src = ./.;
+          client = mkTTP2Package {
+            pname = "ttp2-client";
+            buildTarget = "ttp2-client";
+            enableClient = true;
+            extraInputs = [ lib ];
+          };
 
-          buildInputs = packagesList;
+          server = mkTTP2Package {
+            pname = "ttp2-server";
+            buildTarget = "ttp2-server";
+            enableServer = true;
+            extraInputs = [ lib ];
+          };
 
-          configurePhase = ''
-            cmake -B build -S $src -DCMAKE_BUILD_TYPE=Release
-          '';
+          full = mkTTP2Package {
+            pname = "libttp2-full";
+            buildTarget = "all";
+            enableLib = true;
+            enableServer = true;
+            enableClient = true;
+          };
 
-          buildPhase = ''
-            cmake --build build
-          '';
-
-          installPhase = ''
-            cmake --install build --prefix=$out
-            cp LICENSE $out/
-          '';
+          default = self.packages.${system}.lib;
         };
 
-        default = pkgs.stdenv.mkDerivation {
-          pname = "default";
-
-          inherit version;
-          src = ./.;
-
-          buildInputs = packagesList;
-        };
-      };
-
-      devShells.${system}.default = let
-        devPackages = packagesList
-          ++ [ pkgs.bridge-utils pkgs.clang-tools pkgs.libtasn1 ];
-      in pkgs.mkShell {
-        packages = devPackages;
-
-        # bring build tools from our package
-        inputsFrom = [ self.packages.${system}.default ];
+      devShells.${system}.default = pkgs.mkShell {
+        packages = commonDeps ++ [
+          pkgs.bridge-utils
+          pkgs.clang-tools
+        ];
 
         shellHook = ''
           ./build-asn1-packets.sh
-
           git status
         '';
       };
