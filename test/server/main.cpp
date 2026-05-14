@@ -73,7 +73,10 @@ int main() {
     serverAddress.sin_addr.s_addr = inet_addr(containerIP.c_str());
 
     int serverSocket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-    bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+    if(bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
+        std::wcout << "Bind failed!" << std::endl;
+        return -1;
+    }
 
     // Create epoll
     int epollFd = epoll_create1(0);
