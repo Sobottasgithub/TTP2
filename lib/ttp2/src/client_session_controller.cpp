@@ -53,12 +53,23 @@ void ClientSessionController::receiveResponseSession() {
     struct epoll_event incomingEvents[MAX_EVENTS];
 
     int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
+    
     for (int index = 0; index < eventCount; ++index) {
-        int fd = incomingEvents[index].data.fd;
-        if (incomingEvents[index].events & EPOLLIN) {
-          Packet packet = receiveMessage(socket);
+      int fd = incomingEvents[index].data.fd;
+      if (incomingEvents[index].events & (EPOLLHUP | EPOLLERR)) {
+        sessionBuffers.erase(fd);
+        close(fd);
+        continue;
+      }
+      if (incomingEvents[index].events & EPOLLIN) {
+        while (true) {
+          Packet packet = receiveMessage(fd);
+          if (packet.method == -1) {
+            break;
+          }
           pushResponse(packet);
         }
+      }
     }
   }
 }
