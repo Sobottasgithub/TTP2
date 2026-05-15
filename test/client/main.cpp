@@ -69,13 +69,10 @@ int main() {
 
         int option = requestInt("Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Exit\nnumber: ");
         if (option == 1) {
-            int method = requestInt("(int) Method: ");
             std::string payload = requestString("(string) Payload: ");
         
             ClientSessionController::Packet packet;
             packet.id = count;
-            packet.method  = method;
-
             Networking::Standard standard;
             standard.payload = payload;
             packet.payload = standard;
@@ -91,7 +88,6 @@ int main() {
                 Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
                 std::wcout << "------ Message ------" << std::endl;
                 std::wcout << "ID: " << packet.id << std::endl;
-                std::wcout << "Method:  " << packet.method << std::endl;
                 std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
                 std::wcout << "---------------------" << std::endl;
             }
@@ -99,11 +95,9 @@ int main() {
             std::wcout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
             option = requestInt("Choose option\n(1) Send continious stream\n(2) Send n packages\nnumber: ");
             if (option == 1) {
-                int method = requestInt("(int) Method: ");
                 std::string payload = requestString("(string) Payload: ");
         
                 ClientSessionController::Packet packet;
-                packet.method  = method;
 
                 while (true) {
                     packet.id = count;
@@ -117,19 +111,16 @@ int main() {
                         Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
                         std::wcout << "------ Message ------" << std::endl;
                         std::wcout << "ID: " << packet.id << std::endl;
-                        std::wcout << "Method:  " << packet.method << std::endl;
                         std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
                         std::wcout << "---------------------" << std::endl;
                     }
                 }
             } else if (option == 2) {
                 int count = requestInt("(int) Packet count: ");
-                int method = requestInt("(int) Method: ");
                 std::string payload = requestString("(string) Payload: ");
         
                 ClientSessionController::Packet packet;
                 packet.id = count;
-                packet.method  = method;
 
                 Networking::Standard standard;
                 standard.payload = payload;
@@ -145,7 +136,6 @@ int main() {
                         Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
                         std::wcout << "------ Message ------" << std::endl;
                         std::wcout << "ID: " << packet.id << std::endl;
-                        std::wcout << "Method:  " << packet.method << std::endl;
                         std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
                         std::wcout << "---------------------" << std::endl;
                         count--;

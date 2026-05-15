@@ -11,7 +11,6 @@ const asn1_static_node packets_asn1_tab[] = {
   { "payload", 7, NULL },
   { "Packet", 536870917, NULL },
   { "id", 1073741827, NULL },
-  { "method", 1073741827, NULL },
   { "payload", 536870930, NULL },
   { "standard", 536879106, "Standard"},
   { NULL, 2056, "0"},

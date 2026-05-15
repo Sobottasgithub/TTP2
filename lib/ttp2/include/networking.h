@@ -16,7 +16,6 @@ class Networking
       
       struct Packet {
         int id = -1;
-        int method = -1;
         std::variant<Standard> payload;  
       };
 
@@ -31,7 +30,7 @@ class Networking
       void pushResponse(Packet);
       void pushRequest(Packet request);
   
-      int sendMessage(int socket, int id, int method, std::variant<Standard> payload);
+      int sendMessage(int socket, int id, std::variant<Standard> payload);
       int sendPacket(int socket, Packet packet);
       Packet receiveMessage(int socket);
 

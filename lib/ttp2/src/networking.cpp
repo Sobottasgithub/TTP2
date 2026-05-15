@@ -78,11 +78,10 @@ int Networking::getResponseQueueSize() {
 }
 
 int Networking::sendPacket(int socket, Networking::Packet packet) {
-  return sendMessage(socket, packet.id, packet.method, packet.payload);
+  return sendMessage(socket, packet.id, packet.payload);
 }
 
-int Networking::sendMessage(int socket, int id, int method,
-                            std::variant<Standard> payload) {
+int Networking::sendMessage(int socket, int id, std::variant<Standard> payload) {
   asn1_node definitions = nullptr;
   asn1_node packet = nullptr;
   char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
@@ -98,9 +97,6 @@ int Networking::sendMessage(int socket, int id, int method,
 
   std::string idString = std::to_string(id);
   asn1_write_value(packet, "id", idString.c_str(), 0);
-
-  std::string methodString = std::to_string(method);
-  asn1_write_value(packet, "method", methodString.c_str(), 0);
 
   if (std::holds_alternative<Standard>(payload)) {
     int status = asn1_write_value(packet, "payload", "standard", 0);
@@ -200,17 +196,6 @@ Networking::Packet Networking::receiveMessage(int socket) {
         idValue = (idValue << 8) | idBin[i];
       }
       data.id = static_cast<int>(idValue);
-    }
-
-    unsigned char methodBin[8];
-    int methodLen = sizeof(methodBin);
-    if (asn1_read_value(packet, "method", methodBin, &methodLen) ==
-        ASN1_SUCCESS) {
-      long methodValue = 0;
-      for (int i = 0; i < methodLen; i++) {
-        methodValue = (methodValue << 8) | methodBin[i];
-      }
-      data.method = static_cast<int>(methodValue);
     }
 
     char typeName[64];

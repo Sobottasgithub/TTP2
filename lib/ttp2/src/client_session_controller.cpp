@@ -64,7 +64,7 @@ void ClientSessionController::receiveResponseSession() {
       if (incomingEvents[index].events & EPOLLIN) {
         while (true) {
           Packet packet = receiveMessage(fd);
-          if (packet.method == -1) {
+          if (packet.id == -1) {
             break;
           }
           pushResponse(packet);

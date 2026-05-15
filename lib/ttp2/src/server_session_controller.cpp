@@ -107,7 +107,7 @@ void ServerSessionController::receiveRequestSession() {
       if (incomingEvents[index].events & EPOLLIN) {
         while (true) {
           Packet packet = receiveMessage(fd);
-          if (packet.method == -1) {
+          if (packet.id == -1) {
             break;
           }
           pushRequest(packet);
