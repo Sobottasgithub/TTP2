@@ -1,13 +1,11 @@
 #include "client_session_controller.h"
 
-#include <atomic>
 #include <iostream>
 #include <string>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <thread>
-#include <memory>
 #include <regex>
 
 bool isNumeric(const std::string& string) {
@@ -77,7 +75,10 @@ int main() {
             ClientSessionController::Packet packet;
             packet.id = count;
             packet.method  = method;
-            packet.payload = payload;
+
+            Networking::Standard standard;
+            standard.payload = payload;
+            packet.payload = standard;
             count++;
             clientSessionController->pushRequest(packet);
         } else if (option == 2) {
@@ -87,10 +88,11 @@ int main() {
             }
             while(clientSessionController->hasResponse()) {
                 ClientSessionController::Packet packet = clientSessionController->popResponse();
+                Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
                 std::wcout << "------ Message ------" << std::endl;
                 std::wcout << "ID: " << packet.id << std::endl;
                 std::wcout << "Method:  " << packet.method << std::endl;
-                std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
+                std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
                 std::wcout << "---------------------" << std::endl;
             }
         } else if (option == 3) {
@@ -105,15 +107,18 @@ int main() {
 
                 while (true) {
                     packet.id = count;
-                    packet.payload = payload;
+                    Networking::Standard standard;
+                    standard.payload = payload;
+                    packet.payload = standard;
                     count++;
                     clientSessionController->pushRequest(packet);
                     while(clientSessionController->hasResponse()) {
                         ClientSessionController::Packet packet = clientSessionController->popResponse();
+                        Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
                         std::wcout << "------ Message ------" << std::endl;
                         std::wcout << "ID: " << packet.id << std::endl;
                         std::wcout << "Method:  " << packet.method << std::endl;
-                        std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
+                        std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
                         std::wcout << "---------------------" << std::endl;
                     }
                 }
@@ -125,7 +130,10 @@ int main() {
                 ClientSessionController::Packet packet;
                 packet.id = count;
                 packet.method  = method;
-                packet.payload = payload;
+
+                Networking::Standard standard;
+                standard.payload = payload;
+                packet.payload = standard;
                 count++;
 
                 for (int index = 0; index < count; index++) {
@@ -134,10 +142,11 @@ int main() {
                 while (count != 0) {
                     if (clientSessionController->hasResponse()) {
                         ClientSessionController::Packet packet = clientSessionController->popResponse();
+                        Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
                         std::wcout << "------ Message ------" << std::endl;
                         std::wcout << "ID: " << packet.id << std::endl;
                         std::wcout << "Method:  " << packet.method << std::endl;
-                        std::wcout << "Payload: " << packet.payload.c_str() << std::endl;
+                        std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
                         std::wcout << "---------------------" << std::endl;
                         count--;
                     }

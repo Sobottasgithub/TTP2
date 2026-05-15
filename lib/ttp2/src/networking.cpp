@@ -1,12 +1,14 @@
 #include "../include/networking.h"
 
 #include <arpa/inet.h>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <mutex>
 #include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
+#include <variant>
 
 extern "C" {
 #include <libtasn1.h>
@@ -80,7 +82,7 @@ int Networking::sendPacket(int socket, Networking::Packet packet) {
 }
 
 int Networking::sendMessage(int socket, int id, int method,
-                            std::string payload) {
+                            std::variant<Standard> payload) {
   asn1_node definitions = nullptr;
   asn1_node packet = nullptr;
   char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
@@ -100,16 +102,30 @@ int Networking::sendMessage(int socket, int id, int method,
   std::string methodString = std::to_string(method);
   asn1_write_value(packet, "method", methodString.c_str(), 0);
 
-  const char *messageChar = payload.c_str();
-  asn1_write_value(packet, "payload", messageChar, strlen(messageChar));
+  if (std::holds_alternative<Standard>(payload)) {
+    int status = asn1_write_value(packet, "payload", "standard", 0);
 
+    if (status != ASN1_SUCCESS) {
+      std::wcout << "ASN1 set payload as standard failed!" << std::endl;
+    }
+    
+    std::string standardPayloadString = std::get<Standard>(payload).payload;
+    const char* standardPayload = standardPayloadString.c_str();
+
+    status = asn1_write_value(packet, "payload.standard.payload", standardPayload, strlen(standardPayload));
+
+    if (status != ASN1_SUCCESS) {
+      std::wcout << "ASN1 set standard payload failed!" << std::endl;
+    }
+  }
+  
   int derLen = 0;
   asn1_der_coding(packet, "", nullptr, &derLen, nullptr);
   std::vector<unsigned char> buffer(derLen);
   if (asn1_der_coding(packet, "", buffer.data(), &derLen, errorDescription) !=
       ASN1_SUCCESS) {
-    std::wcout << "Error while encoding packet: " << errorDescription
-               << std::endl;
+    std::wcout << "Error while encoding packet: " << errorDescription << std::endl;
+    abort();
     return -1;
   }
 
@@ -124,7 +140,8 @@ int Networking::sendMessage(int socket, int id, int method,
 }
 
 Networking::Packet Networking::receiveMessage(int socket) {
-  Networking::Packet data = {-1, -1, ""};
+  Networking::Packet data;
+
   unsigned char temp[4096];
   while (true) {
     ssize_t n = recv(socket, temp, sizeof(temp), 0);
@@ -196,12 +213,24 @@ Networking::Packet Networking::receiveMessage(int socket) {
       data.method = static_cast<int>(methodValue);
     }
 
-    int payloadLen = 0;
-    asn1_read_value(packet, "payload", nullptr, &payloadLen);
-    if (payloadLen > 0) {
-      std::vector<char> payloadStr(payloadLen);
-      asn1_read_value(packet, "payload", payloadStr.data(), &payloadLen);
-      data.payload.assign(payloadStr.data(), payloadLen);
+    char typeName[64];
+    int branchSize = sizeof(typeName);
+    int status = asn1_read_value(packet, "payload", typeName, &branchSize);
+    std::string typeNameString = typeName;
+    if (typeNameString == "standard") {
+      int payloadLen = 0;
+      asn1_read_value(packet, "payload.standard.payload", nullptr, &payloadLen);
+      if (payloadLen > 0) {
+        std::vector<char> payloadStr(payloadLen);
+        asn1_read_value(packet, "payload.standard.payload", payloadStr.data(), &payloadLen);
+
+        Networking::Standard standard;
+        standard.payload.assign(payloadStr.data(), payloadLen);
+       
+        data.payload = standard;
+      }
+    } else {
+      std::wcout << "Error decoding payload: Unknown type!" << std::endl;
     }
   } else {
     std::wcout << "Error decoding ASN1" << std::endl;

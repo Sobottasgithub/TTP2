@@ -1,9 +1,15 @@
 Packets DEFINITIONS EXPLICIT TAGS ::= BEGIN
 
+Standard ::= SEQUENCE {
+	payload OCTET STRING
+}
+
 Packet ::= SEQUENCE {
 	id INTEGER,
 	method INTEGER,
-	payload OCTET STRING
+	payload CHOICE {
+		standard [0] Standard
+	}
 } 
 
 END

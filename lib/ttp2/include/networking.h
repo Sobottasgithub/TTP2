@@ -5,14 +5,19 @@
 #include <vector>
 #include <mutex>
 #include <map>
+#include <variant>
 
 class Networking
 {
     public:
+      struct Standard {
+        std::string payload = "";
+      };
+      
       struct Packet {
-        int id;
-        int method;
-        std::string payload;  
+        int id = -1;
+        int method = -1;
+        std::variant<Standard> payload;  
       };
 
       bool isConnected();
@@ -26,7 +31,7 @@ class Networking
       void pushResponse(Packet);
       void pushRequest(Packet request);
   
-      int sendMessage(int socket, int id, int method, std::string payload);
+      int sendMessage(int socket, int id, int method, std::variant<Standard> payload);
       int sendPacket(int socket, Packet packet);
       Packet receiveMessage(int socket);
 
