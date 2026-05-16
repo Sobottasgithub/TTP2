@@ -45,6 +45,8 @@ class Networking
       ssize_t sendBytes(int socket, const char* buffer, size_t max);
 
       std::map<int, std::vector<unsigned char>> sessionBuffers;
+
+      int autoId;
 };
 
 #endif

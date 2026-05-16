@@ -60,7 +60,6 @@ int main() {
         clientSessionController->networkingSession();
     });
 
-    int count = 0;
     while (true) {
         if (!clientSessionController->isConnected()) {
             std::wcout << "Disconnect!" << std::endl;
@@ -72,11 +71,9 @@ int main() {
             std::string payload = requestString("(string) Payload: ");
         
             ClientSessionController::Packet packet;
-            packet.id = count;
             Networking::Standard standard;
             standard.payload = payload;
             packet.payload = standard;
-            count++;
             clientSessionController->pushRequest(packet);
         } else if (option == 2) {
             if (!clientSessionController->hasResponse()) {
@@ -98,13 +95,10 @@ int main() {
                 std::string payload = requestString("(string) Payload: ");
         
                 ClientSessionController::Packet packet;
-
                 while (true) {
-                    packet.id = count;
                     Networking::Standard standard;
                     standard.payload = payload;
                     packet.payload = standard;
-                    count++;
                     clientSessionController->pushRequest(packet);
                     while(clientSessionController->hasResponse()) {
                         ClientSessionController::Packet packet = clientSessionController->popResponse();
@@ -120,12 +114,9 @@ int main() {
                 std::string payload = requestString("(string) Payload: ");
         
                 ClientSessionController::Packet packet;
-                packet.id = count;
-
                 Networking::Standard standard;
                 standard.payload = payload;
                 packet.payload = standard;
-                count++;
 
                 for (int index = 0; index < count; index++) {
                     clientSessionController->pushRequest(packet);

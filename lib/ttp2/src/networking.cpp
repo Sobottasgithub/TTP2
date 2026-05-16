@@ -95,6 +95,11 @@ int Networking::sendMessage(int socket, int id, std::variant<Standard> payload) 
 
   asn1_create_element(definitions, "Packets.Packet", &packet);
 
+  if (id == -1) {
+    id = autoId;
+    autoId++;
+  }
+
   std::string idString = std::to_string(id);
   asn1_write_value(packet, "id", idString.c_str(), 0);
 
