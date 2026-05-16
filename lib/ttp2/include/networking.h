@@ -34,6 +34,9 @@ class Networking
       int sendPacket(int socket, Packet packet);
       Packet receiveMessage(int socket);
 
+      std::string getBroadcastIpAddress();
+      std::string getLocalIpAddress(std::string interface);
+      
     protected:
       bool connected = true;
       

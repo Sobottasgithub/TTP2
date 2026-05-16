@@ -10,7 +10,6 @@ class ServerSessionController: public Networking
       ServerSessionController();
       ServerSessionController(int serverSocket, int clientSocket);
       void networkingSession();
-      std::string getLocalIpAddress(std::string interface);
     private:
       int serverSocket;
       int clientSocket;

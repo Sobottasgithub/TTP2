@@ -9,6 +9,8 @@
 #include <string>
 #include <sys/socket.h>
 #include <variant>
+#include <ifaddrs.h>
+#include <net/if.h>
 
 extern "C" {
 #include <libtasn1.h>
@@ -81,7 +83,8 @@ int Networking::sendPacket(int socket, Networking::Packet packet) {
   return sendMessage(socket, packet.id, packet.payload);
 }
 
-int Networking::sendMessage(int socket, int id, std::variant<Standard> payload) {
+int Networking::sendMessage(int socket, int id,
+                            std::variant<Standard> payload) {
   asn1_node definitions = nullptr;
   asn1_node packet = nullptr;
   char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
@@ -109,23 +112,25 @@ int Networking::sendMessage(int socket, int id, std::variant<Standard> payload) 
     if (status != ASN1_SUCCESS) {
       std::wcout << "ASN1 set payload as standard failed!" << std::endl;
     }
-    
-    std::string standardPayloadString = std::get<Standard>(payload).payload;
-    const char* standardPayload = standardPayloadString.c_str();
 
-    status = asn1_write_value(packet, "payload.standard.payload", standardPayload, strlen(standardPayload));
+    std::string standardPayloadString = std::get<Standard>(payload).payload;
+    const char *standardPayload = standardPayloadString.c_str();
+
+    status = asn1_write_value(packet, "payload.standard.payload",
+                              standardPayload, strlen(standardPayload));
 
     if (status != ASN1_SUCCESS) {
       std::wcout << "ASN1 set standard payload failed!" << std::endl;
     }
   }
-  
+
   int derLen = 0;
   asn1_der_coding(packet, "", nullptr, &derLen, nullptr);
   std::vector<unsigned char> buffer(derLen);
   if (asn1_der_coding(packet, "", buffer.data(), &derLen, errorDescription) !=
       ASN1_SUCCESS) {
-    std::wcout << "Error while encoding packet: " << errorDescription << std::endl;
+    std::wcout << "Error while encoding packet: " << errorDescription
+               << std::endl;
     abort();
     return -1;
   }
@@ -212,11 +217,12 @@ Networking::Packet Networking::receiveMessage(int socket) {
       asn1_read_value(packet, "payload.standard.payload", nullptr, &payloadLen);
       if (payloadLen > 0) {
         std::vector<char> payloadStr(payloadLen);
-        asn1_read_value(packet, "payload.standard.payload", payloadStr.data(), &payloadLen);
+        asn1_read_value(packet, "payload.standard.payload", payloadStr.data(),
+                        &payloadLen);
 
         Networking::Standard standard;
         standard.payload.assign(payloadStr.data(), payloadLen);
-       
+
         data.payload = standard;
       }
     } else {
@@ -243,4 +249,70 @@ ssize_t Networking::sendBytes(int socket, const char *buffer, size_t max) {
     sentBytes += sent;
   }
   return sentBytes;
+}
+
+std::string Networking::getLocalIpAddress(std::string interface) {
+  struct ifaddrs *ifaddr = nullptr;
+
+  // Get linked list of network interfaces
+  if (getifaddrs(&ifaddr) == -1) {
+      return "";
+  }
+
+  std::string result;
+
+  // Iterate through interfaces
+  for (auto *ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+    if (!ifa->ifa_addr) continue;
+
+    if (ifa->ifa_addr->sa_family == AF_INET) {
+      auto *addr = reinterpret_cast<struct sockaddr_in *>(ifa->ifa_addr);
+      char ip[INET_ADDRSTRLEN];
+      inet_ntop(AF_INET, &addr->sin_addr, ip, sizeof(ip));
+
+      // Docker containers typically use eth0
+      if (std::string(ifa->ifa_name) == interface) {
+          result = ip;
+          break;
+      }
+    }
+  }
+
+  freeifaddrs(ifaddr);
+  return result;
+}
+
+std::string Networking::getBroadcastIpAddress() {
+  struct ifaddrs *ifaddr = nullptr;
+  std::string broadcastIP;
+
+  // Get network interfaces
+  if (getifaddrs(&ifaddr) == -1) {
+    return "";
+  }
+
+  for (struct ifaddrs *ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
+    if (ifa->ifa_addr == nullptr)
+      continue;
+
+    // Only consider IPv4 interfaces that are up and support broadcast
+    if (ifa->ifa_addr->sa_family == AF_INET &&
+        (ifa->ifa_flags & IFF_BROADCAST) && (ifa->ifa_flags & IFF_UP) &&
+        !(ifa->ifa_flags & IFF_LOOPBACK)) {
+
+      // Ensure the broadcast address exists
+      if (ifa->ifa_broadaddr) {
+        struct sockaddr_in *bcast =
+            reinterpret_cast<struct sockaddr_in *>(ifa->ifa_broadaddr);
+        char ip[INET_ADDRSTRLEN];
+        if (inet_ntop(AF_INET, &(bcast->sin_addr), ip, INET_ADDRSTRLEN)) {
+          broadcastIP = ip;
+          break; // stop at the first valid one
+        }
+      }
+    }
+  }
+
+  freeifaddrs(ifaddr);
+  return broadcastIP;
 }
