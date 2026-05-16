@@ -36,6 +36,7 @@ class Networking
 
       std::string getBroadcastIpAddress();
       std::string getLocalIpAddress(std::string interface);
+      bool isValidIpV4(std::string &ipString);
       
     protected:
       bool connected = true;
