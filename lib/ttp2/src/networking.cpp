@@ -85,7 +85,7 @@ int Networking::sendPacket(int socket, Networking::Packet packet) {
 }
 
 int Networking::sendMessage(int socket, int id,
-                            std::variant<Standard> payload) {
+                            payloadVariants payload) {
   asn1_node definitions = nullptr;
   asn1_node packet = nullptr;
   char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
@@ -108,12 +108,14 @@ int Networking::sendMessage(int socket, int id,
   asn1_write_value(packet, "id", idString.c_str(), 0);
 
   if (std::holds_alternative<Standard>(payload)) {
+    // Write structure
     int status = asn1_write_value(packet, "payload", "standard", 0);
 
     if (status != ASN1_SUCCESS) {
       std::wcout << "ASN1 set payload as standard failed!" << std::endl;
     }
 
+    // Write contents
     std::string standardPayloadString = std::get<Standard>(payload).payload;
     const char *standardPayload = standardPayloadString.c_str();
 
@@ -122,6 +124,47 @@ int Networking::sendMessage(int socket, int id,
 
     if (status != ASN1_SUCCESS) {
       std::wcout << "ASN1 set standard payload failed!" << std::endl;
+    }
+  } else if (std::holds_alternative<File>(payload)) {
+    // Write structure
+    int status = asn1_write_value(packet, "payload", "file", 0);
+
+    if (status != ASN1_SUCCESS) {
+      std::wcout << "ASN1 set payload as standard failed!" << std::endl;
+    }
+
+    // Write contents
+    std::string filePathString = std::get<File>(payload).filePath;
+    const char *filePath = filePathString.c_str();
+    status = asn1_write_value(packet, "payload.file.filePath",
+                              filePath, strlen(filePath));
+    if (status != ASN1_SUCCESS) {
+      std::wcout << "ASN1 set filepath failed!" << std::endl;
+    }
+
+    
+    int start = std::get<File>(payload).start;
+    status = asn1_write_value(packet, "payload.file.start",
+                              &start, sizeof(start));
+    if (status != ASN1_SUCCESS) {
+      std::wcout << "ASN1 set file start failed!" << std::endl;
+    }
+
+
+    int end = std::get<File>(payload).end;
+    status = asn1_write_value(packet, "payload.file.end",
+                              &end, sizeof(end));
+    if (status != ASN1_SUCCESS) {
+      std::wcout << "ASN1 set file end failed!" << std::endl;
+    }
+
+
+    std::string filePayloadString = std::get<File>(payload).payload;
+    const char *filePayload = filePayloadString.c_str();
+    status = asn1_write_value(packet, "payload.file.payload",
+                              filePayload, strlen(filePayload));
+    if (status != ASN1_SUCCESS) {
+      std::wcout << "ASN1 set file payload failed!" << std::endl;
     }
   }
 
@@ -226,6 +269,48 @@ Networking::Packet Networking::receiveMessage(int socket) {
 
         data.payload = standard;
       }
+    } else if (typeNameString == "file") {
+        int filePathLen = 0;
+        std::vector<char> filePathStr(filePathLen);
+        asn1_read_value(packet, "payload.file.filePath", nullptr, &filePathLen);
+        if (filePathLen > 0) {
+          asn1_read_value(packet, "payload.file.filePath", filePathStr.data(),
+                          &filePathLen);
+        }
+
+        int fileStartLen = 0;
+        std::vector<char> fileStartBytes(fileStartLen);
+        asn1_read_value(packet, "payload.file.start", nullptr, &fileStartLen);
+        if (fileStartLen > 0) {
+          asn1_read_value(packet, "payload.file.start", fileStartBytes.data(),
+                          &fileStartLen);
+        }
+        int fileStart = bytesToInt(fileStartBytes, fileStartLen);
+
+        int fileEndLen = 0;
+        std::vector<char> fileEndBytes(fileEndLen);
+        asn1_read_value(packet, "payload.file.end", nullptr, &fileEndLen);
+        if (fileEndLen > 0) {
+          asn1_read_value(packet, "payload.file.end", fileEndBytes.data(),
+                          &fileEndLen);
+        }
+        int fileEnd = bytesToInt(fileEndBytes, fileEndLen);
+
+        int payloadLen = 0;
+        std::vector<char> payloadStr(payloadLen);
+        asn1_read_value(packet, "payload.file.payload", nullptr, &payloadLen);
+        if (payloadLen > 0) {
+            asn1_read_value(packet, "payload.file.payload", payloadStr.data(),
+                            &payloadLen);
+        }
+      
+        Networking::File file;
+        file.payload.assign(filePathStr.data(), filePathLen);
+        file.start = fileStart;
+        file.end = fileEnd;
+        file.payload.assign(payloadStr.data(), payloadLen);
+
+        data.payload = file;
     } else {
       std::wcout << "Error decoding payload: Unknown type!" << std::endl;
     }
@@ -350,4 +435,14 @@ bool Networking::isValidIpV4(std::string &ipString) {
     return false;
 
   return true;
+}
+
+int Networking::bytesToInt(std::vector<char> bytes, int size) {
+  int result = 0;
+  for (int index = 0; index < size; index++)
+  {
+      result <<= 8;
+      result |= (bytes[index] & 0xFF);
+  }
+  return result;
 }

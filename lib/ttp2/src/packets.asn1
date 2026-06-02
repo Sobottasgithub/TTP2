@@ -4,10 +4,18 @@ Standard ::= SEQUENCE {
 	payload OCTET STRING
 }
 
+File ::= SEQUENCE {
+	filePath OCTET STRING,
+	start INTEGER,
+	end INTEGER,
+	payload OCTET STRING
+}
+
 Packet ::= SEQUENCE {
 	id INTEGER,
 	payload CHOICE {
 		standard [0] Standard
+		file [1] File
 	}
 } 
 

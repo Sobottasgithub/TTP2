@@ -9,14 +9,23 @@
 
 class Networking
 {
-    public:
+    public:      
       struct Standard {
         std::string payload = "";
       };
+
+      struct File {
+      	std::string filePath = "";
+        int start = -1;
+      	int end = -1;
+      	std::string payload = "";
+      };
+      
+      typedef std::variant<Standard, File> payloadVariants;
       
       struct Packet {
         int id = -1;
-        std::variant<Standard> payload;  
+        payloadVariants payload;  
       };
 
       bool isConnected();
@@ -30,7 +39,7 @@ class Networking
       void pushResponse(Packet);
       void pushRequest(Packet request);
   
-      int sendMessage(int socket, int id, std::variant<Standard> payload);
+      int sendMessage(int socket, int id, payloadVariants payload);
       int sendPacket(int socket, Packet packet);
       Packet receiveMessage(int socket);
 
@@ -38,11 +47,12 @@ class Networking
       std::string getLocalIpAddress(std::string interface);
       bool isValidIpV4(std::string &ipString);
       
-    protected:
+    protected:      
       bool connected = true;
       
       bool isNumeric(const std::string& string);
-            
+      int bytesToInt(std::vector<char> bytes, int size);
+
       std::vector<Packet> requestQueue;
       std::vector<Packet> responseQueue;
       std::mutex mtx;
