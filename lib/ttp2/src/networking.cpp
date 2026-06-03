@@ -274,6 +274,7 @@ Networking::Packet Networking::receiveMessage(int socket) {
         std::vector<char> filePathStr(filePathLen);
         asn1_read_value(packet, "payload.file.filePath", nullptr, &filePathLen);
         if (filePathLen > 0) {
+          filePathStr.resize(filePathLen);
           asn1_read_value(packet, "payload.file.filePath", filePathStr.data(),
                           &filePathLen);
         }
@@ -282,6 +283,7 @@ Networking::Packet Networking::receiveMessage(int socket) {
         std::vector<char> fileStartBytes(fileStartLen);
         asn1_read_value(packet, "payload.file.start", nullptr, &fileStartLen);
         if (fileStartLen > 0) {
+          fileStartBytes.resize(fileStartLen);
           asn1_read_value(packet, "payload.file.start", fileStartBytes.data(),
                           &fileStartLen);
         }
@@ -291,6 +293,7 @@ Networking::Packet Networking::receiveMessage(int socket) {
         std::vector<char> fileEndBytes(fileEndLen);
         asn1_read_value(packet, "payload.file.end", nullptr, &fileEndLen);
         if (fileEndLen > 0) {
+          fileEndBytes.resize(fileEndLen);
           asn1_read_value(packet, "payload.file.end", fileEndBytes.data(),
                           &fileEndLen);
         }
@@ -300,6 +303,7 @@ Networking::Packet Networking::receiveMessage(int socket) {
         std::vector<char> payloadStr(payloadLen);
         asn1_read_value(packet, "payload.file.payload", nullptr, &payloadLen);
         if (payloadLen > 0) {
+            payloadStr.resize(payloadLen);
             asn1_read_value(packet, "payload.file.payload", payloadStr.data(),
                             &payloadLen);
         }
