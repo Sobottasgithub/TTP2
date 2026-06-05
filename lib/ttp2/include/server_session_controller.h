@@ -4,21 +4,23 @@
 #include "networking.h"
 #include <sys/epoll.h>
 
-class ServerSessionController: public Networking
-{
-    public:
-      ServerSessionController();
-      ServerSessionController(int serverSocket, int clientSocket);
-      void networkingSession();
-    private:
-      int serverSocket;
-      int clientSocket;
+namespace ttp2 {
+  class ServerSessionController: public Networking
+  {
+      public:
+        ServerSessionController();
+        ServerSessionController(int serverSocket, int clientSocket);
+        void networkingSession();
+      private:
+        int serverSocket;
+        int clientSocket;
 
-      int epollFd;
-      struct epoll_event clientEvent;
+        int epollFd;
+        struct epoll_event clientEvent;
 
-      void sendResponseSession();
-      void receiveRequestSession();
-};
+        void sendResponseSession();
+        void receiveRequestSession();
+  };
+}
 
 #endif

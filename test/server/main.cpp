@@ -9,6 +9,8 @@
 #include <regex>
 #include <sys/epoll.h>
 
+using namespace ttp2;
+
 bool isNumeric(const std::string& string) {
   static const std::regex numberRegex(
       R"(^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$)"

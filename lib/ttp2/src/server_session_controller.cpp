@@ -9,80 +9,81 @@
 #include <thread>
 #include <sys/epoll.h>
 
-ServerSessionController::ServerSessionController() {}
+namespace ttp2 {
+  ServerSessionController::ServerSessionController() {}
 
-ServerSessionController::ServerSessionController(int serverSocket, int clientSocket) {
-  this->serverSocket = serverSocket;
-  this->clientSocket = clientSocket;
-}
-
-void ServerSessionController::networkingSession() {
-  epollFd = epoll_create1(0);
-  if (epollFd == -1) {
-      std::wcout << "Failed to create epoll!" << std::endl;
+  ServerSessionController::ServerSessionController(int serverSocket, int clientSocket) {
+    this->serverSocket = serverSocket;
+    this->clientSocket = clientSocket;
   }
 
-  clientEvent.events = EPOLLIN;
-  clientEvent.data.fd = clientSocket;
-  if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &clientEvent) == -1) {
-      std::wcout << "Failed to set epoll_ctl for client!" << std::endl;
-      return;
-  }
+  void ServerSessionController::networkingSession() {
+    epollFd = epoll_create1(0);
+    if (epollFd == -1) {
+        std::wcout << "Failed to create epoll!" << std::endl;
+    }
 
-  std::thread receiveRequestSessionThread([this]() {
-      this->receiveRequestSession();
-  });
+    clientEvent.events = EPOLLIN;
+    clientEvent.data.fd = clientSocket;
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientSocket, &clientEvent) == -1) {
+        std::wcout << "Failed to set epoll_ctl for client!" << std::endl;
+        return;
+    }
 
-  std::thread sendResponseSessionThread([this]() {
-      this->sendResponseSession();
-  });
+    std::thread receiveRequestSessionThread([this]() {
+        this->receiveRequestSession();
+    });
+
+    std::thread sendResponseSessionThread([this]() {
+        this->sendResponseSession();
+    });
  
-  while (isConnected()) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-  }
+    while (isConnected()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
 
-  if (receiveRequestSessionThread.joinable()) {
-    receiveRequestSessionThread.join();
-  }
+    if (receiveRequestSessionThread.joinable()) {
+      receiveRequestSessionThread.join();
+    }
 
-  if (sendResponseSessionThread.joinable()) {
-    sendResponseSessionThread.join();
-  }
-}
-
-void ServerSessionController::sendResponseSession() {
-  while (isConnected()) {
-    if (hasResponse()) {
-      Packet responsePacket = popResponse();
-      int responseCode = sendPacket(clientSocket, responsePacket);
+    if (sendResponseSessionThread.joinable()) {
+      sendResponseSessionThread.join();
     }
   }
-}
 
-void ServerSessionController::receiveRequestSession() {
-  while (isConnected()) {
-    const int MAX_EVENTS = 10;
-    struct epoll_event incomingEvents[MAX_EVENTS];
-
-    int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
-    
-    for (int index = 0; index < eventCount; ++index) {
-      int fd = incomingEvents[index].data.fd;
-      if (incomingEvents[index].events & (EPOLLHUP | EPOLLERR)) {
-        sessionBuffers.erase(fd);
-        close(fd);
-        continue;
+  void ServerSessionController::sendResponseSession() {
+    while (isConnected()) {
+      if (hasResponse()) {
+        Packet responsePacket = popResponse();
+        int responseCode = sendPacket(clientSocket, responsePacket);
       }
-      if (incomingEvents[index].events & EPOLLIN) {
-        while (true) {
-          Packet packet = receiveMessage(fd);
-          if (packet.id == -1) {
-            break;
+    }
+  }
+
+  void ServerSessionController::receiveRequestSession() {
+    while (isConnected()) {
+      const int MAX_EVENTS = 10;
+      struct epoll_event incomingEvents[MAX_EVENTS];
+
+      int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
+    
+      for (int index = 0; index < eventCount; ++index) {
+        int fd = incomingEvents[index].data.fd;
+        if (incomingEvents[index].events & (EPOLLHUP | EPOLLERR)) {
+          sessionBuffers.erase(fd);
+          close(fd);
+          continue;
+        }
+        if (incomingEvents[index].events & EPOLLIN) {
+          while (true) {
+            Packet packet = receiveMessage(fd);
+            if (packet.id == -1) {
+              break;
+            }
+            pushRequest(packet);
           }
-          pushRequest(packet);
         }
       }
     }
   }
 }
-

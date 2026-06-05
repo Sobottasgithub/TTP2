@@ -7,60 +7,62 @@
 #include <map>
 #include <variant>
 
-class Networking
-{
-    public:      
-      struct Standard {
-        std::string payload = "";
-      };
+namespace ttp2 {
+  class Networking
+  {
+      public:      
+        struct Standard {
+          std::string payload = "";
+        };
 
-      struct File {
-      	std::string filePath = "";
-        int start = -1;
-      	int end = -1;
-      	std::string payload = "";
-      };
+        struct File {
+        	std::string filePath = "";
+          int start = -1;
+        	int end = -1;
+        	std::string payload = "";
+        };
       
-      typedef std::variant<Standard, File> payloadVariants;
+        typedef std::variant<Standard, File> payloadVariants;
       
-      struct Packet {
-        int id = -1;
-        payloadVariants payload;  
-      };
+        struct Packet {
+          int id = -1;
+          payloadVariants payload;  
+        };
 
-      bool isConnected();
-      void disconnect();
-      bool hasRequest();
-      bool hasResponse();
-      Packet popRequest();
-      Packet popResponse();
-      int getRequestQueueSize();
-      int getResponseQueueSize();
-      void pushResponse(Packet);
-      void pushRequest(Packet request);
+        bool isConnected();
+        void disconnect();
+        bool hasRequest();
+        bool hasResponse();
+        Packet popRequest();
+        Packet popResponse();
+        int getRequestQueueSize();
+        int getResponseQueueSize();
+        void pushResponse(Packet);
+        void pushRequest(Packet request);
   
-      int sendMessage(int socket, int id, payloadVariants payload);
-      int sendPacket(int socket, Packet packet);
-      Packet receiveMessage(int socket);
+        int sendMessage(int socket, int id, payloadVariants payload);
+        int sendPacket(int socket, Packet packet);
+        Packet receiveMessage(int socket);
 
-      std::string getBroadcastIpAddress();
-      std::string getLocalIpAddress(std::string interface);
-      bool isValidIpV4(std::string &ipString);
+        std::string getBroadcastIpAddress();
+        std::string getLocalIpAddress(std::string interface);
+        bool isValidIpV4(std::string &ipString);
       
-    protected:      
-      bool connected = true;
+      protected:      
+        bool connected = true;
       
-      bool isNumeric(const std::string& string);
-      int bytesToInt(std::vector<char> bytes, int size);
+        bool isNumeric(const std::string& string);
+        int bytesToInt(std::vector<char> bytes, int size);
 
-      std::vector<Packet> requestQueue;
-      std::vector<Packet> responseQueue;
-      std::mutex mtx;
-      ssize_t sendBytes(int socket, const char* buffer, size_t max);
+        std::vector<Packet> requestQueue;
+        std::vector<Packet> responseQueue;
+        std::mutex mtx;
+        ssize_t sendBytes(int socket, const char* buffer, size_t max);
 
-      std::map<int, std::vector<unsigned char>> sessionBuffers;
+        std::map<int, std::vector<unsigned char>> sessionBuffers;
 
-      int autoId;
-};
+        int autoId;
+  };
+}
 
 #endif
