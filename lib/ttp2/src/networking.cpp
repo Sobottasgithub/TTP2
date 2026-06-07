@@ -192,10 +192,10 @@ namespace ttp2 {
 
       // Y
       int yStart = std::get<Viewport>(payload).yStart;
-      status = asn1_write_value(packet, "payload.viewport.xStart",
+      status = asn1_write_value(packet, "payload.viewport.yStart",
                                 &yStart, sizeof(yStart));
       if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set viewport xStart failed!" << std::endl;
+        std::wcout << "ASN1 set viewport yStart failed!" << std::endl;
       }
 
       int yEnd = std::get<Viewport>(payload).yEnd;
