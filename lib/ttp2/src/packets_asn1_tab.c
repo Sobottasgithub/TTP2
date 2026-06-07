@@ -25,7 +25,9 @@ const asn1_static_node packets_asn1_tab[] = {
   { "payload", 536870930, NULL },
   { "standard", 1610620930, "Standard"},
   { NULL, 2056, "0"},
-  { "file", 536879106, "File"},
+  { "file", 1610620930, "File"},
   { NULL, 2056, "1"},
+  { "viewport", 536879106, "Viewport"},
+  { NULL, 2056, "2"},
   { NULL, 0, NULL }
 };

@@ -23,7 +23,8 @@ Packet ::= SEQUENCE {
 	id INTEGER,
 	payload CHOICE {
 		standard [0] Standard,
-		file [1] File
+		file [1] File,
+		viewport [2] Viewport
 	}
 } 
 
