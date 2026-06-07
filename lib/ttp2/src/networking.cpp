@@ -131,7 +131,7 @@ namespace ttp2 {
       int status = asn1_write_value(packet, "payload", "file", 0);
 
       if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set payload as standard failed!" << std::endl;
+        std::wcout << "ASN1 set payload as file failed!" << std::endl;
       }
 
       // Write contents
@@ -142,7 +142,6 @@ namespace ttp2 {
       if (status != ASN1_SUCCESS) {
         std::wcout << "ASN1 set filepath failed!" << std::endl;
       }
-
     
       int start = std::get<File>(payload).start;
       status = asn1_write_value(packet, "payload.file.start",
@@ -166,6 +165,52 @@ namespace ttp2 {
                                 filePayload, strlen(filePayload));
       if (status != ASN1_SUCCESS) {
         std::wcout << "ASN1 set file payload failed!" << std::endl;
+      }
+    } else if (std::holds_alternative<Viewport>(payload)) {
+      // Write structure
+      int status = asn1_write_value(packet, "payload", "viewport", 0);
+
+      if (status != ASN1_SUCCESS) {
+        std::wcout << "ASN1 set payload as viewport failed!" << std::endl;
+      }
+
+      // Write content
+      // X
+      int xStart = std::get<Viewport>(payload).xStart;
+      status = asn1_write_value(packet, "payload.viewport.xStart",
+                                &xStart, sizeof(xStart));
+      if (status != ASN1_SUCCESS) {
+        std::wcout << "ASN1 set viewport xStart failed!" << std::endl;
+      }
+
+      int xEnd = std::get<Viewport>(payload).xEnd;
+      status = asn1_write_value(packet, "payload.viewport.xEnd",
+                                &xEnd, sizeof(xEnd));
+      if (status != ASN1_SUCCESS) {
+        std::wcout << "ASN1 set viewport xEnd failed!" << std::endl;
+      }
+
+      // Y
+      int yStart = std::get<Viewport>(payload).yStart;
+      status = asn1_write_value(packet, "payload.viewport.xStart",
+                                &yStart, sizeof(yStart));
+      if (status != ASN1_SUCCESS) {
+        std::wcout << "ASN1 set viewport xStart failed!" << std::endl;
+      }
+
+      int yEnd = std::get<Viewport>(payload).yEnd;
+      status = asn1_write_value(packet, "payload.viewport.yEnd",
+                                &yEnd, sizeof(yEnd));
+      if (status != ASN1_SUCCESS) {
+        std::wcout << "ASN1 set viewport yEnd failed!" << std::endl;
+      }
+
+      std::string filePayload = std::get<Viewport>(payload).payload;
+      const char *filePayloadChar = filePayload.c_str();
+      status = asn1_write_value(packet, "payload.file.filePath",
+                                filePayloadChar, strlen(filePayloadChar));
+      if (status != ASN1_SUCCESS) {
+        std::wcout << "ASN1 set viewport payload failed!" << std::endl;
       }
     }
 
@@ -316,6 +361,67 @@ namespace ttp2 {
           file.payload.assign(payloadStr.data(), payloadLen);
 
           data.payload = file;
+      } else if (typeNameString == "viewport") {
+          // X
+          int xStartLen = 0;
+          std::vector<char> xStartBytes(xStartLen);
+          asn1_read_value(packet, "payload.viewport.xStart", nullptr, &xStartLen);
+          if (xStartLen > 0) {
+            xStartBytes.resize(xStartLen);
+            asn1_read_value(packet, "payload.viewport.xStart", xStartBytes.data(),
+                            &xStartLen);
+          }
+          int xStart = bytesToInt(xStartBytes, xStartLen);
+
+          int xEndLen = 0;
+          std::vector<char> xEndBytes(xEndLen);
+          asn1_read_value(packet, "payload.viewport.xEnd", nullptr, &xEndLen);
+          if (xEndLen > 0) {
+            xEndBytes.resize(xEndLen);
+            asn1_read_value(packet, "payload.viewport.xEnd", xEndBytes.data(),
+                            &xEndLen);
+          }
+          int xEnd = bytesToInt(xEndBytes, xEndLen);
+
+          // Y
+          int yStartLen = 0;
+          std::vector<char> yStartBytes(yStartLen);
+          asn1_read_value(packet, "payload.viewport.yStart", nullptr, &yStartLen);
+          if (yStartLen > 0) {
+            yStartBytes.resize(yStartLen);
+            asn1_read_value(packet, "payload.viewport.yStart", yStartBytes.data(),
+                            &yStartLen);
+          }
+          int yStart = bytesToInt(yStartBytes, yStartLen);
+
+          int yEndLen = 0;
+          std::vector<char> yEndBytes(yEndLen);
+          asn1_read_value(packet, "payload.viewport.yEnd", nullptr, &yEndLen);
+          if (yEndLen > 0) {
+            yEndBytes.resize(yEndLen);
+            asn1_read_value(packet, "payload.viewport.yEnd", yEndBytes.data(),
+                            &yEndLen);
+          }
+          int yEnd = bytesToInt(yEndBytes, yEndLen);
+
+          // Payload
+          int payloadLen = 0;
+          std::vector<char> payloadStr(payloadLen);
+          asn1_read_value(packet, "payload.viewport.payload", nullptr, &payloadLen);
+          if (payloadLen > 0) {
+              payloadStr.resize(payloadLen);
+              asn1_read_value(packet, "payload.viewport.payload", payloadStr.data(),
+                              &payloadLen);
+          }
+
+          Networking::Viewport viewport;
+          viewport.xStart = xStart;
+          viewport.xEnd = xEnd;
+          viewport.yStart = yStart;
+          viewport.yEnd = yEnd;
+          viewport.payload.assign(payloadStr.data(), payloadLen);
+
+          data.payload = viewport;
       } else {
         std::wcout << "Error decoding payload: Unknown type!" << std::endl;
       }

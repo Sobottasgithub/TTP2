@@ -21,8 +21,16 @@ namespace ttp2 {
         	int end = -1;
         	std::string payload = "";
         };
-      
-        typedef std::variant<Standard, File> payloadVariants;
+
+        struct Viewport {
+          int xStart;
+          int xEnd;
+          int yStart;
+          int yEnd;
+          std::string payload;
+        };
+        
+        typedef std::variant<Standard, File, Viewport> payloadVariants;
       
         struct Packet {
           int id = -1;
