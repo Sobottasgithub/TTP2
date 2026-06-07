@@ -11,11 +11,20 @@ File ::= SEQUENCE {
 	payload OCTET STRING
 }
 
+Viewport ::= SEQUENCE {
+	xStart INTEGER,
+	xEnd INTEGER,
+	yStart INTEGER,
+	yEnd INTEGER,
+	payload OCTET STRING
+}
+
 Packet ::= SEQUENCE {
 	id INTEGER,
 	payload CHOICE {
 		standard [0] Standard,
-		file [1] File
+		file [1] File,
+		viewport [2] Viewport
 	}
 } 
 
