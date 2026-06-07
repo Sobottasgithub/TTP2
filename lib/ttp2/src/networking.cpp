@@ -207,7 +207,7 @@ namespace ttp2 {
 
       std::string filePayload = std::get<Viewport>(payload).payload;
       const char *filePayloadChar = filePayload.c_str();
-      status = asn1_write_value(packet, "payload.file.filePath",
+      status = asn1_write_value(packet, "payload.viewport.payload",
                                 filePayloadChar, strlen(filePayloadChar));
       if (status != ASN1_SUCCESS) {
         std::wcout << "ASN1 set viewport payload failed!" << std::endl;
