@@ -23,11 +23,11 @@ namespace ttp2 {
         };
 
         struct Viewport {
-          int xStart;
-          int xEnd;
-          int yStart;
-          int yEnd;
-          std::string payload;
+          int xStart = 0;
+          int xEnd = 0;
+          int yStart = 0;
+          int yEnd = 0;
+          std::string payload = "";
         };
         
         typedef std::variant<Standard, File, Viewport> payloadVariants;
