@@ -1,4 +1,5 @@
 #include "../include/networking.h"
+#include "../include/asn1_helpers.h"
 
 #include <arpa/inet.h>
 #include <cstdlib>
@@ -118,7 +119,7 @@ namespace ttp2 {
 
       // Write contents
       std::string standardPayloadString = std::get<Standard>(payload).payload;
-      packet = asn1EncodePayload(standardPayloadString, packet, "payload.standard.payload");
+      packet = Asn1Helpers::asn1EncodePayload(standardPayloadString, packet, "payload.standard.payload");
 
     } else if (std::holds_alternative<File>(payload)) {
       // Write structure
@@ -130,16 +131,16 @@ namespace ttp2 {
 
       // Write contents
       std::string filePathString = std::get<File>(payload).filePath;
-      packet = asn1EncodePayload(filePathString, packet, "payload.file.filePath");
+      packet = Asn1Helpers::asn1EncodePayload(filePathString, packet, "payload.file.filePath");
 
       int start = std::get<File>(payload).start;
-      packet = asn1EncodePayload(start, packet, "payload.file.start");
+      packet = Asn1Helpers::asn1EncodePayload(start, packet, "payload.file.start");
 
       int end = std::get<File>(payload).end;
-      packet = asn1EncodePayload(end, packet, "payload.file.end");
+      packet = Asn1Helpers::asn1EncodePayload(end, packet, "payload.file.end");
 
       std::string filePayloadString = std::get<File>(payload).payload;
-      packet = asn1EncodePayload(filePayloadString, packet, "payload.file.payload");
+      packet = Asn1Helpers::asn1EncodePayload(filePayloadString, packet, "payload.file.payload");
 
     } else if (std::holds_alternative<Viewport>(payload)) {
       // Write structure
@@ -152,20 +153,20 @@ namespace ttp2 {
       // Write content
       // X
       int xStart = std::get<Viewport>(payload).xStart;
-      packet = asn1EncodePayload(xStart, packet, "payload.viewport.xStart");
+      packet = Asn1Helpers::asn1EncodePayload(xStart, packet, "payload.viewport.xStart");
 
       int xEnd = std::get<Viewport>(payload).xEnd;
-      packet = asn1EncodePayload(xEnd, packet, "payload.viewport.xEnd");
+      packet = Asn1Helpers::asn1EncodePayload(xEnd, packet, "payload.viewport.xEnd");
 
       // Y
       int yStart = std::get<Viewport>(payload).yStart;
-      packet = asn1EncodePayload(yStart, packet, "payload.viewport.yStart");
+      packet = Asn1Helpers::asn1EncodePayload(yStart, packet, "payload.viewport.yStart");
 
       int yEnd = std::get<Viewport>(payload).yEnd;
-      packet = asn1EncodePayload(yEnd, packet, "payload.viewport.yEnd");
+      packet = Asn1Helpers::asn1EncodePayload(yEnd, packet, "payload.viewport.yEnd");
 
       std::string filePayload = std::get<Viewport>(payload).payload;
-      packet = asn1EncodePayload(filePayload, packet, "payload.viewport.payload");
+      packet = Asn1Helpers::asn1EncodePayload(filePayload, packet, "payload.viewport.payload");
     }
 
     int derLen = 0;
@@ -258,24 +259,24 @@ namespace ttp2 {
       std::string typeNameString = typeName;
       if (typeNameString == "standard") {
         Networking::Standard standard;
-        standard.payload = asn1DecodePayloadString(packet, "payload.standard.payload");
+        standard.payload = Asn1Helpers::asn1DecodePayloadString(packet, "payload.standard.payload");
 
         data.payload = standard;
       } else if (typeNameString == "file") {
           Networking::File file;
-          file.filePath = asn1DecodePayloadString(packet, "payload.file.filePath");
-          file.start = asn1DecodePayloadInt(packet, "payload.file.start");
-          file.end = asn1DecodePayloadInt(packet, "payload.file.end");
-          file.payload = asn1DecodePayloadString(packet, "payload.file.payload");
+          file.filePath = Asn1Helpers::asn1DecodePayloadString(packet, "payload.file.filePath");
+          file.start = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.start");
+          file.end = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.end");
+          file.payload = Asn1Helpers::asn1DecodePayloadString(packet, "payload.file.payload");
 
           data.payload = file;
       } else if (typeNameString == "viewport") {
           Networking::Viewport viewport;
-          viewport.xStart = asn1DecodePayloadInt(packet, "payload.viewport.xStart");
-          viewport.xEnd = asn1DecodePayloadInt(packet, "payload.viewport.xEnd");
-          viewport.yStart = asn1DecodePayloadInt(packet, "payload.viewport.yStart");
-          viewport.yEnd = asn1DecodePayloadInt(packet, "payload.viewport.yEnd");
-          viewport.payload = asn1DecodePayloadString(packet, "payload.viewport.payload");
+          viewport.xStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xStart");
+          viewport.xEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xEnd");
+          viewport.yStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yStart");
+          viewport.yEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yEnd");
+          viewport.payload = Asn1Helpers::asn1DecodePayloadString(packet, "payload.viewport.payload");
 
           data.payload = viewport;
       } else {
@@ -412,55 +413,5 @@ namespace ttp2 {
         result |= (bytes[index] & 0xFF);
     }
     return result;
-  }
-
-  asn1_node Networking::asn1EncodePayload(std::string payload, asn1_node packet, const char* asn1Key) {
-    const char *standardPayload = payload.c_str();
-
-    int status = asn1_write_value(packet, asn1Key,
-                              standardPayload, strlen(standardPayload));
-
-    if (status != ASN1_SUCCESS) {
-      std::wcout << "ASN1 set " << asn1Key << " failed!" << std::endl;
-    }
-
-    return packet;
-  }
-
-  asn1_node Networking::asn1EncodePayload(int payload, asn1_node packet, const char* asn1Key) {
-    int status = asn1_write_value(packet, asn1Key,
-                              &payload, sizeof(payload));
-
-    if (status != ASN1_SUCCESS) {
-      std::wcout << "ASN1 set " << asn1Key << " failed!" << std::endl;
-    }
-    
-    return packet;
-  }
-
-  std::string Networking::asn1DecodePayloadString(asn1_node packet, const char* asn1Key) {
-    int payloadLen = 0;
-    std::vector<char> payloadStr(payloadLen);
-    asn1_read_value(packet, asn1Key, nullptr, &payloadLen);
-    if (payloadLen > 0) {
-      payloadStr.resize(payloadLen);
-      asn1_read_value(packet, asn1Key, payloadStr.data(),
-                      &payloadLen);
-    }
-    std::string result = "";
-    result.assign(payloadStr.data(), payloadLen);
-    return result;
-  }
-
-  int Networking::asn1DecodePayloadInt(asn1_node packet, const char* asn1Key) {
-    int payloadLen = 0;
-    std::vector<char> payloadBytes(payloadLen);
-    asn1_read_value(packet, asn1Key, nullptr, &payloadLen);
-    if (payloadLen > 0) {
-      payloadBytes.resize(payloadLen);
-      asn1_read_value(packet, asn1Key, payloadBytes.data(),
-                      &payloadLen);
-    }
-    return bytesToInt(payloadBytes, payloadLen);
   }
 }

@@ -7,11 +7,6 @@
 #include <map>
 #include <variant>
 
-extern "C" {
-#include <libtasn1.h>
-extern const asn1_static_node packets_asn1_tab[];
-}
-
 namespace ttp2 {
   class Networking
   {
@@ -75,12 +70,6 @@ namespace ttp2 {
         std::map<int, std::vector<unsigned char>> sessionBuffers;
 
         int autoId;
-
-        asn1_node asn1EncodePayload(std::string payload, asn1_node packet, const char* asn1Key);
-        asn1_node asn1EncodePayload(int payload, asn1_node packet, const char* asn1Key);
-
-        std::string asn1DecodePayloadString(asn1_node packet, const char* asn1Key);
-        int asn1DecodePayloadInt(asn1_node packet, const char* asn1Key);
   };
 }
 
