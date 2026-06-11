@@ -118,14 +118,8 @@ namespace ttp2 {
 
       // Write contents
       std::string standardPayloadString = std::get<Standard>(payload).payload;
-      const char *standardPayload = standardPayloadString.c_str();
+      packet = asn1EncodePayload(standardPayloadString, packet, "payload.standard.payload");
 
-      status = asn1_write_value(packet, "payload.standard.payload",
-                                standardPayload, strlen(standardPayload));
-
-      if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set standard payload failed!" << std::endl;
-      }
     } else if (std::holds_alternative<File>(payload)) {
       // Write structure
       int status = asn1_write_value(packet, "payload", "file", 0);
@@ -136,36 +130,17 @@ namespace ttp2 {
 
       // Write contents
       std::string filePathString = std::get<File>(payload).filePath;
-      const char *filePath = filePathString.c_str();
-      status = asn1_write_value(packet, "payload.file.filePath",
-                                filePath, strlen(filePath));
-      if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set filepath failed!" << std::endl;
-      }
-    
-      int start = std::get<File>(payload).start;
-      status = asn1_write_value(packet, "payload.file.start",
-                                &start, sizeof(start));
-      if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set file start failed!" << std::endl;
-      }
+      packet = asn1EncodePayload(filePathString, packet, "payload.file.filePath");
 
+      int start = std::get<File>(payload).start;
+      packet = asn1EncodePayload(start, packet, "payload.file.start");
 
       int end = std::get<File>(payload).end;
-      status = asn1_write_value(packet, "payload.file.end",
-                                &end, sizeof(end));
-      if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set file end failed!" << std::endl;
-      }
-
+      packet = asn1EncodePayload(end, packet, "payload.file.end");
 
       std::string filePayloadString = std::get<File>(payload).payload;
-      const char *filePayload = filePayloadString.c_str();
-      status = asn1_write_value(packet, "payload.file.payload",
-                                filePayload, strlen(filePayload));
-      if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set file payload failed!" << std::endl;
-      }
+      packet = asn1EncodePayload(filePayloadString, packet, "payload.file.payload");
+
     } else if (std::holds_alternative<Viewport>(payload)) {
       // Write structure
       int status = asn1_write_value(packet, "payload", "viewport", 0);
@@ -177,41 +152,20 @@ namespace ttp2 {
       // Write content
       // X
       int xStart = std::get<Viewport>(payload).xStart;
-      status = asn1_write_value(packet, "payload.viewport.xStart",
-                                &xStart, sizeof(xStart));
-      if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set viewport xStart failed!" << std::endl;
-      }
+      packet = asn1EncodePayload(xStart, packet, "payload.viewport.xStart");
 
       int xEnd = std::get<Viewport>(payload).xEnd;
-      status = asn1_write_value(packet, "payload.viewport.xEnd",
-                                &xEnd, sizeof(xEnd));
-      if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set viewport xEnd failed!" << std::endl;
-      }
+      packet = asn1EncodePayload(xEnd, packet, "payload.viewport.xEnd");
 
       // Y
       int yStart = std::get<Viewport>(payload).yStart;
-      status = asn1_write_value(packet, "payload.viewport.yStart",
-                                &yStart, sizeof(yStart));
-      if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set viewport yStart failed!" << std::endl;
-      }
+      packet = asn1EncodePayload(yStart, packet, "payload.viewport.yStart");
 
       int yEnd = std::get<Viewport>(payload).yEnd;
-      status = asn1_write_value(packet, "payload.viewport.yEnd",
-                                &yEnd, sizeof(yEnd));
-      if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set viewport yEnd failed!" << std::endl;
-      }
+      packet = asn1EncodePayload(yEnd, packet, "payload.viewport.yEnd");
 
       std::string filePayload = std::get<Viewport>(payload).payload;
-      const char *filePayloadChar = filePayload.c_str();
-      status = asn1_write_value(packet, "payload.viewport.payload",
-                                filePayloadChar, strlen(filePayloadChar));
-      if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set viewport payload failed!" << std::endl;
-      }
+      packet = asn1EncodePayload(filePayload, packet, "payload.viewport.payload");
     }
 
     int derLen = 0;
@@ -556,5 +510,29 @@ namespace ttp2 {
         result |= (bytes[index] & 0xFF);
     }
     return result;
+  }
+
+  asn1_node Networking::asn1EncodePayload(std::string payload, asn1_node packet, const char* asn1Key) {
+    const char *standardPayload = payload.c_str();
+
+    int status = asn1_write_value(packet, asn1Key,
+                              standardPayload, strlen(standardPayload));
+
+    if (status != ASN1_SUCCESS) {
+      std::wcout << "ASN1 set " << asn1Key << " failed!" << std::endl;
+    }
+
+    return packet;
+  }
+
+  asn1_node Networking::asn1EncodePayload(int payload, asn1_node packet, const char* asn1Key) {
+    int status = asn1_write_value(packet, asn1Key,
+                              &payload, sizeof(payload));
+
+    if (status != ASN1_SUCCESS) {
+      std::wcout << "ASN1 set " << asn1Key << " failed!" << std::endl;
+    }
+    
+    return packet;
   }
 }
