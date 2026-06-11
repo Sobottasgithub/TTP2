@@ -78,6 +78,9 @@ namespace ttp2 {
 
         asn1_node asn1EncodePayload(std::string payload, asn1_node packet, const char* asn1Key);
         asn1_node asn1EncodePayload(int payload, asn1_node packet, const char* asn1Key);
+
+        std::string asn1DecodePayloadString(asn1_node packet, const char* asn1Key);
+        int asn1DecodePayloadInt(asn1_node packet, const char* asn1Key);
   };
 }
 
