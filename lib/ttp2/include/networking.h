@@ -52,9 +52,9 @@ namespace ttp2 {
         int sendPacket(int socket, Packet packet);
         Packet receiveMessage(int socket);
 
-        std::string getBroadcastIpAddress();
-        std::string getLocalIpAddress(std::string interface);
-        bool isValidIpV4(std::string &ipString);
+        static std::string getBroadcastIpAddress();
+        static std::string getLocalIpAddress(std::string interface);
+        static bool isValidIpV4(std::string &ipString);
       
       protected:      
         bool connected = true;
