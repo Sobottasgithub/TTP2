@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <variant>
 #include <sstream>
+#include <ifaddrs.h>
 
 extern "C" {
 #include <libtasn1.h>
@@ -413,5 +414,22 @@ namespace ttp2 {
         result |= (bytes[index] & 0xFF);
     }
     return result;
+  }
+
+  bool isValidInterface(std::string interface) {
+      struct ifaddrs *addresses;
+      getifaddrs(&addresses);
+
+      bool isValid = false;
+      for (struct ifaddrs *address = addresses; address != nullptr; address = address->ifa_next) {
+          if (address->ifa_addr && address->ifa_addr->sa_family == AF_PACKET) {
+              if (address->ifa_name == interface) {
+                  isValid = true;
+              }
+          }
+      }
+
+      freeifaddrs(addresses);
+      return isValid;
   }
 }

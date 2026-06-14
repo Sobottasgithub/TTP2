@@ -55,6 +55,7 @@ namespace ttp2 {
         static std::string getBroadcastIpAddress();
         static std::string getLocalIpAddress(std::string interface);
         static bool isValidIpV4(std::string &ipString);
+        static bool isValidInterface(std::string interface);
       
       protected:      
         bool connected = true;
