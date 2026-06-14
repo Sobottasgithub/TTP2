@@ -62,6 +62,11 @@ int main() {
     std::string interface = requestString("Interface (string): ");
     int port = requestInt("Server port (int): ");
 
+    if (!ServerSessionController::isValidInterface(interface)) {
+        std::wcout << "Please provide a correct interface" << std::endl;
+        return -1;
+    }
+
     ServerSessionController tempServerSessionController;
     std::string containerIP = tempServerSessionController.getLocalIpAddress(interface);
 

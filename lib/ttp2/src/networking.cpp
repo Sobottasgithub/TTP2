@@ -416,7 +416,7 @@ namespace ttp2 {
     return result;
   }
 
-  bool isValidInterface(std::string interface) {
+  bool Networking::isValidInterface(std::string &interface) {
       struct ifaddrs *addresses;
       getifaddrs(&addresses);
 
