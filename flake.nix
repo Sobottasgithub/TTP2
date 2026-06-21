@@ -18,6 +18,7 @@
         gcc
         gnumake
         libtasn1
+        arrow-cpp
       ];
 
       mkTTP2Package =

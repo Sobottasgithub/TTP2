@@ -9,5 +9,7 @@ file(GLOB_RECURSE SOURCES "./*.cpp" "./*.h")
 add_executable(ttp2-server ${SOURCES})
 
 target_link_libraries(ttp2-server PRIVATE ttp2)
+find_package(Arrow REQUIRED)
+target_link_libraries(ttp2-server PRIVATE Arrow::arrow_shared)
 
 install(TARGETS ttp2-server DESTINATION bin)
