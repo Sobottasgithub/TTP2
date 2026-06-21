@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <thread>
 #include <regex>
+#include <filesystem>
 
 using namespace ttp2;
 
@@ -68,7 +69,7 @@ int main() {
             break;
         }
 
-        int option = requestInt("Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Exit\nnumber: ");
+        int option = requestInt("Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) Exit\nnumber: ");
         if (option == 1) {
             std::string payload = requestString("(string) Payload: ");
         
@@ -138,6 +139,16 @@ int main() {
                 std::wcout << "Invalid!" << std::endl;
             }
         } else if (option == 4) {
+          std::string filePath { "" };
+          do {
+              if (filePath.length() > 0 && !std::filesystem::exists(filePath)) {
+                  std::wcout << "Incorrect filepath!" << std::endl;
+              }
+              filePath = requestString("(string) Filepath: ");
+          } while (!std::filesystem::exists(filePath));
+          std::wcout << "Success!" << std::endl;
+          
+        } else if (option == 5) {
           clientSessionController->disconnect();  
         } else {
             std::wcout << "Invalid!" << std::endl;
