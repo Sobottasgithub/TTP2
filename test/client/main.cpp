@@ -1,5 +1,6 @@
 #include "client_session_controller.h"
 
+#include <arrow/csv/options.h>
 #include <iostream>
 #include <string>
 #include <netinet/in.h>
@@ -8,6 +9,8 @@
 #include <thread>
 #include <regex>
 #include <filesystem>
+#include <arrow/csv/api.h>
+#include <arrow/io/api.h>
 
 using namespace ttp2;
 
@@ -146,8 +149,43 @@ int main() {
               }
               filePath = requestString("(string) Filepath: ");
           } while (!std::filesystem::exists(filePath));
-          std::wcout << "Success!" << std::endl;
           
+          arrow::io::IOContext ioContext = arrow::io::default_io_context();
+
+          arrow::Result<std::shared_ptr<arrow::io::ReadableFile>> maybeFile = arrow::io::ReadableFile::Open(filePath);
+          std::shared_ptr<arrow::io::InputStream> fileInput = *maybeFile;
+
+          arrow::csv::ReadOptions readOptions = arrow::csv::ReadOptions::Defaults();
+          arrow::csv::ParseOptions parseOptions = arrow::csv::ParseOptions::Defaults();
+          arrow::csv::ConvertOptions convertOptions = arrow::csv::ConvertOptions::Defaults();
+
+          arrow::Result<std::shared_ptr<arrow::csv::TableReader>> maybeReader = arrow::csv::TableReader::Make(ioContext,
+                                                            fileInput,
+                                                            readOptions,
+                                                            parseOptions,
+                                                            convertOptions);
+          if (!maybeReader.ok()) {
+             std::wcout << "Error while instantiating TableReader!" << std::endl;
+             continue;
+          }
+          std::shared_ptr<arrow::csv::TableReader> reader = *maybeReader;
+
+          arrow::Result<std::shared_ptr<arrow::Table>> maybeTable = reader->Read();
+          if (!maybeTable.ok()) {
+              std::wcout << "Error while read table from CSV file!" << std::endl;
+              continue;
+          }
+          std::shared_ptr<arrow::Table> table = *maybeTable;
+          std::wcout << table->ToString().c_str() << std::endl;
+
+          // TODO:
+          // ClientSessionController::Packet packet;
+          // clientSessionController::File file;
+          // file.start = 0;
+          // file.end = table->num_rows();
+          // file.payload = table;
+          // packet.payload = file;
+          // clientSessionController->pushRequest(packet);
         } else if (option == 5) {
           clientSessionController->disconnect();  
         } else {
