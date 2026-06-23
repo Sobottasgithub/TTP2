@@ -4,6 +4,7 @@
 #include <arpa/inet.h>
 #include <arrow/buffer.h>
 #include <arrow/io/memory.h>
+#include <arrow/ipc/reader.h>
 #include <arrow/ipc/writer.h>
 #include <arrow/result.h>
 #include <arrow/status.h>
@@ -24,6 +25,7 @@
 #include <arrow/api.h>
 #include <arrow/ipc/api.h>
 #include <arrow/io/api.h>
+#include <arrow/csv/api.h>
 
 extern "C" {
 #include <libtasn1.h>
@@ -461,5 +463,13 @@ namespace ttp2 {
       }
 
       return *buffer;
+  }
+
+  std::shared_ptr<arrow::Table> Networking::bufferToTable(const uint8_t* rawData, int64_t dataSize) {
+    std::shared_ptr<arrow::Buffer> buffer = arrow::Buffer::Wrap(rawData, dataSize);
+    std::shared_ptr<arrow::io::InputStream> inputStream = std::make_shared<arrow::io::BufferReader>(buffer);
+    std::shared_ptr<arrow::ipc::RecordBatchStreamReader> stream_reader = *arrow::ipc::RecordBatchStreamReader::Open(inputStream);
+    std::shared_ptr<arrow::Table> table = *stream_reader->ToTable();
+    return table;
   }
 }

@@ -63,6 +63,7 @@ namespace ttp2 {
 
         // TODO: move to protected later
         static std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
+        static std::shared_ptr<arrow::Table> bufferToTable(const uint8_t* rawData, int64_t dataSize);
       
       protected:      
         bool connected = true;

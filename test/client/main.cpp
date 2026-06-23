@@ -179,7 +179,13 @@ int main() {
           std::wcout << table->ToString().c_str() << std::endl;
 
           std::shared_ptr<arrow::Buffer> buffer = ClientSessionController::tableToBuffer(table);
+          const uint8_t* bufferData = buffer->data();
+          int64_t bufferSize = buffer->size();
 
+
+          std::shared_ptr<arrow::Table> table2 = ClientSessionController::bufferToTable(bufferData, bufferSize);
+          std::wcout << "Table2 " << table2->ToString().c_str() << std::endl;
+          
           // TODO:
           // ClientSessionController::Packet packet;
           // clientSessionController::File file;
