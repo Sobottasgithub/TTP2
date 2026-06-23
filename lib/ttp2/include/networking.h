@@ -6,6 +6,10 @@
 #include <mutex>
 #include <map>
 #include <variant>
+#include <memory>
+#include <arrow/api.h>
+#include <arrow/ipc/api.h>
+#include <arrow/io/api.h>
 
 namespace ttp2 {
   class Networking
@@ -56,6 +60,9 @@ namespace ttp2 {
         static std::string getLocalIpAddress(std::string interface);
         static bool isValidIpV4(std::string &ipString);
         static bool isValidInterface(std::string &interface);
+
+        // TODO: move to protected later
+        static std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
       
       protected:      
         bool connected = true;

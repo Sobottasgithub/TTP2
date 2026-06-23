@@ -178,6 +178,8 @@ int main() {
           std::shared_ptr<arrow::Table> table = *maybeTable;
           std::wcout << table->ToString().c_str() << std::endl;
 
+          std::shared_ptr<arrow::Buffer> buffer = ClientSessionController::tableToBuffer(table);
+
           // TODO:
           // ClientSessionController::Packet packet;
           // clientSessionController::File file;

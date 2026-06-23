@@ -2,10 +2,17 @@
 #include "../include/asn1_helpers.h"
 
 #include <arpa/inet.h>
+#include <arrow/buffer.h>
+#include <arrow/io/memory.h>
+#include <arrow/ipc/writer.h>
+#include <arrow/result.h>
+#include <arrow/status.h>
+#include <arrow/table.h>
 #include <cstdlib>
 #include <cstring>
 #include <ifaddrs.h>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <net/if.h>
 #include <netinet/in.h>
@@ -14,6 +21,9 @@
 #include <variant>
 #include <sstream>
 #include <ifaddrs.h>
+#include <arrow/api.h>
+#include <arrow/ipc/api.h>
+#include <arrow/io/api.h>
 
 extern "C" {
 #include <libtasn1.h>
@@ -431,5 +441,25 @@ namespace ttp2 {
 
       freeifaddrs(addresses);
       return isValid;
+  }
+
+  std::shared_ptr<arrow::Buffer> Networking::tableToBuffer(const std::shared_ptr<arrow::Table>& table) {
+      // Create output buffer with table structure
+      std::shared_ptr<arrow::io::BufferOutputStream> outputStream = *arrow::io::BufferOutputStream::Create();
+      std::shared_ptr<arrow::ipc::RecordBatchWriter> streamWriter = *arrow::ipc::MakeStreamWriter(outputStream, table->schema());
+      arrow::Status status = streamWriter->WriteTable(*table);
+
+      if (!status.ok()) {
+        std::wcout << "Something went wrong while writing the structure!" << std::endl;
+      }
+            
+      streamWriter->Close();
+      arrow::Result<std::shared_ptr<arrow::Buffer>> buffer = outputStream->Finish();
+
+      if (!buffer.ok()) {
+        std::wcout << "Something went wrong while converting table to buffer!" << std::endl;
+      }
+
+      return *buffer;
   }
 }
