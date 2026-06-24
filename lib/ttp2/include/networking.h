@@ -31,7 +31,7 @@ namespace ttp2 {
           int xEnd = 0;
           int yStart = 0;
           int yEnd = 0;
-          std::string payload = "";
+          std::shared_ptr<arrow::Table> payload;
         };
         
         typedef std::variant<Standard, File, Viewport> payloadVariants;

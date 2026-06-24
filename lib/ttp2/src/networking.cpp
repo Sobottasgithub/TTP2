@@ -155,7 +155,6 @@ namespace ttp2 {
       std::shared_ptr<arrow::Table> table = std::get<File>(payload).payload;
       std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
       packet = Asn1Helpers::asn1EncodePayload(buffer->data(), buffer->size(), packet, "payload.file.payload");
-
     } else if (std::holds_alternative<Viewport>(payload)) {
       // Write structure
       int status = asn1_write_value(packet, "payload", "viewport", 0);
@@ -179,8 +178,9 @@ namespace ttp2 {
       int yEnd = std::get<Viewport>(payload).yEnd;
       packet = Asn1Helpers::asn1EncodePayload(yEnd, packet, "payload.viewport.yEnd");
 
-      std::string filePayload = std::get<Viewport>(payload).payload;
-      packet = Asn1Helpers::asn1EncodePayload(filePayload, packet, "payload.viewport.payload");
+      std::shared_ptr<arrow::Table> table = std::get<Viewport>(payload).payload;
+      std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
+      packet = Asn1Helpers::asn1EncodePayload(buffer->data(), buffer->size(), packet, "payload.viewport.payload");
     }
 
     int derLen = 0;
@@ -293,7 +293,8 @@ namespace ttp2 {
           viewport.xEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xEnd");
           viewport.yStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yStart");
           viewport.yEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yEnd");
-          viewport.payload = Asn1Helpers::asn1DecodePayloadString(packet, "payload.viewport.payload");
+          std::vector<uint8_t> buffer = Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.viewport.payload");
+          viewport.payload = bufferToTable(buffer.data(), buffer.size());
 
           data.payload = viewport;
       } else {
