@@ -23,7 +23,7 @@ namespace ttp2 {
         	std::string filePath = "";
           int start = -1;
         	int end = -1;
-        	std::string payload = "";
+        	std::shared_ptr<arrow::Table> payload;
         };
 
         struct Viewport {
@@ -60,16 +60,15 @@ namespace ttp2 {
         static std::string getLocalIpAddress(std::string interface);
         static bool isValidIpV4(std::string &ipString);
         static bool isValidInterface(std::string &interface);
-
-        // TODO: move to protected later
-        static std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
-        static std::shared_ptr<arrow::Table> bufferToTable(const uint8_t* rawData, int64_t dataSize);
-      
+        
       protected:      
         bool connected = true;
       
         bool isNumeric(const std::string& string);
         int bytesToInt(std::vector<char> bytes, int size);
+
+        static std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
+        static std::shared_ptr<arrow::Table> bufferToTable(const uint8_t* rawData, int64_t dataSize);
 
         std::vector<Packet> requestQueue;
         std::vector<Packet> responseQueue;
