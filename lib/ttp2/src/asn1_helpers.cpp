@@ -4,6 +4,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#include <stdint.h>
 
 extern "C" {
 #include <libtasn1.h>
@@ -35,6 +36,19 @@ namespace ttp2 {
     }
 
     return packet;
+  }
+
+  asn1_node Asn1Helpers::asn1EncodePayload(const uint8_t* buffer, int size, asn1_node packet, const char* asn1Key) {
+    void* targetBuffer = const_cast<uint8_t*>(buffer);
+
+    int status = asn1_write_value(packet, asn1Key, targetBuffer, size);
+
+    if (status != ASN1_SUCCESS) {
+      std::wcout << "ASN1 set " << asn1Key << " failed!" << std::endl;
+    }
+
+    return packet;
+
   }
 
   std::string Asn1Helpers::asn1DecodePayloadString(asn1_node packet, const char* asn1Key) {
