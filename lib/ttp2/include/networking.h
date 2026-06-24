@@ -6,6 +6,10 @@
 #include <mutex>
 #include <map>
 #include <variant>
+#include <memory>
+#include <arrow/api.h>
+#include <arrow/ipc/api.h>
+#include <arrow/io/api.h>
 
 namespace ttp2 {
   class Networking
@@ -19,7 +23,7 @@ namespace ttp2 {
         	std::string filePath = "";
           int start = -1;
         	int end = -1;
-        	std::string payload = "";
+        	std::shared_ptr<arrow::Table> payload;
         };
 
         struct Viewport {
@@ -27,7 +31,7 @@ namespace ttp2 {
           int xEnd = 0;
           int yStart = 0;
           int yEnd = 0;
-          std::string payload = "";
+          std::shared_ptr<arrow::Table> payload;
         };
         
         typedef std::variant<Standard, File, Viewport> payloadVariants;
@@ -56,12 +60,15 @@ namespace ttp2 {
         static std::string getLocalIpAddress(std::string interface);
         static bool isValidIpV4(std::string &ipString);
         static bool isValidInterface(std::string &interface);
-      
+        
       protected:      
         bool connected = true;
       
         bool isNumeric(const std::string& string);
         int bytesToInt(std::vector<char> bytes, int size);
+
+        static std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
+        static std::shared_ptr<arrow::Table> bufferToTable(const uint8_t* rawData, int64_t dataSize);
 
         std::vector<Packet> requestQueue;
         std::vector<Packet> responseQueue;

@@ -11,13 +11,14 @@
       system = "x86_64-linux";
       pkgs = import nixpkgs { inherit system; };
 
-      version = "1.9.11";
+      version = "2.0.1";
 
       commonDeps = with pkgs; [
         cmake
         gcc
         gnumake
         libtasn1
+        arrow-cpp
       ];
 
       mkTTP2Package =

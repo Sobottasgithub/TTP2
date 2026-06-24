@@ -2,10 +2,18 @@
 #include "../include/asn1_helpers.h"
 
 #include <arpa/inet.h>
+#include <arrow/buffer.h>
+#include <arrow/io/memory.h>
+#include <arrow/ipc/reader.h>
+#include <arrow/ipc/writer.h>
+#include <arrow/result.h>
+#include <arrow/status.h>
+#include <arrow/table.h>
 #include <cstdlib>
 #include <cstring>
 #include <ifaddrs.h>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <net/if.h>
 #include <netinet/in.h>
@@ -14,6 +22,10 @@
 #include <variant>
 #include <sstream>
 #include <ifaddrs.h>
+#include <arrow/api.h>
+#include <arrow/ipc/api.h>
+#include <arrow/io/api.h>
+#include <arrow/csv/api.h>
 
 extern "C" {
 #include <libtasn1.h>
@@ -140,9 +152,9 @@ namespace ttp2 {
       int end = std::get<File>(payload).end;
       packet = Asn1Helpers::asn1EncodePayload(end, packet, "payload.file.end");
 
-      std::string filePayloadString = std::get<File>(payload).payload;
-      packet = Asn1Helpers::asn1EncodePayload(filePayloadString, packet, "payload.file.payload");
-
+      std::shared_ptr<arrow::Table> table = std::get<File>(payload).payload;
+      std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
+      packet = Asn1Helpers::asn1EncodePayload(buffer->data(), buffer->size(), packet, "payload.file.payload");
     } else if (std::holds_alternative<Viewport>(payload)) {
       // Write structure
       int status = asn1_write_value(packet, "payload", "viewport", 0);
@@ -166,8 +178,9 @@ namespace ttp2 {
       int yEnd = std::get<Viewport>(payload).yEnd;
       packet = Asn1Helpers::asn1EncodePayload(yEnd, packet, "payload.viewport.yEnd");
 
-      std::string filePayload = std::get<Viewport>(payload).payload;
-      packet = Asn1Helpers::asn1EncodePayload(filePayload, packet, "payload.viewport.payload");
+      std::shared_ptr<arrow::Table> table = std::get<Viewport>(payload).payload;
+      std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
+      packet = Asn1Helpers::asn1EncodePayload(buffer->data(), buffer->size(), packet, "payload.viewport.payload");
     }
 
     int derLen = 0;
@@ -268,7 +281,10 @@ namespace ttp2 {
           file.filePath = Asn1Helpers::asn1DecodePayloadString(packet, "payload.file.filePath");
           file.start = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.start");
           file.end = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.end");
-          file.payload = Asn1Helpers::asn1DecodePayloadString(packet, "payload.file.payload");
+
+          std::vector<uint8_t> buffer = Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.file.payload");
+          // const uint8_t* bufferConst = buffer.data();
+          file.payload = bufferToTable(buffer.data(), buffer.size());
 
           data.payload = file;
       } else if (typeNameString == "viewport") {
@@ -277,7 +293,8 @@ namespace ttp2 {
           viewport.xEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xEnd");
           viewport.yStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yStart");
           viewport.yEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yEnd");
-          viewport.payload = Asn1Helpers::asn1DecodePayloadString(packet, "payload.viewport.payload");
+          std::vector<uint8_t> buffer = Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.viewport.payload");
+          viewport.payload = bufferToTable(buffer.data(), buffer.size());
 
           data.payload = viewport;
       } else {
@@ -431,5 +448,33 @@ namespace ttp2 {
 
       freeifaddrs(addresses);
       return isValid;
+  }
+
+  std::shared_ptr<arrow::Buffer> Networking::tableToBuffer(const std::shared_ptr<arrow::Table>& table) {
+      // Create output buffer with table structure
+      std::shared_ptr<arrow::io::BufferOutputStream> outputStream = *arrow::io::BufferOutputStream::Create();
+      std::shared_ptr<arrow::ipc::RecordBatchWriter> streamWriter = *arrow::ipc::MakeStreamWriter(outputStream, table->schema());
+      arrow::Status status = streamWriter->WriteTable(*table);
+
+      if (!status.ok()) {
+        std::wcout << "Something went wrong while writing the structure!" << std::endl;
+      }
+            
+      streamWriter->Close();
+      arrow::Result<std::shared_ptr<arrow::Buffer>> buffer = outputStream->Finish();
+
+      if (!buffer.ok()) {
+        std::wcout << "Something went wrong while converting table to buffer!" << std::endl;
+      }
+
+      return *buffer;
+  }
+
+  std::shared_ptr<arrow::Table> Networking::bufferToTable(const uint8_t* rawData, int64_t dataSize) {
+    std::shared_ptr<arrow::Buffer> buffer = arrow::Buffer::Wrap(rawData, dataSize);
+    std::shared_ptr<arrow::io::InputStream> inputStream = std::make_shared<arrow::io::BufferReader>(buffer);
+    std::shared_ptr<arrow::ipc::RecordBatchStreamReader> stream_reader = *arrow::ipc::RecordBatchStreamReader::Open(inputStream);
+    std::shared_ptr<arrow::Table> table = *stream_reader->ToTable();
+    return table;
   }
 }
