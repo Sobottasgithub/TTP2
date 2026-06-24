@@ -88,11 +88,20 @@ int main() {
             }
             while(clientSessionController->hasResponse()) {
                 ClientSessionController::Packet packet = clientSessionController->popResponse();
-                Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
-                std::wcout << "------ Message ------" << std::endl;
-                std::wcout << "ID: " << packet.id << std::endl;
-                std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
-                std::wcout << "---------------------" << std::endl;
+
+                if (std::holds_alternative<Networking::Standard>(packet.payload)) {
+                    Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
+                    std::wcout << "------ Message ------" << std::endl;
+                    std::wcout << "ID: " << packet.id << std::endl;
+                    std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
+                    std::wcout << "---------------------" << std::endl;
+                } else if (std::holds_alternative<Networking::File>(packet.payload)) {
+                    Networking::File file = std::get<Networking::File>(packet.payload);
+                    std::wcout << "------ Message ------" << std::endl;
+                    std::wcout << "ID: " << packet.id << std::endl;
+                    std::wcout << file.payload->ToString().c_str() << std::endl;
+                    std::wcout << "---------------------" << std::endl;
+                }
             }
         } else if (option == 3) {
             std::wcout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
@@ -178,22 +187,15 @@ int main() {
           std::shared_ptr<arrow::Table> table = *maybeTable;
           std::wcout << table->ToString().c_str() << std::endl;
 
-          std::shared_ptr<arrow::Buffer> buffer = ClientSessionController::tableToBuffer(table);
-          const uint8_t* bufferData = buffer->data();
-          int64_t bufferSize = buffer->size();
+          ClientSessionController::Packet packet;
+          ClientSessionController::File file;
+          file.start = 0;
+          file.end = table->num_rows();
+          file.payload = table;
+          packet.payload = file;
+          clientSessionController->pushRequest(packet);
 
-
-          std::shared_ptr<arrow::Table> table2 = ClientSessionController::bufferToTable(bufferData, bufferSize);
-          std::wcout << "Table2 " << table2->ToString().c_str() << std::endl;
-          
-          // TODO:
-          // ClientSessionController::Packet packet;
-          // clientSessionController::File file;
-          // file.start = 0;
-          // file.end = table->num_rows();
-          // file.payload = table;
-          // packet.payload = file;
-          // clientSessionController->pushRequest(packet);
+          std::wcout << "Done!" << std::endl;
         } else if (option == 5) {
           clientSessionController->disconnect();  
         } else {
