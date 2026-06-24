@@ -185,7 +185,6 @@ int main() {
               continue;
           }
           std::shared_ptr<arrow::Table> table = *maybeTable;
-          std::wcout << table->ToString().c_str() << std::endl;
 
           ClientSessionController::Packet packet;
           ClientSessionController::File file;
