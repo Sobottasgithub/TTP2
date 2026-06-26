@@ -23,7 +23,7 @@ namespace ttp2 {
         	std::string filePath = "";
           int start = -1;
         	int end = -1;
-        	std::shared_ptr<arrow::Table> payload;
+        	std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
         };
 
         struct Viewport {
@@ -31,7 +31,7 @@ namespace ttp2 {
           int xEnd = 0;
           int yStart = 0;
           int yEnd = 0;
-          std::shared_ptr<arrow::Table> payload;
+          std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
         };
         
         typedef std::variant<Standard, File, Viewport> payloadVariants;
