@@ -77,7 +77,7 @@ namespace ttp2 {
 
         std::map<int, std::vector<unsigned char>> sessionBuffers;
 
-        int autoId;
+        int autoId = 0;
   };
 }
 
