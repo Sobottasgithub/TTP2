@@ -119,8 +119,7 @@ namespace ttp2 {
       autoId++;
     }
 
-    std::string idString = std::to_string(id);
-    asn1_write_value(packet, "id", idString.c_str(), 0);
+    packet = Asn1Helpers::asn1EncodePayload(id, packet, "id");
 
     if (std::holds_alternative<Standard>(payload)) {
       // Write structure
@@ -257,15 +256,7 @@ namespace ttp2 {
 
     if (asn1_der_decoding(&packet, derBuffer.data(), derLen, errorDescription) ==
         ASN1_SUCCESS) {
-      unsigned char idBin[8];
-      int idLen = sizeof(idBin);
-      if (asn1_read_value(packet, "id", idBin, &idLen) == ASN1_SUCCESS) {
-        long idValue = 0;
-        for (int i = 0; i < idLen; i++) {
-          idValue = (idValue << 8) | idBin[i];
-        }
-        data.id = static_cast<int>(idValue);
-      }
+      data.id = Asn1Helpers::asn1DecodePayloadInt(packet, "id");
 
       char typeName[64];
       int branchSize = sizeof(typeName);

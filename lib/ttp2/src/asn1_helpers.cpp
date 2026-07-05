@@ -28,8 +28,9 @@ namespace ttp2 {
   }
 
   asn1_node Asn1Helpers::asn1EncodePayload(int payload, asn1_node packet, const char* asn1Key) {
+    std::string payloadString = std::to_string(payload);
     int status = asn1_write_value(packet, asn1Key,
-                              &payload, sizeof(payload));
+                              payloadString.c_str(), 0);
 
     if (status != ASN1_SUCCESS) {
       std::wcout << "ASN1 set " << asn1Key << " failed!" << std::endl;
