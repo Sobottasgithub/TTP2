@@ -42,7 +42,6 @@ namespace ttp2 {
         };
 
         bool isConnected();
-        void disconnect();
         bool hasRequest();
         bool hasResponse();
         Packet popRequest();
@@ -60,6 +59,8 @@ namespace ttp2 {
         static std::string getLocalIpAddress(std::string interface);
         static bool isValidIpV4(std::string &ipString);
         static bool isValidInterface(std::string &interface);
+
+        virtual void disconnect();
         
       protected:      
         bool connected = true;

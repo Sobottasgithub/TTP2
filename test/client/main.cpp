@@ -66,12 +66,7 @@ int main() {
         clientSessionController->networkingSession();
     });
 
-    while (true) {
-        if (!clientSessionController->isConnected()) {
-            std::wcout << "Disconnect!" << std::endl;
-            break;
-        }
-
+    while (clientSessionController->isConnected()) {
         int option = requestInt("Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) Exit\nnumber: ");
         if (option == 1) {
             std::string payload = requestString("(string) Payload: ");
@@ -201,7 +196,10 @@ int main() {
             std::wcout << "Invalid!" << std::endl;
         }
     }
-    networkThread.detach();
+
+    std::wcout << "Terminated!" << std::endl;
+    
+    networkThread.join();
 
     return 0;
 }

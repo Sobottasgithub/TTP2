@@ -72,6 +72,7 @@ namespace ttp2 {
         if (incomingEvents[index].events & (EPOLLHUP | EPOLLERR)) {
           sessionBuffers.erase(fd);
           close(fd);
+          disconnect();
           continue;
         }
         if (incomingEvents[index].events & EPOLLIN) {
@@ -85,5 +86,11 @@ namespace ttp2 {
         }
       }
     }
+  }
+  
+  void ServerSessionController::disconnect() {
+    std::lock_guard<std::mutex> lock(mtx);
+    close(this->clientSocket);
+    connected = false;
   }
 }

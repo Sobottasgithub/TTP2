@@ -19,6 +19,7 @@
 #include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
+#include <system_error>
 #include <variant>
 #include <sstream>
 #include <ifaddrs.h>
@@ -46,11 +47,6 @@ namespace ttp2 {
   bool Networking::isConnected() {
     std::lock_guard<std::mutex> lock(mtx);
     return connected;
-  }
-
-  void Networking::disconnect() {
-    std::lock_guard<std::mutex> lock(mtx);
-    connected = false;
   }
 
   Networking::Packet Networking::popRequest() {
@@ -216,10 +212,11 @@ namespace ttp2 {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
           break;
         }
-        // std::wcout << "Error while receiving!" << std::endl;
+        std::wcout << "Error while receiving bytes!" << std::endl;
         return data;
       } else {
         // std::wcout << "Socket closed!" << std::endl;
+        disconnect();
         return data;
       }
     }
@@ -468,4 +465,6 @@ namespace ttp2 {
     std::shared_ptr<arrow::Table> table = *stream_reader->ToTable();
     return table;
   }
+
+  void Networking::disconnect() {}
 }

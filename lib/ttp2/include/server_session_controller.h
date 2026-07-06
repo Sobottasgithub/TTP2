@@ -11,6 +11,8 @@ namespace ttp2 {
         ServerSessionController();
         ServerSessionController(int serverSocket, int clientSocket);
         void networkingSession();
+        void disconnect() override;
+        
       private:
         int serverSocket;
         int clientSocket;

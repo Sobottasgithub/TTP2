@@ -83,4 +83,10 @@ namespace ttp2 {
       }
     }
   }
+
+  void ClientSessionController::disconnect() {
+    std::lock_guard<std::mutex> lock(mtx);
+    close(this->socket);
+    connected = false;
+  }
 }
