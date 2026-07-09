@@ -14,7 +14,8 @@
 namespace ttp2 {
   class Networking
   {
-      public:      
+      public:
+        // Packet Payloads
         struct Standard {
           std::string payload = "";
         };
@@ -54,6 +55,16 @@ namespace ttp2 {
         int sendMessage(int socket, int id, payloadVariants payload);
         int sendPacket(int socket, Packet packet);
         Packet receiveMessage(int socket);
+
+        // WARNING: This struct cant be send as a payload type!
+        struct PacketInfo {
+          int id;
+          payloadVariants payloadType;
+        };
+        PacketInfo peekResponse();
+        PacketInfo peekResponse(int index);
+        PacketInfo peekRequest();
+        PacketInfo peekRequest(int index);
 
         static std::string getBroadcastIpAddress();
         static std::string getLocalIpAddress(std::string interface);

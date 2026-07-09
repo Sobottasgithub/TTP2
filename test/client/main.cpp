@@ -67,7 +67,7 @@ int main() {
     });
 
     while (clientSessionController->isConnected()) {
-        int option = requestInt("Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) Exit\nnumber: ");
+        int option = requestInt("Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) peek index\n(6) Exit\nnumber: ");
         if (option == 1) {
             std::string payload = requestString("(string) Payload: ");
         
@@ -191,6 +191,32 @@ int main() {
 
           std::wcout << "Done!" << std::endl;
         } else if (option == 5) {
+          int responseQueueSize = clientSessionController->getResponseQueueSize();
+          int index = 0;
+          do {
+              std::wcout << "Peek index: 0 to " << responseQueueSize << " | -1 to exit" << std::endl;
+              index = requestInt("(int) index: ");
+          } while (index < -1 || index > responseQueueSize);
+
+          if (index == -1) {
+              continue;
+          }
+
+          ClientSessionController::PacketInfo packetInfo = clientSessionController->peekResponse(index);
+          std::wcout << "--- PacketInfo ---" << std::endl;
+          std::string payloadType = "";
+          if (std::holds_alternative<ClientSessionController::Standard>(packetInfo.payloadType))
+              payloadType = "Standard";
+          else if (std::holds_alternative<ClientSessionController::File>(packetInfo.payloadType))
+              payloadType = "File";
+          else if (std::holds_alternative<ClientSessionController::Viewport>(packetInfo.payloadType))
+              payloadType = "Viewport";
+          else
+              payloadType = "Invalid";
+          
+          std::wcout << "id: " << packetInfo.id << "\npacketType: " << payloadType.c_str() << std::endl;
+          std::wcout << "---    ---     ---" << std::endl;
+        } else if (option == 6) {
           clientSessionController->disconnect();  
         } else {
             std::wcout << "Invalid!" << std::endl;

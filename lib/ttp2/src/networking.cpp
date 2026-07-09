@@ -343,6 +343,40 @@ namespace ttp2 {
     return result;
   }
 
+  Networking::PacketInfo Networking::peekResponse() {
+    return peekResponse(0);
+  }
+
+  Networking::PacketInfo Networking::peekResponse(int index) {
+    Networking::PacketInfo packetInfo;
+    if (index > getResponseQueueSize() - 1 || index < 0) {
+      std::wcout << "Invalid peek request: " << index << std::endl;
+      return packetInfo;
+    }
+
+    std::lock_guard<std::mutex> lock(mtx);
+    packetInfo.id = responseQueue[index].id;
+    packetInfo.payloadType = responseQueue[index].payload;
+    return packetInfo;
+  }
+
+  Networking::PacketInfo Networking::peekRequest() {
+    return peekRequest(0);
+  }
+
+  Networking::PacketInfo Networking::peekRequest(int index) {
+    Networking::PacketInfo packetInfo;
+    if (index > getRequestQueueSize() - 1 || index < 0) {
+      std::wcout << "Invalid peek request: " << index << std::endl;
+      return packetInfo;
+    }
+
+    std::lock_guard<std::mutex> lock(mtx);
+    packetInfo.id = requestQueue[index].id;
+    packetInfo.payloadType = requestQueue[index].payload;
+    return packetInfo;
+  }
+
   std::string Networking::getBroadcastIpAddress() {
     struct ifaddrs *ifaddr = nullptr;
     std::string broadcastIP;
