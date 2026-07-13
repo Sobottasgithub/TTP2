@@ -99,16 +99,4 @@ namespace ttp2 {
     }
     return buffer;
   }
-
-  asn1_node Asn1Helpers::writeViewportCoordinates(asn1_node packet, int xStart, int xEnd, int yStart, int yEnd) {
-    // X
-    packet = Asn1Helpers::asn1EncodePayload(xStart, packet, "payload.viewport.xStart");
-    packet = Asn1Helpers::asn1EncodePayload(xEnd, packet, "payload.viewport.xEnd");
-
-    // Y
-    packet = Asn1Helpers::asn1EncodePayload(yStart, packet, "payload.viewport.yStart");
-    packet = Asn1Helpers::asn1EncodePayload(yEnd, packet, "payload.viewport.yEnd");
-
-    return packet;
-  }
 }

@@ -11,6 +11,13 @@ File ::= SEQUENCE {
 	payload OCTET STRING
 }
 
+ViewportRequest ::= SEQUENCE {
+	xStart INTEGER,
+	xEnd INTEGER,
+	yStart INTEGER,
+	yEnd INTEGER
+}
+
 Viewport ::= SEQUENCE {
 	xStart INTEGER,
 	xEnd INTEGER,
@@ -24,7 +31,8 @@ Packet ::= SEQUENCE {
 	payload CHOICE {
 		standard [0] Standard,
 		file [1] File,
-		viewport [2] Viewport
+		viewport [2] Viewport,
+		viewportRequest [3] ViewportRequest
 	}
 } 
 

@@ -14,6 +14,11 @@ const asn1_static_node packets_asn1_tab[] = {
   { "start", 1073741827, NULL },
   { "end", 1073741827, NULL },
   { "payload", 7, NULL },
+  { "ViewportRequest", 1610612741, NULL },
+  { "xStart", 1073741827, NULL },
+  { "xEnd", 1073741827, NULL },
+  { "yStart", 1073741827, NULL },
+  { "yEnd", 3, NULL },
   { "Viewport", 1610612741, NULL },
   { "xStart", 1073741827, NULL },
   { "xEnd", 1073741827, NULL },
@@ -27,7 +32,9 @@ const asn1_static_node packets_asn1_tab[] = {
   { NULL, 2056, "0"},
   { "file", 1610620930, "File"},
   { NULL, 2056, "1"},
-  { "viewport", 536879106, "Viewport"},
+  { "viewport", 1610620930, "Viewport"},
   { NULL, 2056, "2"},
+  { "viewportRequest", 536879106, "ViewportRequest"},
+  { NULL, 2056, "3"},
   { NULL, 0, NULL }
 };

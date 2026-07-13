@@ -150,6 +150,22 @@ namespace ttp2 {
       std::shared_ptr<arrow::Table> table = std::get<File>(payload).payload;
       std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
       packet = Asn1Helpers::asn1EncodePayload(buffer->data(), buffer->size(), packet, "payload.file.payload");
+    } else if (std::holds_alternative<ViewportRequest>(payload)) {
+      // Write structure
+      int status = asn1_write_value(packet, "payload", "viewportRequest", 0);
+
+      if (status != ASN1_SUCCESS) {
+        std::wcout << "ASN1 set payload as viewport request failed!" << std::endl;
+      }
+
+      // Write content
+      // X
+      packet = Asn1Helpers::asn1EncodePayload(std::get<ViewportRequest>(payload).xStart, packet, "payload.viewportRequest.xStart");
+      packet = Asn1Helpers::asn1EncodePayload(std::get<ViewportRequest>(payload).xEnd, packet, "payload.viewportRequest.xEnd");
+
+      // Y
+      packet = Asn1Helpers::asn1EncodePayload(std::get<ViewportRequest>(payload).yStart, packet, "payload.viewportRequest.yStart");
+      packet = Asn1Helpers::asn1EncodePayload(std::get<ViewportRequest>(payload).yEnd, packet, "payload.viewportRequest.yEnd");
     } else if (std::holds_alternative<Viewport>(payload)) {
       // Write structure
       int status = asn1_write_value(packet, "payload", "viewport", 0);
@@ -159,9 +175,13 @@ namespace ttp2 {
       }
 
       // Write content
-      packet = Asn1Helpers::writeViewportCoordinates(packet,
-                                                     std::get<Viewport>(payload).xStart, std::get<Viewport>(payload).xEnd,
-                                                     std::get<Viewport>(payload).yStart, std::get<Viewport>(payload).yEnd);
+      // X
+      packet = Asn1Helpers::asn1EncodePayload(std::get<Viewport>(payload).xStart, packet, "payload.viewport.xStart");
+      packet = Asn1Helpers::asn1EncodePayload(std::get<Viewport>(payload).xEnd, packet, "payload.viewport.xEnd");
+
+      // Y
+      packet = Asn1Helpers::asn1EncodePayload(std::get<Viewport>(payload).yStart, packet, "payload.viewport.yStart");
+      packet = Asn1Helpers::asn1EncodePayload(std::get<Viewport>(payload).yEnd, packet, "payload.viewport.yEnd");
 
       std::shared_ptr<arrow::Table> table = std::get<Viewport>(payload).payload;
       std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
@@ -265,6 +285,15 @@ namespace ttp2 {
           file.payload = bufferToTable(buffer.data(), buffer.size());
 
           data.payload = file;
+      } else if (typeNameString == "viewportRequest") {
+        Networking::ViewportRequest viewportRequest;
+
+        viewportRequest.xStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.xStart");
+        viewportRequest.xEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.xEnd");
+        viewportRequest.yStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.yStart");
+        viewportRequest.yEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.yEnd");
+
+        data.payload = viewportRequest;
       } else if (typeNameString == "viewport") {
           Networking::Viewport viewport;
           viewport.xStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xStart");

@@ -38,7 +38,7 @@ namespace ttp2 {
           std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
         };
         
-        typedef std::variant<Standard, File, Viewport> payloadVariants;
+        typedef std::variant<Standard, File, ViewportRequest, Viewport> payloadVariants;
       
         struct Packet {
           int id = -1;
