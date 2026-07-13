@@ -21,6 +21,8 @@ namespace ttp2 {
       static int asn1DecodePayloadInt(asn1_node packet, const char* asn1Key);
       static std::vector<uint8_t> asn1DecodePayloadBuffer(asn1_node packet, const char* asn1Key);
 
+      static asn1_node writeViewportCoordinates(asn1_node packet, int xStart, int xEnd, int yStart, int yEnd);
+
     private:
       static int bytesToInt(std::vector<char> bytes, int size);
   };

@@ -159,19 +159,9 @@ namespace ttp2 {
       }
 
       // Write content
-      // X
-      int xStart = std::get<Viewport>(payload).xStart;
-      packet = Asn1Helpers::asn1EncodePayload(xStart, packet, "payload.viewport.xStart");
-
-      int xEnd = std::get<Viewport>(payload).xEnd;
-      packet = Asn1Helpers::asn1EncodePayload(xEnd, packet, "payload.viewport.xEnd");
-
-      // Y
-      int yStart = std::get<Viewport>(payload).yStart;
-      packet = Asn1Helpers::asn1EncodePayload(yStart, packet, "payload.viewport.yStart");
-
-      int yEnd = std::get<Viewport>(payload).yEnd;
-      packet = Asn1Helpers::asn1EncodePayload(yEnd, packet, "payload.viewport.yEnd");
+      packet = Asn1Helpers::writeViewportCoordinates(packet,
+                                                     std::get<Viewport>(payload).xStart, std::get<Viewport>(payload).xEnd,
+                                                     std::get<Viewport>(payload).yStart, std::get<Viewport>(payload).yEnd);
 
       std::shared_ptr<arrow::Table> table = std::get<Viewport>(payload).payload;
       std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
