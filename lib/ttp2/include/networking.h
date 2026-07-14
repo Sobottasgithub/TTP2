@@ -34,7 +34,11 @@ namespace ttp2 {
           int yEnd = 0;
         };
         
-        struct Viewport: public ViewportRequest {
+        struct Viewport {
+          int xStart = 0;
+          int xEnd = 0;
+          int yStart = 0;
+          int yEnd = 0;
           std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
         };
         

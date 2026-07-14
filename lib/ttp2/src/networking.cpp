@@ -160,12 +160,16 @@ namespace ttp2 {
 
       // Write content
       // X
-      packet = Asn1Helpers::asn1EncodePayload(std::get<ViewportRequest>(payload).xStart, packet, "payload.viewportRequest.xStart");
-      packet = Asn1Helpers::asn1EncodePayload(std::get<ViewportRequest>(payload).xEnd, packet, "payload.viewportRequest.xEnd");
+      int xStart = std::get<ViewportRequest>(payload).xStart;
+      packet = Asn1Helpers::asn1EncodePayload(xStart, packet, "payload.viewportRequest.xStart");
+      int xEnd = std::get<ViewportRequest>(payload).xEnd;
+      packet = Asn1Helpers::asn1EncodePayload(xEnd, packet, "payload.viewportRequest.xEnd");
 
       // Y
-      packet = Asn1Helpers::asn1EncodePayload(std::get<ViewportRequest>(payload).yStart, packet, "payload.viewportRequest.yStart");
-      packet = Asn1Helpers::asn1EncodePayload(std::get<ViewportRequest>(payload).yEnd, packet, "payload.viewportRequest.yEnd");
+      int yStart = std::get<ViewportRequest>(payload).yStart;
+      packet = Asn1Helpers::asn1EncodePayload(yStart, packet, "payload.viewportRequest.yStart");
+      int yEnd = std::get<ViewportRequest>(payload).yEnd;
+      packet = Asn1Helpers::asn1EncodePayload(yEnd, packet, "payload.viewportRequest.yEnd");
     } else if (std::holds_alternative<Viewport>(payload)) {
       // Write structure
       int status = asn1_write_value(packet, "payload", "viewport", 0);
@@ -176,12 +180,16 @@ namespace ttp2 {
 
       // Write content
       // X
-      packet = Asn1Helpers::asn1EncodePayload(std::get<Viewport>(payload).xStart, packet, "payload.viewport.xStart");
-      packet = Asn1Helpers::asn1EncodePayload(std::get<Viewport>(payload).xEnd, packet, "payload.viewport.xEnd");
+      int xStart = std::get<Viewport>(payload).xStart;
+      packet = Asn1Helpers::asn1EncodePayload(xStart, packet, "payload.viewport.xStart");
+      int xEnd = std::get<Viewport>(payload).xEnd;
+      packet = Asn1Helpers::asn1EncodePayload(xEnd, packet, "payload.viewport.xEnd");
 
       // Y
-      packet = Asn1Helpers::asn1EncodePayload(std::get<Viewport>(payload).yStart, packet, "payload.viewport.yStart");
-      packet = Asn1Helpers::asn1EncodePayload(std::get<Viewport>(payload).yEnd, packet, "payload.viewport.yEnd");
+      int yStart = std::get<Viewport>(payload).yStart;
+      packet = Asn1Helpers::asn1EncodePayload(yStart, packet, "payload.viewport.yStart");
+      int yEnd = std::get<Viewport>(payload).yEnd;
+      packet = Asn1Helpers::asn1EncodePayload(yEnd, packet, "payload.viewport.yEnd");
 
       std::shared_ptr<arrow::Table> table = std::get<Viewport>(payload).payload;
       std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
