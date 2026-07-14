@@ -31,8 +31,8 @@ Packet ::= SEQUENCE {
 	payload CHOICE {
 		standard [0] Standard,
 		file [1] File,
-		viewport [2] Viewport,
-		viewportRequest [3] ViewportRequest
+		viewportRequest [2] ViewportRequest,
+		viewport [3] Viewport
 	}
 } 
 

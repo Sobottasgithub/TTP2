@@ -32,9 +32,9 @@ const asn1_static_node packets_asn1_tab[] = {
   { NULL, 2056, "0"},
   { "file", 1610620930, "File"},
   { NULL, 2056, "1"},
-  { "viewport", 1610620930, "Viewport"},
+  { "viewportRequest", 1610620930, "ViewportRequest"},
   { NULL, 2056, "2"},
-  { "viewportRequest", 536879106, "ViewportRequest"},
+  { "viewport", 536879106, "Viewport"},
   { NULL, 2056, "3"},
   { NULL, 0, NULL }
 };
