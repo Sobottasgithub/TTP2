@@ -149,7 +149,9 @@ namespace ttp2 {
 
       std::shared_ptr<arrow::Table> table = std::get<File>(payload).payload;
       std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
-      packet = Asn1Helpers::asn1EncodePayload(buffer->data(), buffer->size(), packet, "payload.file.payload");
+      if (buffer->size() > 0) {
+        packet = Asn1Helpers::asn1EncodePayload(buffer->data(), buffer->size(), packet, "payload.file.payload");
+      }
     } else if (std::holds_alternative<ViewportRequest>(payload)) {
       // Write structure
       int status = asn1_write_value(packet, "payload", "viewportRequest", 0);
@@ -507,6 +509,7 @@ namespace ttp2 {
 
       if (!status.ok()) {
         std::wcout << "Something went wrong while writing the structure!" << std::endl;
+        return nullptr;
       }
             
       streamWriter->Close();
@@ -514,19 +517,30 @@ namespace ttp2 {
 
       if (!buffer.ok()) {
         std::wcout << "Something went wrong while converting table to buffer!" << std::endl;
+        return nullptr;
       }
 
-      return *buffer;
+      return  std::move(buffer).ValueUnsafe();
   }
 
   std::shared_ptr<arrow::Table> Networking::bufferToTable(const uint8_t* rawData, int64_t dataSize) {
     std::shared_ptr<arrow::Buffer> buffer = arrow::Buffer::Wrap(rawData, dataSize);
     std::shared_ptr<arrow::io::InputStream> inputStream = std::make_shared<arrow::io::BufferReader>(buffer);
 
-    std::shared_ptr<arrow::ipc::RecordBatchStreamReader> stream_reader = arrow::ipc::RecordBatchStreamReader::Open(inputStream).ValueOrDie();
+    arrow::Result<std::shared_ptr<arrow::ipc::RecordBatchStreamReader>> streamReaderResult = arrow::ipc::RecordBatchStreamReader::Open(inputStream);
+    if (!streamReaderResult.ok()) {
+      std::wcout << "Open input stream failed in bufferToTable" << std::endl;
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+    std::shared_ptr<arrow::ipc::RecordBatchStreamReader> streamReader = std::move(streamReaderResult).ValueUnsafe();
+    
+    arrow::Result<std::shared_ptr<arrow::Table>> tableResult = streamReader->ToTable();
+    if (!tableResult.ok()) {
+      std::wcout << "Create table failed in bufferToTable" << std::endl;
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
 
-    std::shared_ptr<arrow::Table> table = stream_reader->ToTable().ValueOrDie();
-    return table;
+    return std::move(tableResult).ValueUnsafe();
   }
 
   void Networking::disconnect() {}

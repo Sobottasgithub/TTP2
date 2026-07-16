@@ -90,11 +90,11 @@ namespace ttp2 {
 
   std::vector<uint8_t> Asn1Helpers::asn1DecodePayloadBuffer(asn1_node packet, const char* asn1Key) {
     int payloadLen = 0;
-    int status2 = asn1_read_value(packet, asn1Key, nullptr, &payloadLen);
+    int status = asn1_read_value(packet, asn1Key, nullptr, &payloadLen);
     std::vector<uint8_t> buffer(payloadLen);
 
-    if (status2 == ASN1_MEM_ERROR && payloadLen > 0) {
-        status2 = asn1_read_value(packet, asn1Key, buffer.data(), &payloadLen);
+    if (status == ASN1_MEM_ERROR && payloadLen > 0) {
+        status = asn1_read_value(packet, asn1Key, buffer.data(), &payloadLen);
         return buffer;
     }
     return buffer;
