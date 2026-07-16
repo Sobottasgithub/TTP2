@@ -522,8 +522,10 @@ namespace ttp2 {
   std::shared_ptr<arrow::Table> Networking::bufferToTable(const uint8_t* rawData, int64_t dataSize) {
     std::shared_ptr<arrow::Buffer> buffer = arrow::Buffer::Wrap(rawData, dataSize);
     std::shared_ptr<arrow::io::InputStream> inputStream = std::make_shared<arrow::io::BufferReader>(buffer);
-    std::shared_ptr<arrow::ipc::RecordBatchStreamReader> stream_reader = *arrow::ipc::RecordBatchStreamReader::Open(inputStream);
-    std::shared_ptr<arrow::Table> table = *stream_reader->ToTable();
+
+    std::shared_ptr<arrow::ipc::RecordBatchStreamReader> stream_reader = arrow::ipc::RecordBatchStreamReader::Open(inputStream).ValueOrDie();
+
+    std::shared_ptr<arrow::Table> table = stream_reader->ToTable().ValueOrDie();
     return table;
   }
 
