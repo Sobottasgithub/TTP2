@@ -97,7 +97,6 @@ namespace ttp2 {
 
   int Networking::sendMessage(int socket, int id,
                               payloadVariants payload) {
-    std::lock_guard<std::mutex> lock(mtx);
     asn1_node definitions = nullptr;
     asn1_node packet = nullptr;
     char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
@@ -219,7 +218,6 @@ namespace ttp2 {
   }
 
   Networking::Packet Networking::receiveMessage(int socket) {
-    std::lock_guard<std::mutex> lock(mtx);
     Networking::Packet data;
 
     unsigned char temp[4096];

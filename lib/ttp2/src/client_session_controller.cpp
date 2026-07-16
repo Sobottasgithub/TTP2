@@ -49,10 +49,10 @@ namespace ttp2 {
   }
 
   void ClientSessionController::receiveResponseSession() {
-    while (isConnected()) {
-      const int MAX_EVENTS = 10;
-      struct epoll_event incomingEvents[MAX_EVENTS];
+    const int MAX_EVENTS = 10;
 
+    while (isConnected()) {
+      struct epoll_event incomingEvents[MAX_EVENTS];
       int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
     
       for (int index = 0; index < eventCount; ++index) {
@@ -63,13 +63,11 @@ namespace ttp2 {
           continue;
         }
         if (incomingEvents[index].events & EPOLLIN) {
-          while (true) {
-            Packet packet = receiveMessage(fd);
-            if (packet.id == -1) {
-              break;
-            }
-            pushResponse(packet);
+          Packet packet = receiveMessage(fd);
+          if (packet.id == -1) {
+            continue;
           }
+          pushResponse(packet);
         }
       }
     }
