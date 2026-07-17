@@ -524,7 +524,27 @@ namespace ttp2 {
   }
 
   std::shared_ptr<arrow::Table> Networking::bufferToTable(const uint8_t* rawData, int64_t dataSize) {
-    std::shared_ptr<arrow::Buffer> buffer = arrow::Buffer::Wrap(rawData, dataSize);
+    arrow::BufferBuilder bufferBuilder;
+    arrow::Status allocStatus = bufferBuilder.Resize(dataSize);
+    if (!allocStatus.ok()) {
+      std::wcout << "Buffer allocation failed in bufferToTable" << std::endl;
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
+    // Make a physical copy so that the data isn't deleted. (That would lead to a shared_ptr with a table that points to no real data)
+    arrow::Status appendStatus = bufferBuilder.Append(reinterpret_cast<const uint8_t*>(rawData), dataSize);
+    if (!appendStatus.ok()) {
+      std::wcout << "Failed to append raw data to buffer" << std::endl;
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
+    std::shared_ptr<arrow::Buffer> buffer;
+    arrow::Status finishStatus = bufferBuilder.Finish(&buffer);
+    if (!finishStatus.ok()) {
+      std::wcout << "Failed to finish buffer building" << std::endl;
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
     std::shared_ptr<arrow::io::InputStream> inputStream = std::make_shared<arrow::io::BufferReader>(buffer);
 
     arrow::Result<std::shared_ptr<arrow::ipc::RecordBatchStreamReader>> streamReaderResult = arrow::ipc::RecordBatchStreamReader::Open(inputStream);
@@ -533,14 +553,14 @@ namespace ttp2 {
       return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
     }
     std::shared_ptr<arrow::ipc::RecordBatchStreamReader> streamReader = std::move(streamReaderResult).ValueUnsafe();
-    
+
     arrow::Result<std::shared_ptr<arrow::Table>> tableResult = streamReader->ToTable();
     if (!tableResult.ok()) {
       std::wcout << "Create table failed in bufferToTable" << std::endl;
       return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
     }
 
-    return std::move(tableResult).ValueUnsafe();
+    return *tableResult;
   }
 
   void Networking::disconnect() {}
