@@ -24,6 +24,7 @@ target_include_directories(ttp2 PUBLIC
 
 # Link against the libtasn1 library
 target_link_libraries(ttp2 PRIVATE tasn1)
+target_link_libraries(ttp2 PRIVATE tablog)
 
 install(TARGETS ttp2 DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
