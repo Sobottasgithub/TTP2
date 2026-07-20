@@ -1,6 +1,8 @@
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
+#include <tablog.h>
+
 #include <string>
 #include <vector>
 #include <mutex>
@@ -80,14 +82,16 @@ namespace ttp2 {
 
         virtual void disconnect();
         
-      protected:      
+      protected:
+        tablog::Tablog* logger = &tablog::Tablog::getInstance();
+        
         bool connected = true;
       
         bool isNumeric(const std::string& string);
         int bytesToInt(std::vector<char> bytes, int size);
 
-        static std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
-        static std::shared_ptr<arrow::Table> bufferToTable(const uint8_t* rawData, int64_t dataSize);
+        std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
+        std::shared_ptr<arrow::Table> bufferToTable(const uint8_t* rawData, int64_t dataSize);
 
         std::vector<Packet> requestQueue;
         std::vector<Packet> responseQueue;

@@ -1,5 +1,7 @@
 #include "../include/asn1_helpers.h"
 
+#include <tablog.h>
+
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -21,7 +23,8 @@ namespace ttp2 {
                               standardPayload, std::strlen(standardPayload));
 
     if (status != ASN1_SUCCESS) {
-      std::wcout << "ASN1 set " << asn1Key << " failed!" << std::endl;
+      std::string asn1KeyString = asn1Key;
+      tablog::Tablog::getInstance().log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed!");
     }
 
     return packet;
@@ -33,7 +36,8 @@ namespace ttp2 {
                               payloadString.c_str(), 0);
 
     if (status != ASN1_SUCCESS) {
-      std::wcout << "ASN1 set " << asn1Key << " failed!" << std::endl;
+      std::string asn1KeyString = asn1Key;
+      tablog::Tablog::getInstance().log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed!");
     }
 
     return packet;
@@ -45,7 +49,8 @@ namespace ttp2 {
     int status = asn1_write_value(packet, asn1Key, targetBuffer, size);
 
     if (status != ASN1_SUCCESS) {
-      std::wcout << "ASN1 set " << asn1Key << " failed!" << std::endl;
+      std::string asn1KeyString = asn1Key;
+      tablog::Tablog::getInstance().log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed!");
     }
 
     return packet;

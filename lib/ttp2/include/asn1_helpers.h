@@ -1,6 +1,8 @@
 #ifndef ASN1_HELPERS_H
 #define ASN1_HELPERS_H
 
+#include <tablog.h>
+
 #include <string>
 #include <vector>
 #include <stdint.h>

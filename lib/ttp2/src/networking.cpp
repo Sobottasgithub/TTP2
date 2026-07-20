@@ -1,14 +1,9 @@
 #include "../include/networking.h"
 #include "../include/asn1_helpers.h"
 
+#include <tablog.h>
+
 #include <arpa/inet.h>
-#include <arrow/buffer.h>
-#include <arrow/io/memory.h>
-#include <arrow/ipc/reader.h>
-#include <arrow/ipc/writer.h>
-#include <arrow/result.h>
-#include <arrow/status.h>
-#include <arrow/table.h>
 #include <cstdlib>
 #include <cstring>
 #include <ifaddrs.h>
@@ -27,6 +22,14 @@
 #include <arrow/ipc/api.h>
 #include <arrow/io/api.h>
 #include <arrow/csv/api.h>
+#include <arrow/buffer.h>
+#include <arrow/io/memory.h>
+#include <arrow/ipc/reader.h>
+#include <arrow/ipc/writer.h>
+#include <arrow/result.h>
+#include <arrow/status.h>
+#include <arrow/table.h>
+
 
 extern "C" {
 #include <libtasn1.h>
@@ -103,8 +106,8 @@ namespace ttp2 {
 
     if (asn1_array2tree(packets_asn1_tab, &definitions, errorDescription) !=
         ASN1_SUCCESS) {
-      std::wcout << "Error in sendMessage when loading asn1:  "
-                 << errorDescription << std::endl;
+      std::string errorDescriptionString = errorDescription;
+      logger->log(tablog::ERROR, "Error in sendMessage when loading asn1: " + errorDescriptionString);
       return -1;
     }
 
@@ -122,7 +125,7 @@ namespace ttp2 {
       int status = asn1_write_value(packet, "payload", "standard", 0);
 
       if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set payload as standard failed!" << std::endl;
+        logger->log(tablog::ERROR, "ASN1 set payload as standard failed!");
       }
 
       // Write contents
@@ -134,7 +137,7 @@ namespace ttp2 {
       int status = asn1_write_value(packet, "payload", "file", 0);
 
       if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set payload as file failed!" << std::endl;
+        logger->log(tablog::ERROR, "ASN1 set payload as file failed!");
       }
 
       // Write contents
@@ -157,7 +160,7 @@ namespace ttp2 {
       int status = asn1_write_value(packet, "payload", "viewportRequest", 0);
 
       if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set payload as viewport request failed!" << std::endl;
+        logger->log(tablog::ERROR, "ASN1 set payload as viewport request failed!");
       }
 
       // Write content
@@ -177,7 +180,7 @@ namespace ttp2 {
       int status = asn1_write_value(packet, "payload", "viewport", 0);
 
       if (status != ASN1_SUCCESS) {
-        std::wcout << "ASN1 set payload as viewport failed!" << std::endl;
+        logger->log(tablog::ERROR, "ASN1 set payload as viewport failed!");
       }
 
       // Write content
@@ -203,8 +206,8 @@ namespace ttp2 {
     std::vector<unsigned char> buffer(derLen);
     if (asn1_der_coding(packet, "", buffer.data(), &derLen, errorDescription) !=
         ASN1_SUCCESS) {
-      std::wcout << "Error while encoding packet: " << errorDescription
-                 << std::endl;
+      std::string errorDescriptionString = errorDescription;
+      logger->log(tablog::ERROR, "Error while encoding packet: " + errorDescriptionString);
       abort();
       return -1;
     }
@@ -232,10 +235,10 @@ namespace ttp2 {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
           break;
         }
-        std::wcout << "Error while receiving bytes!" << std::endl;
+        logger->log(tablog::ERROR, "Error while receiving bytes!");
         return data;
       } else {
-        // std::wcout << "Socket closed!" << std::endl;
+        // logger->log(tablog::CRITICAL, "Socket closed!");
         disconnect();
         return data;
       }
@@ -315,10 +318,10 @@ namespace ttp2 {
 
           data.payload = viewport;
       } else {
-        std::wcout << "Error decoding payload: Unknown type!" << std::endl;
+        logger->log(tablog::ERROR, "Error decoding payload: Unknown type!");
       }
     } else {
-      std::wcout << "Error decoding ASN1" << std::endl;
+      logger->log(tablog::ERROR, "Error decoding ASN1");
     }
 
     asn1_delete_structure(&packet);
@@ -379,7 +382,7 @@ namespace ttp2 {
   Networking::PacketInfo Networking::peekResponse(int index) {
     Networking::PacketInfo packetInfo;
     if (index > getResponseQueueSize() - 1 || index < 0) {
-      std::wcout << "Invalid peek request: " << index << std::endl;
+      logger->log(tablog::ERROR, "Invalid peek request: " + std::to_string(index));
       return packetInfo;
     }
 
@@ -396,7 +399,7 @@ namespace ttp2 {
   Networking::PacketInfo Networking::peekRequest(int index) {
     Networking::PacketInfo packetInfo;
     if (index > getRequestQueueSize() - 1 || index < 0) {
-      std::wcout << "Invalid peek request: " << index << std::endl;
+      logger->log(tablog::ERROR, "Invalid peek request: " + std::to_string(index));
       return packetInfo;
     }
 
@@ -508,7 +511,7 @@ namespace ttp2 {
       arrow::Status status = streamWriter->WriteTable(*table);
 
       if (!status.ok()) {
-        std::wcout << "Something went wrong while writing the structure!" << std::endl;
+        logger->log(tablog::ERROR, "Something went wrong while writing the structure!");
         return nullptr;
       }
             
@@ -516,7 +519,7 @@ namespace ttp2 {
       arrow::Result<std::shared_ptr<arrow::Buffer>> buffer = outputStream->Finish();
 
       if (!buffer.ok()) {
-        std::wcout << "Something went wrong while converting table to buffer!" << std::endl;
+        logger->log(tablog::ERROR, "Something went wrong while converting table to buffer!");
         return nullptr;
       }
 
@@ -527,21 +530,21 @@ namespace ttp2 {
     arrow::BufferBuilder bufferBuilder;
     arrow::Status allocStatus = bufferBuilder.Resize(dataSize);
     if (!allocStatus.ok()) {
-      std::wcout << "Buffer allocation failed in bufferToTable" << std::endl;
+      logger->log(tablog::ERROR, "Buffer allocation failed in bufferToTable");
       return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
     }
 
     // Make a physical copy so that the data isn't deleted. (That would lead to a shared_ptr with a table that points to no real data)
     arrow::Status appendStatus = bufferBuilder.Append(reinterpret_cast<const uint8_t*>(rawData), dataSize);
     if (!appendStatus.ok()) {
-      std::wcout << "Failed to append raw data to buffer" << std::endl;
+      logger->log(tablog::ERROR, "Failed to append raw data to buffer");
       return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
     }
 
     std::shared_ptr<arrow::Buffer> buffer;
     arrow::Status finishStatus = bufferBuilder.Finish(&buffer);
     if (!finishStatus.ok()) {
-      std::wcout << "Failed to finish buffer building" << std::endl;
+      logger->log(tablog::ERROR, "Failed to finish buffer building");
       return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
     }
 
@@ -549,14 +552,14 @@ namespace ttp2 {
 
     arrow::Result<std::shared_ptr<arrow::ipc::RecordBatchStreamReader>> streamReaderResult = arrow::ipc::RecordBatchStreamReader::Open(inputStream);
     if (!streamReaderResult.ok()) {
-      std::wcout << "Open input stream failed in bufferToTable" << std::endl;
+      logger->log(tablog::ERROR, "Open input stream failed in bufferToTable");
       return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
     }
     std::shared_ptr<arrow::ipc::RecordBatchStreamReader> streamReader = std::move(streamReaderResult).ValueUnsafe();
 
     arrow::Result<std::shared_ptr<arrow::Table>> tableResult = streamReader->ToTable();
     if (!tableResult.ok()) {
-      std::wcout << "Create table failed in bufferToTable" << std::endl;
+      logger->log(tablog::ERROR, "Create table failed in bufferToTable");
       return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
     }
 

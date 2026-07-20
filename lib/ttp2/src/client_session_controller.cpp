@@ -1,5 +1,7 @@
 #include "../include/client_session_controller.h"
 
+#include <tablog.h>
+
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -17,13 +19,13 @@ namespace ttp2 {
   void ClientSessionController::networkingSession() {
     epollFd = epoll_create1(0);
     if (epollFd == -1) {
-        std::wcout << "Failed to create epoll!" << std::endl;
+        logger->log(tablog::ERROR, "Failed to create epoll!");
     }
 
     serverEvent.events = EPOLLIN;
     serverEvent.data.fd = socket;
     if (epoll_ctl(epollFd, EPOLL_CTL_ADD, socket, &serverEvent) == -1) {
-        std::wcout << "Failed to set epoll_ctl for client!" << std::endl;
+        logger->log(tablog::ERROR, "Failed to set epoll_ctl for client!");
         return;
     }
 
