@@ -83,7 +83,7 @@ namespace ttp2 {
         virtual void disconnect();
         
       protected:
-        tablog::Tablog* logger = &tablog::Tablog::getInstance();
+        std::shared_ptr<tablog::Tablog> logger;
         
         bool connected = true;
       
@@ -92,6 +92,8 @@ namespace ttp2 {
 
         std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
         std::shared_ptr<arrow::Table> bufferToTable(const uint8_t* rawData, int64_t dataSize);
+
+        void configureLogger(std::string name);
 
         std::vector<Packet> requestQueue;
         std::vector<Packet> responseQueue;

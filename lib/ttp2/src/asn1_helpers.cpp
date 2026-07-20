@@ -1,5 +1,6 @@
 #include "../include/asn1_helpers.h"
 
+#include <tablog_registry.h>
 #include <tablog.h>
 
 #include <iostream>
@@ -24,7 +25,7 @@ namespace ttp2 {
 
     if (status != ASN1_SUCCESS) {
       std::string asn1KeyString = asn1Key;
-      tablog::Tablog::getInstance().log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed!");
+      tablog::TablogRegistry::getInstance().get("TTP2")->log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed!");
     }
 
     return packet;
@@ -37,7 +38,7 @@ namespace ttp2 {
 
     if (status != ASN1_SUCCESS) {
       std::string asn1KeyString = asn1Key;
-      tablog::Tablog::getInstance().log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed!");
+      tablog::TablogRegistry::getInstance().get("TTP2")->log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed!");
     }
 
     return packet;
@@ -50,7 +51,7 @@ namespace ttp2 {
 
     if (status != ASN1_SUCCESS) {
       std::string asn1KeyString = asn1Key;
-      tablog::Tablog::getInstance().log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed!");
+      tablog::TablogRegistry::getInstance().get("TTP2")->log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed!");
     }
 
     return packet;

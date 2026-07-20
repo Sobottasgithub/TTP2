@@ -1,6 +1,7 @@
 #include "../include/networking.h"
 #include "../include/asn1_helpers.h"
 
+#include <tablog_registry.h>
 #include <tablog.h>
 
 #include <arpa/inet.h>
@@ -567,4 +568,12 @@ namespace ttp2 {
   }
 
   void Networking::disconnect() {}
+
+  void Networking::configureLogger(std::string name) {
+    tablog::TablogRegistry* registry = &tablog::TablogRegistry::getInstance();
+    std::shared_ptr<tablog::Tablog> logger = std::make_shared<tablog::Tablog>();
+    logger->configure(name, true);
+    registry->registerLogger(name, logger);
+    this->logger = logger;
+  }
 }

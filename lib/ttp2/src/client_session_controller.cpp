@@ -10,9 +10,12 @@
 #include <sys/epoll.h>
 
 namespace ttp2 {
-  ClientSessionController::ClientSessionController() {}
+  ClientSessionController::ClientSessionController() {
+    configureLogger("TTP2");
+  }
 
   ClientSessionController::ClientSessionController(int &socket) {
+    configureLogger("TTP2");
     this->socket = socket;
   }
 
