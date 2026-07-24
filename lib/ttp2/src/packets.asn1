@@ -26,13 +26,19 @@ Viewport ::= SEQUENCE {
 	payload OCTET STRING
 }
 
+Filter ::= SEQUENCE {
+	columnName OCTET STRING,
+	regex OCTET STRING
+}
+
 Packet ::= SEQUENCE {
 	id INTEGER,
 	payload CHOICE {
 		standard [0] Standard,
 		file [1] File,
 		viewportRequest [2] ViewportRequest,
-		viewport [3] Viewport
+		viewport [3] Viewport,
+		filter [4] Filter
 	}
 } 
 

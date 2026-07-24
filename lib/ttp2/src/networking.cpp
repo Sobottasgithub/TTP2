@@ -200,6 +200,18 @@ namespace ttp2 {
       std::shared_ptr<arrow::Table> table = std::get<Viewport>(payload).payload;
       std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
       packet = Asn1Helpers::asn1EncodePayload(buffer->data(), buffer->size(), packet, "payload.viewport.payload");
+    } else if (std::holds_alternative<Filter>(payload)) {
+      // Write structure
+      int status = asn1_write_value(packet, "payload", "filter", 0);
+      if (status != ASN1_SUCCESS) {
+        logger->log(tablog::ERROR, "ASN1 set payload as filter failed!");
+      }
+
+      // Write content
+      std::string columnName = std::get<Filter>(payload).columnName;
+      packet = Asn1Helpers::asn1EncodePayload(columnName, packet, "payload.filter.columnName");
+      std::string regex = std::get<Filter>(payload).regex;
+      packet = Asn1Helpers::asn1EncodePayload(regex, packet, "payload.filter.regex");
     }
 
     int derLen = 0;
@@ -289,16 +301,16 @@ namespace ttp2 {
 
         data.payload = standard;
       } else if (typeNameString == "file") {
-          Networking::File file;
-          file.filePath = Asn1Helpers::asn1DecodePayloadString(packet, "payload.file.filePath");
-          file.start = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.start");
-          file.end = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.end");
+        Networking::File file;
+        file.filePath = Asn1Helpers::asn1DecodePayloadString(packet, "payload.file.filePath");
+        file.start = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.start");
+        file.end = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.end");
 
-          std::vector<uint8_t> buffer = Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.file.payload");
-          // const uint8_t* bufferConst = buffer.data();
-          file.payload = bufferToTable(buffer.data(), buffer.size());
+        std::vector<uint8_t> buffer = Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.file.payload");
+        // const uint8_t* bufferConst = buffer.data();
+        file.payload = bufferToTable(buffer.data(), buffer.size());
 
-          data.payload = file;
+        data.payload = file;
       } else if (typeNameString == "viewportRequest") {
         Networking::ViewportRequest viewportRequest;
 
@@ -309,15 +321,21 @@ namespace ttp2 {
 
         data.payload = viewportRequest;
       } else if (typeNameString == "viewport") {
-          Networking::Viewport viewport;
-          viewport.xStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xStart");
-          viewport.xEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xEnd");
-          viewport.yStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yStart");
-          viewport.yEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yEnd");
-          std::vector<uint8_t> buffer = Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.viewport.payload");
-          viewport.payload = bufferToTable(buffer.data(), buffer.size());
+        Networking::Viewport viewport;
+        viewport.xStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xStart");
+        viewport.xEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xEnd");
+        viewport.yStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yStart");
+        viewport.yEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yEnd");
+        std::vector<uint8_t> buffer = Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.viewport.payload");
+        viewport.payload = bufferToTable(buffer.data(), buffer.size());
 
-          data.payload = viewport;
+        data.payload = viewport;
+      } else if (typeNameString == "filter") {
+        Networking::Filter filter;
+        filter.columnName = Asn1Helpers::asn1DecodePayloadString(packet, "payload.filter.columnName");
+        filter.regex = Asn1Helpers::asn1DecodePayloadString(packet, "payload.filter.regex");
+
+        data.payload = filter;
       } else {
         logger->log(tablog::ERROR, "Error decoding payload: Unknown type!");
       }
