@@ -200,18 +200,16 @@ namespace ttp2 {
       std::shared_ptr<arrow::Table> table = std::get<Viewport>(payload).payload;
       std::shared_ptr<arrow::Buffer> buffer = tableToBuffer(table);
       packet = Asn1Helpers::asn1EncodePayload(buffer->data(), buffer->size(), packet, "payload.viewport.payload");
-    } else if (std::holds_alternative<Filter>(payload)) {
+    } else if (std::holds_alternative<TqlQuery>(payload)) {
       // Write structure
-      int status = asn1_write_value(packet, "payload", "filter", 0);
+      int status = asn1_write_value(packet, "payload", "tqlQuery", 0);
       if (status != ASN1_SUCCESS) {
-        logger->log(tablog::ERROR, "ASN1 set payload as filter failed!");
+        logger->log(tablog::ERROR, "ASN1 set payload as tql query failed!");
       }
 
       // Write content
-      std::string columnName = std::get<Filter>(payload).columnName;
-      packet = Asn1Helpers::asn1EncodePayload(columnName, packet, "payload.filter.columnName");
-      std::string regex = std::get<Filter>(payload).regex;
-      packet = Asn1Helpers::asn1EncodePayload(regex, packet, "payload.filter.regex");
+      std::string query = std::get<TqlQuery>(payload).query;
+      packet = Asn1Helpers::asn1EncodePayload(query, packet, "payload.tqlQuery.query");
     }
 
     int derLen = 0;
@@ -330,12 +328,11 @@ namespace ttp2 {
         viewport.payload = bufferToTable(buffer.data(), buffer.size());
 
         data.payload = viewport;
-      } else if (typeNameString == "filter") {
-        Networking::Filter filter;
-        filter.columnName = Asn1Helpers::asn1DecodePayloadString(packet, "payload.filter.columnName");
-        filter.regex = Asn1Helpers::asn1DecodePayloadString(packet, "payload.filter.regex");
+      } else if (typeNameString == "tqlQuery") {
+        Networking::TqlQuery tqlQuery;
+        tqlQuery.query = Asn1Helpers::asn1DecodePayloadString(packet, "payload.tqlQuery.query");
 
-        data.payload = filter;
+        data.payload = tqlQuery;
       } else {
         logger->log(tablog::ERROR, "Error decoding payload: Unknown type!");
       }

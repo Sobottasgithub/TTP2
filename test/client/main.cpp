@@ -106,7 +106,7 @@ int main() {
     });
 
     while (clientSessionController->isConnected()) {
-        int option = requestInt("Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) peek index\n(6) Viewport\n(7) Exit\nnumber: ");
+        int option = requestInt("Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) peek index\n(6) Viewport\n(7) TqlQuery\n(8) Exit\nnumber: ");
         if (option == 1) {
             std::string payload = requestString("(string) Payload: ");
         
@@ -141,8 +141,13 @@ int main() {
                     std::wcout << "ID: " << packet.id << std::endl;
                     std::wcout << viewport.payload->ToString().c_str() << std::endl;
                     std::wcout << "---------------------" << std::endl;
+                } else if (std::holds_alternative<Networking::TqlQuery>(packet.payload)) {
+                    Networking::TqlQuery tqlQuery = std::get<Networking::TqlQuery>(packet.payload);
+                    std::wcout << "------ TQL Query ------" << std::endl;
+                    std::wcout << "ID: " << packet.id << std::endl;
+                    std::wcout << "Query: " << tqlQuery.query.c_str() << std::endl;
+                    std::wcout << "---------------------" << std::endl;
                 }
-
             }
         } else if (option == 3) {
             std::wcout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
@@ -242,6 +247,14 @@ int main() {
 
           std::wcout << "Done!" << std::endl;
         } else if (option == 7) {
+          ClientSessionController::Packet packet;
+          ClientSessionController::TqlQuery tqlQuery;
+          std::string query = requestString("Query >");
+          tqlQuery.query = query;
+          packet.payload = tqlQuery;
+          clientSessionController->pushRequest(packet);
+          std::wcout << "Done!" << std::endl;
+        } else if (option == 8) {
           clientSessionController->disconnect();  
         } else {
             std::wcout << "Invalid!" << std::endl;

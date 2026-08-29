@@ -44,12 +44,11 @@ namespace ttp2 {
           std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
         };
 
-        struct Filter {
-          std::string columnName;
-          std::string regex;
+        struct TqlQuery {
+          std::string query = "";
         };
         
-        typedef std::variant<Standard, File, ViewportRequest, Viewport, Filter> payloadVariants;
+        typedef std::variant<Standard, File, ViewportRequest, Viewport, TqlQuery> payloadVariants;
       
         struct Packet {
           int id = -1;
