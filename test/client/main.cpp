@@ -151,50 +151,27 @@ int main() {
             }
         } else if (option == 3) {
             std::wcout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
-            option = requestInt("Choose option\n(1) Send continious stream\n(2) Send n packages\nnumber: ");
-            if (option == 1) {
-                std::string payload = requestString("(string) Payload: ");
-        
-                ClientSessionController::Packet packet;
-                while (true) {
-                    Networking::Standard standard;
-                    standard.payload = payload;
-                    packet.payload = standard;
-                    clientSessionController->pushRequest(packet);
-                    while(clientSessionController->hasResponse()) {
-                        ClientSessionController::Packet packet = clientSessionController->popResponse();
-                        Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
-                        std::wcout << "------ Message ------" << std::endl;
-                        std::wcout << "ID: " << packet.id << std::endl;
-                        std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
-                        std::wcout << "---------------------" << std::endl;
-                    }
-                }
-            } else if (option == 2) {
-                int count = requestInt("(int) Packet count: ");
-                std::string payload = requestString("(string) Payload: ");
-        
-                ClientSessionController::Packet packet;
+            int payloadSize = requestInt("(Int) payload size: ");
+
+            std::string payload = "";
+            for (int index = 0; index <= payloadSize; ++index) {
+                payload += "0";
+            }
+
+            ClientSessionController::Packet packet;
+            while (true) {
                 Networking::Standard standard;
                 standard.payload = payload;
                 packet.payload = standard;
-
-                for (int index = 0; index < count; index++) {
-                    clientSessionController->pushRequest(packet);
+                clientSessionController->pushRequest(packet);
+                while(clientSessionController->hasResponse()) {
+                    ClientSessionController::Packet packet = clientSessionController->popResponse();
+                    Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
+                    std::wcout << "------ Message ------" << std::endl;
+                    std::wcout << "ID: " << packet.id << std::endl;
+                    std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
+                    std::wcout << "---------------------" << std::endl;
                 }
-                while (count != 0) {
-                    if (clientSessionController->hasResponse()) {
-                        ClientSessionController::Packet packet = clientSessionController->popResponse();
-                        Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
-                        std::wcout << "------ Message ------" << std::endl;
-                        std::wcout << "ID: " << packet.id << std::endl;
-                        std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
-                        std::wcout << "---------------------" << std::endl;
-                        count--;
-                    }
-                }                
-            } else {
-                std::wcout << "Invalid!" << std::endl;
             }
         } else if (option == 4) {
           std::shared_ptr<arrow::Table> table = openCsvFile();
