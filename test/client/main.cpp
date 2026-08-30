@@ -11,6 +11,7 @@
 #include <thread>
 #include <regex>
 #include <filesystem>
+#include <chrono>
 #include <arrow/csv/api.h>
 #include <arrow/io/api.h>
 
@@ -163,12 +164,26 @@ int main() {
             standard.payload = payload;
             packet.payload = standard;
 
+            std::chrono::time_point start = std::chrono::steady_clock::now();
+            int maxPackets = 0;
+            int receivedPackets = 0;
+            int lastPacketId = 0;
             while (true) {
                 clientSessionController->pushRequest(packet);
                 while(clientSessionController->hasResponse()) {
                     ClientSessionController::Packet packet = clientSessionController->popResponse();
-                    Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
-                    std::cout << "\r\033[2K" << "ID: " << packet.id << std::flush;
+                    // Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
+                    lastPacketId = packet.id;
+                    receivedPackets++;
+                }
+                
+                std::chrono::time_point end = std::chrono::steady_clock::now();
+                if (std::chrono::duration_cast<std::chrono::seconds>(end - start).count() >= 1) {
+                    std::cout << "\r\033[2K" << "Last id: " << lastPacketId << " ~ " << receivedPackets << "pp/s" << " ~ max: " << maxPackets << "pp/s"<< std::flush;
+                    start = end;
+                    if (receivedPackets > maxPackets)
+                        maxPackets = receivedPackets;
+                    receivedPackets = 0;
                 }
             }
         } else if (option == 4) {
