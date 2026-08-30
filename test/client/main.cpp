@@ -25,7 +25,7 @@ bool isNumeric(const std::string& string) {
 
 std::string requestString(const std::string& message) {
     std::string userInput;
-    std::wcout << message.c_str();
+    std::cout << message << std::flush;
     std::getline(std::cin, userInput);
     return userInput;
 }
@@ -34,13 +34,13 @@ int requestInt(const std::string& message) {
     std::string userInput;
 
     while (true) {
-        std::wcout << message.c_str();
+        std::cout << message << std::flush;
         std::getline(std::cin, userInput);
 
         if (isNumeric(userInput)) {
             return std::stoi(userInput);
         }
-        std::wcout << "Invalid input! Try again\n";
+        std::cout << "Invalid input! Try again" << std::endl;
     }
 }
 
@@ -48,7 +48,7 @@ std::shared_ptr<arrow::Table> openCsvFile() {
     std::string filePath { "" };
     do {
       if (filePath.length() > 0 && !std::filesystem::exists(filePath)) {
-          std::wcout << "Incorrect filepath!" << std::endl;
+          std::cout << "Incorrect filepath!" << std::endl;
       }
       filePath = requestString("(string) Filepath: ");
     } while (!std::filesystem::exists(filePath));
@@ -68,13 +68,13 @@ std::shared_ptr<arrow::Table> openCsvFile() {
                                                     parseOptions,
                                                     convertOptions);
     if (!maybeReader.ok()) {
-     std::wcout << "Error while instantiating TableReader!" << std::endl;
+     std::cout << "Error while instantiating TableReader!" << std::endl;
     }
     std::shared_ptr<arrow::csv::TableReader> reader = *maybeReader;
 
     arrow::Result<std::shared_ptr<arrow::Table>> maybeTable = reader->Read();
     if (!maybeTable.ok()) {
-      std::wcout << "Error while read table from CSV file!" << std::endl;
+      std::cout << "Error while read table from CSV file!" << std::endl;
     }
     std::shared_ptr<arrow::Table> table = *maybeTable;
     return table;
@@ -95,7 +95,7 @@ int main() {
     int connectionResult = connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress));
     
     if (connectionResult < 0 && errno != EINPROGRESS) {
-        std::wcout << "Connection failed!" << std::endl;
+        std::cout << "Connection failed!" << std::endl;
         return -1;
     }
     
@@ -117,7 +117,7 @@ int main() {
             clientSessionController->pushRequest(packet);
         } else if (option == 2) {
             if (!clientSessionController->hasResponse()) {
-                std::wcout << "No Messages!" << std::endl;
+                std::cout << "No Messages!" << std::endl;
                 continue;
             }
             while(clientSessionController->hasResponse()) {
@@ -125,52 +125,50 @@ int main() {
 
                 if (std::holds_alternative<Networking::Standard>(packet.payload)) {
                     Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
-                    std::wcout << "------ Message ------" << std::endl;
-                    std::wcout << "ID: " << packet.id << std::endl;
-                    std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
-                    std::wcout << "---------------------" << std::endl;
+                    std::cout << "------ Message ------" << std::endl;
+                    std::cout << "ID: " << packet.id << std::endl;
+                    std::cout << "Payload: " << standard.payload << std::endl;
+                    std::cout << "---------------------" << std::endl;
                 } else if (std::holds_alternative<Networking::File>(packet.payload)) {
                     Networking::File file = std::get<Networking::File>(packet.payload);
-                    std::wcout << "------ Message ------" << std::endl;
-                    std::wcout << "ID: " << packet.id << std::endl;
-                    std::wcout << file.payload->ToString().c_str() << std::endl;
-                    std::wcout << "---------------------" << std::endl;
+                    std::cout << "------ Message ------" << std::endl;
+                    std::cout << "ID: " << packet.id << std::endl;
+                    std::cout << file.payload->ToString() << std::endl;
+                    std::cout << "---------------------" << std::endl;
                 } else if (std::holds_alternative<Networking::Viewport>(packet.payload)) {
                     Networking::Viewport viewport = std::get<Networking::Viewport>(packet.payload);
-                    std::wcout << "------ Message Viewport------" << std::endl;
-                    std::wcout << "ID: " << packet.id << std::endl;
-                    std::wcout << viewport.payload->ToString().c_str() << std::endl;
-                    std::wcout << "---------------------" << std::endl;
+                    std::cout << "------ Message Viewport------" << std::endl;
+                    std::cout << "ID: " << packet.id << std::endl;
+                    std::cout << viewport.payload->ToString() << std::endl;
+                    std::cout << "---------------------" << std::endl;
                 } else if (std::holds_alternative<Networking::TqlQuery>(packet.payload)) {
                     Networking::TqlQuery tqlQuery = std::get<Networking::TqlQuery>(packet.payload);
-                    std::wcout << "------ TQL Query ------" << std::endl;
-                    std::wcout << "ID: " << packet.id << std::endl;
-                    std::wcout << "Query: " << tqlQuery.query.c_str() << std::endl;
-                    std::wcout << "---------------------" << std::endl;
+                    std::cout << "------ TQL Query ------" << std::endl;
+                    std::cout << "ID: " << packet.id << std::endl;
+                    std::cout << "Query: " << tqlQuery.query << std::endl;
+                    std::cout << "---------------------" << std::endl;
                 }
             }
         } else if (option == 3) {
-            std::wcout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
+            std::cout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
             int payloadSize = requestInt("(Int) payload size: ");
 
             std::string payload = "";
             for (int index = 0; index <= payloadSize; ++index) {
                 payload += "0";
             }
-
+            
             ClientSessionController::Packet packet;
+            Networking::Standard standard;
+            standard.payload = payload;
+            packet.payload = standard;
+
             while (true) {
-                Networking::Standard standard;
-                standard.payload = payload;
-                packet.payload = standard;
                 clientSessionController->pushRequest(packet);
                 while(clientSessionController->hasResponse()) {
                     ClientSessionController::Packet packet = clientSessionController->popResponse();
                     Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
-                    std::wcout << "------ Message ------" << std::endl;
-                    std::wcout << "ID: " << packet.id << std::endl;
-                    std::wcout << "Payload: " << standard.payload.c_str() << std::endl;
-                    std::wcout << "---------------------" << std::endl;
+                    std::cout << "\r\033[2K" << "ID: " << packet.id << std::flush;
                 }
             }
         } else if (option == 4) {
@@ -183,12 +181,12 @@ int main() {
           packet.payload = file;
           clientSessionController->pushRequest(packet);
 
-          std::wcout << "Done!" << std::endl;
+          std::cout << "Done!" << std::endl;
         } else if (option == 5) {
           int responseQueueSize = clientSessionController->getResponseQueueSize();
           int index = 0;
           do {
-              std::wcout << "Peek index: 0 to " << responseQueueSize << " | -1 to exit" << std::endl;
+              std::cout << "Peek index: 0 to " << responseQueueSize << " | -1 to exit" << std::endl;
               index = requestInt("(int) index: ");
           } while (index < -1 || index > responseQueueSize);
 
@@ -197,7 +195,7 @@ int main() {
           }
 
           ClientSessionController::PacketInfo packetInfo = clientSessionController->peekResponse(index);
-          std::wcout << "--- PacketInfo ---" << std::endl;
+          std::cout << "--- PacketInfo ---" << std::endl;
           std::string payloadType = "";
           if (std::holds_alternative<ClientSessionController::Standard>(packetInfo.payloadType))
               payloadType = "Standard";
@@ -208,8 +206,8 @@ int main() {
           else
               payloadType = "Invalid";
           
-          std::wcout << "id: " << packetInfo.id << "\npacketType: " << payloadType.c_str() << std::endl;
-          std::wcout << "---    ---     ---" << std::endl;
+          std::cout << "id: " << packetInfo.id << "\npacketType: " << payloadType.c_str() << std::endl;
+          std::cout << "---    ---     ---" << std::endl;
         } else if (option == 6) {
           std::shared_ptr<arrow::Table> table = openCsvFile();
           ClientSessionController::Packet packet;
@@ -222,7 +220,7 @@ int main() {
           packet.payload = viewport;
           clientSessionController->pushRequest(packet);
 
-          std::wcout << "Done!" << std::endl;
+          std::cout << "Done!" << std::endl;
         } else if (option == 7) {
           ClientSessionController::Packet packet;
           ClientSessionController::TqlQuery tqlQuery;
@@ -230,15 +228,15 @@ int main() {
           tqlQuery.query = query;
           packet.payload = tqlQuery;
           clientSessionController->pushRequest(packet);
-          std::wcout << "Done!" << std::endl;
+          std::cout << "Done!" << std::endl;
         } else if (option == 8) {
           clientSessionController->disconnect();  
         } else {
-            std::wcout << "Invalid!" << std::endl;
+            std::cout << "Invalid!" << std::endl;
         }
     }
 
-    std::wcout << "Terminated!" << std::endl;
+    std::cout << "Terminated!" << std::endl;
     
     networkThread.join();
 
