@@ -136,4 +136,44 @@ namespace ttp2 {
 
     return std::move(buffer).ValueUnsafe();
   }
+
+  std::shared_ptr<arrow::Table> Asn1Helpers::bufferToTable(const uint8_t* rawData, int64_t dataSize) {
+    arrow::BufferBuilder bufferBuilder;
+    arrow::Status allocStatus = bufferBuilder.Resize(dataSize);
+    if (!allocStatus.ok()) {
+      throw std::invalid_argument("Buffer allocation failed in bufferToTable");
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
+    // Make a physical copy so that the data isn't deleted. (That would lead to a shared_ptr with a table that points to no real data)
+    arrow::Status appendStatus = bufferBuilder.Append(reinterpret_cast<const uint8_t*>(rawData), dataSize);
+    if (!appendStatus.ok()) {
+      throw std::invalid_argument("Failed to append raw data to buffer");
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
+    std::shared_ptr<arrow::Buffer> buffer;
+    arrow::Status finishStatus = bufferBuilder.Finish(&buffer);
+    if (!finishStatus.ok()) {
+      throw std::invalid_argument("Failed to finish buffer building");
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
+    std::shared_ptr<arrow::io::InputStream> inputStream = std::make_shared<arrow::io::BufferReader>(buffer);
+
+    arrow::Result<std::shared_ptr<arrow::ipc::RecordBatchStreamReader>> streamReaderResult = arrow::ipc::RecordBatchStreamReader::Open(inputStream);
+    if (!streamReaderResult.ok()) {
+      throw std::invalid_argument("Open input stream failed in bufferToTable");
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+    std::shared_ptr<arrow::ipc::RecordBatchStreamReader> streamReader = std::move(streamReaderResult).ValueUnsafe();
+
+    arrow::Result<std::shared_ptr<arrow::Table>> tableResult = streamReader->ToTable();
+    if (!tableResult.ok()) {
+      throw std::invalid_argument("Create table failed in bufferToTable");
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
+    return *tableResult;
+  }
 }

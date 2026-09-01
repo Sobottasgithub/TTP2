@@ -10,7 +10,7 @@ extern "C" {
 extern const asn1_static_node packets_asn1_tab[];
 }
 
-namespace tql::asn1::encode {
+namespace ttp2::asn1::encode {
   std::vector<unsigned char> encode(ttp2::Networking::payloadVariants payload, int id);
 
   asn1_node encodeStandard(asn1_node packet, ttp2::Networking::Standard standard);

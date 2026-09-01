@@ -1,6 +1,6 @@
 #include "../include/networking.h"
-#include "../include/asn1_helpers.h"
 #include "../include/asn1_encode.h"
+#include "../include/asn1_decode.h"
 
 #include <tablog_registry.h>
 #include <tablog.h>
@@ -15,7 +15,6 @@
 #include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
-#include <variant>
 #include <sstream>
 #include <ifaddrs.h>
 #include <arrow/api.h>
@@ -105,7 +104,7 @@ namespace ttp2 {
       autoId++;
     }
 
-    std::vector<unsigned char> buffer = tql::asn1::encode::encode(payload, id);
+    std::vector<unsigned char> buffer = ttp2::asn1::encode::encode(payload, id);
     
     uint32_t size = htonl(buffer.size());
     sendBytes(socket, reinterpret_cast<char *>(&size), sizeof(size));
@@ -155,76 +154,7 @@ namespace ttp2 {
 
     buffer.erase(buffer.begin(), buffer.begin() + sizeof(uint32_t) + derLen);
 
-    asn1_node definitions = nullptr;
-    asn1_node packet = nullptr;
-    char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
-
-    if (asn1_array2tree(packets_asn1_tab, &definitions, errorDescription) !=
-        ASN1_SUCCESS) {
-      return data;
-    }
-
-    asn1_create_element(definitions, "Packets.Packet", &packet);
-
-    if (asn1_der_decoding(&packet, derBuffer.data(), derLen, errorDescription) ==
-        ASN1_SUCCESS) {
-      data.id = Asn1Helpers::asn1DecodePayloadInt(packet, "id");
-
-      char typeName[64];
-      int branchSize = sizeof(typeName);
-      int status = asn1_read_value(packet, "payload", typeName, &branchSize);
-      std::string typeNameString = typeName;
-      if (typeNameString == "standard") {
-        Networking::Standard standard;
-        standard.payload = Asn1Helpers::asn1DecodePayloadString(packet, "payload.standard.payload");
-
-        data.payload = standard;
-      } else if (typeNameString == "file") {
-        Networking::File file;
-        file.filePath = Asn1Helpers::asn1DecodePayloadString(packet, "payload.file.filePath");
-        file.start = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.start");
-        file.end = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.end");
-
-        std::vector<uint8_t> buffer = Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.file.payload");
-        // const uint8_t* bufferConst = buffer.data();
-        file.payload = bufferToTable(buffer.data(), buffer.size());
-
-        data.payload = file;
-      } else if (typeNameString == "viewportRequest") {
-        Networking::ViewportRequest viewportRequest;
-
-        viewportRequest.xStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.xStart");
-        viewportRequest.xEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.xEnd");
-        viewportRequest.yStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.yStart");
-        viewportRequest.yEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.yEnd");
-
-        data.payload = viewportRequest;
-      } else if (typeNameString == "viewport") {
-        Networking::Viewport viewport;
-        viewport.xStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xStart");
-        viewport.xEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xEnd");
-        viewport.yStart = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yStart");
-        viewport.yEnd = Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yEnd");
-        std::vector<uint8_t> buffer = Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.viewport.payload");
-        viewport.payload = bufferToTable(buffer.data(), buffer.size());
-
-        data.payload = viewport;
-      } else if (typeNameString == "tqlQuery") {
-        Networking::TqlQuery tqlQuery;
-        tqlQuery.query = Asn1Helpers::asn1DecodePayloadString(packet, "payload.tqlQuery.query");
-
-        data.payload = tqlQuery;
-      } else {
-        logger->log(tablog::ERROR, "Error decoding payload: Unknown type!");
-      }
-    } else {
-      logger->log(tablog::ERROR, "Error decoding ASN1");
-    }
-
-    asn1_delete_structure(&packet);
-    asn1_delete_structure(&definitions);
-
-    return data;
+    return ttp2::asn1::decode::decode(derBuffer);
   }
 
   ssize_t Networking::sendBytes(int socket, const char *buffer, size_t max) {
@@ -399,46 +329,6 @@ namespace ttp2 {
 
       freeifaddrs(addresses);
       return isValid;
-  }
-
-  std::shared_ptr<arrow::Table> Networking::bufferToTable(const uint8_t* rawData, int64_t dataSize) {
-    arrow::BufferBuilder bufferBuilder;
-    arrow::Status allocStatus = bufferBuilder.Resize(dataSize);
-    if (!allocStatus.ok()) {
-      logger->log(tablog::ERROR, "Buffer allocation failed in bufferToTable");
-      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
-    }
-
-    // Make a physical copy so that the data isn't deleted. (That would lead to a shared_ptr with a table that points to no real data)
-    arrow::Status appendStatus = bufferBuilder.Append(reinterpret_cast<const uint8_t*>(rawData), dataSize);
-    if (!appendStatus.ok()) {
-      logger->log(tablog::ERROR, "Failed to append raw data to buffer");
-      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
-    }
-
-    std::shared_ptr<arrow::Buffer> buffer;
-    arrow::Status finishStatus = bufferBuilder.Finish(&buffer);
-    if (!finishStatus.ok()) {
-      logger->log(tablog::ERROR, "Failed to finish buffer building");
-      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
-    }
-
-    std::shared_ptr<arrow::io::InputStream> inputStream = std::make_shared<arrow::io::BufferReader>(buffer);
-
-    arrow::Result<std::shared_ptr<arrow::ipc::RecordBatchStreamReader>> streamReaderResult = arrow::ipc::RecordBatchStreamReader::Open(inputStream);
-    if (!streamReaderResult.ok()) {
-      logger->log(tablog::ERROR, "Open input stream failed in bufferToTable");
-      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
-    }
-    std::shared_ptr<arrow::ipc::RecordBatchStreamReader> streamReader = std::move(streamReaderResult).ValueUnsafe();
-
-    arrow::Result<std::shared_ptr<arrow::Table>> tableResult = streamReader->ToTable();
-    if (!tableResult.ok()) {
-      logger->log(tablog::ERROR, "Create table failed in bufferToTable");
-      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
-    }
-
-    return *tableResult;
   }
 
   void Networking::disconnect() {}

@@ -2,7 +2,7 @@
 #include "../include/asn1_helpers.h"
 #include <stdexcept>
 
-namespace tql::asn1::encode {
+namespace ttp2::asn1::encode {
   std::vector<unsigned char> encode(ttp2::Networking::payloadVariants payload, int id) {
     asn1_node definitions = nullptr;
     asn1_node packet = nullptr;

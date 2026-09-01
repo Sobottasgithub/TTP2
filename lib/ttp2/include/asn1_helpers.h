@@ -27,6 +27,7 @@ namespace ttp2 {
       static std::vector<uint8_t> asn1DecodePayloadBuffer(asn1_node packet, const char* asn1Key);
 
       static std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
+      static std::shared_ptr<arrow::Table> bufferToTable(const uint8_t* rawData, int64_t dataSize);
     private:
       static int bytesToInt(std::vector<char> bytes, int size);
   };
