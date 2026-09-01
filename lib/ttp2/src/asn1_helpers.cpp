@@ -1,13 +1,22 @@
 #include "../include/asn1_helpers.h"
 
+#include <stdexcept>
 #include <tablog_registry.h>
 #include <tablog.h>
 
-#include <iostream>
 #include <string>
 #include <cstring>
 #include <vector>
 #include <stdint.h>
+#include <arrow/api.h>
+#include <arrow/ipc/api.h>
+#include <arrow/io/api.h>
+#include <arrow/csv/api.h>
+#include <arrow/buffer.h>
+#include <arrow/io/memory.h>
+#include <arrow/ipc/writer.h>
+#include <arrow/result.h>
+#include <arrow/status.h>
 
 extern "C" {
 #include <libtasn1.h>
@@ -104,5 +113,67 @@ namespace ttp2 {
         return buffer;
     }
     return buffer;
+  }
+
+  std::shared_ptr<arrow::Buffer> Asn1Helpers::tableToBuffer(const std::shared_ptr<arrow::Table>& table) {
+    // Create output buffer with table structure
+    std::shared_ptr<arrow::io::BufferOutputStream> outputStream = *arrow::io::BufferOutputStream::Create();
+    std::shared_ptr<arrow::ipc::RecordBatchWriter> streamWriter = *arrow::ipc::MakeStreamWriter(outputStream, table->schema());
+    arrow::Status status = streamWriter->WriteTable(*table);
+
+    if (!status.ok()) {
+      throw std::invalid_argument("Something went wrong while writing the structure!");
+      return nullptr;
+    }
+      
+    streamWriter->Close();
+    arrow::Result<std::shared_ptr<arrow::Buffer>> buffer = outputStream->Finish();
+
+    if (!buffer.ok()) {
+      throw std::invalid_argument("Something went wrong while converting table to buffer!");
+      return nullptr;
+    }
+
+    return std::move(buffer).ValueUnsafe();
+  }
+
+  std::shared_ptr<arrow::Table> Asn1Helpers::bufferToTable(const uint8_t* rawData, int64_t dataSize) {
+    arrow::BufferBuilder bufferBuilder;
+    arrow::Status allocStatus = bufferBuilder.Resize(dataSize);
+    if (!allocStatus.ok()) {
+      throw std::invalid_argument("Buffer allocation failed in bufferToTable");
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
+    // Make a physical copy so that the data isn't deleted. (That would lead to a shared_ptr with a table that points to no real data)
+    arrow::Status appendStatus = bufferBuilder.Append(reinterpret_cast<const uint8_t*>(rawData), dataSize);
+    if (!appendStatus.ok()) {
+      throw std::invalid_argument("Failed to append raw data to buffer");
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
+    std::shared_ptr<arrow::Buffer> buffer;
+    arrow::Status finishStatus = bufferBuilder.Finish(&buffer);
+    if (!finishStatus.ok()) {
+      throw std::invalid_argument("Failed to finish buffer building");
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
+    std::shared_ptr<arrow::io::InputStream> inputStream = std::make_shared<arrow::io::BufferReader>(buffer);
+
+    arrow::Result<std::shared_ptr<arrow::ipc::RecordBatchStreamReader>> streamReaderResult = arrow::ipc::RecordBatchStreamReader::Open(inputStream);
+    if (!streamReaderResult.ok()) {
+      throw std::invalid_argument("Open input stream failed in bufferToTable");
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+    std::shared_ptr<arrow::ipc::RecordBatchStreamReader> streamReader = std::move(streamReaderResult).ValueUnsafe();
+
+    arrow::Result<std::shared_ptr<arrow::Table>> tableResult = streamReader->ToTable();
+    if (!tableResult.ok()) {
+      throw std::invalid_argument("Create table failed in bufferToTable");
+      return arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{});
+    }
+
+    return *tableResult;
   }
 }
