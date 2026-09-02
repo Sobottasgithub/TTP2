@@ -107,8 +107,8 @@ namespace ttp2 {
     std::vector<unsigned char> buffer;
     try {
       buffer = ttp2::asn1::encode::encode(payload, id);
-    } catch (const char* message) {
-      logger->log(tablog::ERROR, message);
+    } catch (const std::invalid_argument& invalidArgument) {
+      logger->log(tablog::ERROR, invalidArgument.what());
       return -1;
     }
     
@@ -162,8 +162,8 @@ namespace ttp2 {
 
     try {
       return ttp2::asn1::decode::decode(derBuffer);
-    } catch (const char* message) {
-      logger->log(tablog::ERROR, message);
+    } catch (const std::invalid_argument& invalidArgument) {
+      logger->log(tablog::ERROR, invalidArgument.what());
       return data;
     }
   }
