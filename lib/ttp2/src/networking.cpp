@@ -104,7 +104,13 @@ namespace ttp2 {
       autoId++;
     }
 
-    std::vector<unsigned char> buffer = ttp2::asn1::encode::encode(payload, id);
+    std::vector<unsigned char> buffer;
+    try {
+      buffer = ttp2::asn1::encode::encode(payload, id);
+    } catch (const char* message) {
+      logger->log(tablog::ERROR, message);
+      return -1;
+    }
     
     uint32_t size = htonl(buffer.size());
     sendBytes(socket, reinterpret_cast<char *>(&size), sizeof(size));
@@ -154,7 +160,12 @@ namespace ttp2 {
 
     buffer.erase(buffer.begin(), buffer.begin() + sizeof(uint32_t) + derLen);
 
-    return ttp2::asn1::decode::decode(derBuffer);
+    try {
+      return ttp2::asn1::decode::decode(derBuffer);
+    } catch (const char* message) {
+      logger->log(tablog::ERROR, message);
+      return data;
+    }
   }
 
   ssize_t Networking::sendBytes(int socket, const char *buffer, size_t max) {
