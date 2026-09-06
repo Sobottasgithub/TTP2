@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 find_package(libtasn1 REQUIRED)
+find_package(Arrow REQUIRED)
 
 include_directories(
   include
@@ -25,6 +26,10 @@ target_include_directories(ttp2 PUBLIC
 # Link against the libtasn1 library
 target_link_libraries(ttp2 PRIVATE tasn1)
 target_link_libraries(ttp2 PRIVATE tablog)
+
+target_link_libraries(ttp2 PUBLIC
+    Arrow::arrow_shared
+)
 
 install(TARGETS ttp2 DESTINATION lib)
 install(DIRECTORY include/ DESTINATION include)
