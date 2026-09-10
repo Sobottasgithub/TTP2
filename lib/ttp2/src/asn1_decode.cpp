@@ -32,7 +32,7 @@ namespace ttp2::asn1::decode {
       } else if (typeNameString == "viewportRequest") {
         data.payload = decodeViewportRequest(packet);
       } else if (typeNameString == "viewport") {
-        data.payload = decodeViewportRequest(packet);
+        data.payload = decodeViewport(packet);
       } else if (typeNameString == "tqlQuery") {
         data.payload = decodeTqlQuery(packet);
       } else {
