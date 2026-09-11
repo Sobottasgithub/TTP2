@@ -51,34 +51,34 @@ namespace ttp2 {
     return connected;
   }
 
-  Networking::Packet Networking::popRequest() {
+  Packet::Packet Networking::popRequest() {
     std::lock_guard<std::mutex> lock(mtx);
     if (!requestQueue.empty()) {
-      Networking::Packet firstRequest = requestQueue[0];
+      Packet::Packet firstRequest = requestQueue[0];
       requestQueue.erase(requestQueue.begin());
       return firstRequest;
     }
-    Networking::Packet emptyPacket;
+    Packet::Packet emptyPacket;
     return emptyPacket;
   }
 
-  Networking::Packet Networking::popResponse() {
+  Packet::Packet Networking::popResponse() {
     std::lock_guard<std::mutex> lock(mtx);
     if (!responseQueue.empty()) {
-      Networking::Packet firstResponse = responseQueue[0];
+      Packet::Packet firstResponse = responseQueue[0];
       responseQueue.erase(responseQueue.begin());
       return firstResponse;
     }
-    Networking::Packet emptyPacket;
+    Packet::Packet emptyPacket;
     return emptyPacket;
   }
 
-  void Networking::pushResponse(Networking::Packet response) {
+  void Networking::pushResponse(Packet::Packet response) {
     std::lock_guard<std::mutex> lock(mtx);
     responseQueue.push_back(response);
   }
 
-  void Networking::pushRequest(Networking::Packet request) {
+  void Networking::pushRequest(Packet::Packet request) {
     std::lock_guard<std::mutex> lock(mtx);
     requestQueue.push_back(request);
   }
@@ -93,12 +93,12 @@ namespace ttp2 {
     return responseQueue.size();
   }
 
-  int Networking::sendPacket(int socket, Networking::Packet packet) {
+  int Networking::sendPacket(int socket, Packet::Packet packet) {
     return sendMessage(socket, packet.id, packet.payload);
   }
 
   int Networking::sendMessage(int socket, int id,
-                              payloadVariants payload) {
+                              Packet::payloadVariants payload) {
     if (id == -1) {
       id = autoId;
       autoId++;
@@ -119,8 +119,8 @@ namespace ttp2 {
     return 0;
   }
 
-  Networking::Packet Networking::receiveMessage(int socket) {
-    Networking::Packet data;
+  Packet::Packet Networking::receiveMessage(int socket) {
+    Packet::Packet data;
 
     unsigned char temp[4096];
     while (true) {

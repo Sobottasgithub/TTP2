@@ -1,6 +1,8 @@
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
+#include "packet_types.h"
+
 #include <tablog.h>
 
 #include <string>
@@ -17,62 +19,24 @@ namespace ttp2 {
   class Networking
   {
       public:
-        // Packet Payloads
-        struct Standard {
-          std::string payload = "";
-        };
-
-        struct File {
-        	std::string filePath = "";
-          int start = -1;
-        	int end = -1;
-        	std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
-        };
-
-        struct ViewportRequest {
-          int xStart = 0;
-          int xEnd = 0;
-          int yStart = 0;
-          int yEnd = 0;
-        };
-        
-        struct Viewport {
-          int xStart = 0;
-          int xEnd = 0;
-          int yStart = 0;
-          int yEnd = 0;
-          std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
-        };
-
-        struct TqlQuery {
-          std::string query = "";
-        };
-        
-        typedef std::variant<Standard, File, ViewportRequest, Viewport, TqlQuery> payloadVariants;
-      
-        struct Packet {
-          int id = -1;
-          payloadVariants payload;  
-        };
-
         bool isConnected();
         bool hasRequest();
         bool hasResponse();
-        Packet popRequest();
-        Packet popResponse();
+        Packet::Packet popRequest();
+        Packet::Packet popResponse();
         int getRequestQueueSize();
         int getResponseQueueSize();
-        void pushResponse(Packet);
-        void pushRequest(Packet request);
+        void pushResponse(Packet::Packet);
+        void pushRequest(Packet::Packet request);
   
-        int sendMessage(int socket, int id, payloadVariants payload);
-        int sendPacket(int socket, Packet packet);
-        Packet receiveMessage(int socket);
+        int sendMessage(int socket, int id, Packet::payloadVariants payload);
+        int sendPacket(int socket, Packet::Packet packet);
+        Packet::Packet receiveMessage(int socket);
 
         // WARNING: This struct cant be send as a payload type!
         struct PacketInfo {
           int id;
-          payloadVariants payloadType;
+          Packet::payloadVariants payloadType;
         };
         PacketInfo peekResponse();
         PacketInfo peekResponse(int index);
@@ -99,8 +63,8 @@ namespace ttp2 {
 
         void configureLogger(std::string name);
 
-        std::vector<Packet> requestQueue;
-        std::vector<Packet> responseQueue;
+        std::vector<Packet::Packet> requestQueue;
+        std::vector<Packet::Packet> responseQueue;
         std::mutex mtx;
         ssize_t sendBytes(int socket, const char* buffer, size_t max);
 
