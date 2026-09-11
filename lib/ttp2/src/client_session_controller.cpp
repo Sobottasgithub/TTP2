@@ -1,8 +1,9 @@
 #include "../include/client_session_controller.h"
 
+#include "../include/packet_types.h"
+
 #include <tablog.h>
 
-#include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -68,7 +69,7 @@ namespace ttp2 {
           continue;
         }
         if (incomingEvents[index].events & EPOLLIN) {
-          Packet packet = receiveMessage(fd);
+          Packet::Packet packet = receiveMessage(fd);
           if (packet.id == -1) {
             continue;
           }
@@ -81,7 +82,7 @@ namespace ttp2 {
   void ClientSessionController::sendRequestSession() {
     while (isConnected()) {
       if (hasRequest()) {
-        Packet request = popRequest();
+        Packet::Packet request = popRequest();
         int responseCode = sendPacket(socket, request);
       }
     }
