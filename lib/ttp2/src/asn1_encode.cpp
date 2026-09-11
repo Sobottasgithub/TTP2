@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 namespace ttp2::asn1::encode {
-  std::vector<unsigned char> encode(ttp2::Networking::payloadVariants payload, int id) {
+  std::vector<unsigned char> encode(ttp2::Packet::payloadVariants payload, int id) {
     asn1_node definitions = nullptr;
     asn1_node packet = nullptr;
     char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
@@ -17,16 +17,16 @@ namespace ttp2::asn1::encode {
     asn1_create_element(definitions, "Packets.Packet", &packet);
     packet = ttp2::Asn1Helpers::asn1EncodePayload(id, packet, "id");
 
-    if (std::holds_alternative<ttp2::Networking::Standard>(payload)) {
-      packet = encodeStandard(packet, std::get<ttp2::Networking::Standard>(payload));
-    } else if (std::holds_alternative<ttp2::Networking::File>(payload)) {
-      packet = encodeFile(packet, std::get<ttp2::Networking::File>(payload));
-    } else if (std::holds_alternative<ttp2::Networking::ViewportRequest>(payload)) {
-      packet = encodeViewportRequest(packet, std::get<ttp2::Networking::ViewportRequest>(payload));
-    } else if (std::holds_alternative<ttp2::Networking::Viewport>(payload)) {
-      packet = encodeViewport(packet, std::get<ttp2::Networking::Viewport>(payload));
-    } else if (std::holds_alternative<ttp2::Networking::TqlQuery>(payload)) {
-      packet = encodeTqlQuery(packet, std::get<ttp2::Networking::TqlQuery>(payload));
+    if (std::holds_alternative<ttp2::Packet::Standard>(payload)) {
+      packet = encodeStandard(packet, std::get<ttp2::Packet::Standard>(payload));
+    } else if (std::holds_alternative<ttp2::Packet::File>(payload)) {
+      packet = encodeFile(packet, std::get<ttp2::Packet::File>(payload));
+    } else if (std::holds_alternative<ttp2::Packet::ViewportRequest>(payload)) {
+      packet = encodeViewportRequest(packet, std::get<ttp2::Packet::ViewportRequest>(payload));
+    } else if (std::holds_alternative<ttp2::Packet::Viewport>(payload)) {
+      packet = encodeViewport(packet, std::get<ttp2::Packet::Viewport>(payload));
+    } else if (std::holds_alternative<ttp2::Packet::TqlQuery>(payload)) {
+      packet = encodeTqlQuery(packet, std::get<ttp2::Packet::TqlQuery>(payload));
     }
 
     int derLen = 0;
@@ -45,7 +45,7 @@ namespace ttp2::asn1::encode {
     return buffer;
   }
 
-  asn1_node encodeStandard(asn1_node packet, ttp2::Networking::Standard standard) {
+  asn1_node encodeStandard(asn1_node packet, ttp2::Packet::Standard standard) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "standard", 0);
 
@@ -57,7 +57,7 @@ namespace ttp2::asn1::encode {
     return ttp2::Asn1Helpers::asn1EncodePayload(standard.payload, packet, "payload.standard.payload");
   }
   
-  asn1_node encodeFile(asn1_node packet, ttp2::Networking::File file) {
+  asn1_node encodeFile(asn1_node packet, ttp2::Packet::File file) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "file", 0);
 
@@ -84,7 +84,7 @@ namespace ttp2::asn1::encode {
     return packet;
   }
   
-  asn1_node encodeViewportRequest(asn1_node packet, ttp2::Networking::ViewportRequest viewportRequest) {
+  asn1_node encodeViewportRequest(asn1_node packet, ttp2::Packet::ViewportRequest viewportRequest) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "viewportRequest", 0);
 
@@ -107,7 +107,7 @@ namespace ttp2::asn1::encode {
     return packet;
   }
   
-  asn1_node encodeViewport(asn1_node packet, ttp2::Networking::Viewport viewport) {
+  asn1_node encodeViewport(asn1_node packet, ttp2::Packet::Viewport viewport) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "viewport", 0);
 
@@ -134,7 +134,7 @@ namespace ttp2::asn1::encode {
     return packet;
   }
   
-  asn1_node encodeTqlQuery(asn1_node packet, ttp2::Networking::TqlQuery tqlQuery) {
+  asn1_node encodeTqlQuery(asn1_node packet, ttp2::Packet::TqlQuery tqlQuery) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "tqlQuery", 0);
     if (status != ASN1_SUCCESS) {
