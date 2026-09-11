@@ -1,4 +1,5 @@
 #include "server_session_controller.h"
+#include "packet_types.h"
 
 #include <iostream>
 #include <string>
@@ -48,7 +49,7 @@ void clientManager(int serverSocket, int clientSocket) {
 
     while (serverSessionController->isConnected()) {
         if (serverSessionController->hasRequest()) {
-            ServerSessionController::Packet packet = serverSessionController->popRequest();
+            Packet::Packet packet = serverSessionController->popRequest();
             std::wcout << "Received packet id: " << packet.id << std::endl;
             serverSessionController->pushResponse(packet);
         }

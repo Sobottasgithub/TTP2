@@ -1,4 +1,5 @@
 #include "client_session_controller.h"
+#include "packet_types.h"
 
 #include <arrow/csv/options.h>
 #include <arrow/table.h>
@@ -111,8 +112,8 @@ int main() {
         if (option == 1) {
             std::string payload = requestString("(string) Payload: ");
         
-            ClientSessionController::Packet packet;
-            Networking::Standard standard;
+            Packet::Packet packet;
+            Packet::Standard standard;
             standard.payload = payload;
             packet.payload = standard;
             clientSessionController->pushRequest(packet);
@@ -122,28 +123,28 @@ int main() {
                 continue;
             }
             while(clientSessionController->hasResponse()) {
-                ClientSessionController::Packet packet = clientSessionController->popResponse();
+                Packet::Packet packet = clientSessionController->popResponse();
 
-                if (std::holds_alternative<Networking::Standard>(packet.payload)) {
-                    Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
+                if (std::holds_alternative<Packet::Standard>(packet.payload)) {
+                    Packet::Standard standard = std::get<Packet::Standard>(packet.payload);
                     std::cout << "------ Message ------" << std::endl;
                     std::cout << "ID: " << packet.id << std::endl;
                     std::cout << "Payload: " << standard.payload << std::endl;
                     std::cout << "---------------------" << std::endl;
-                } else if (std::holds_alternative<Networking::File>(packet.payload)) {
-                    Networking::File file = std::get<Networking::File>(packet.payload);
+                } else if (std::holds_alternative<Packet::File>(packet.payload)) {
+                    Packet::File file = std::get<Packet::File>(packet.payload);
                     std::cout << "------ Message ------" << std::endl;
                     std::cout << "ID: " << packet.id << std::endl;
                     std::cout << file.payload->ToString() << std::endl;
                     std::cout << "---------------------" << std::endl;
-                } else if (std::holds_alternative<Networking::Viewport>(packet.payload)) {
-                    Networking::Viewport viewport = std::get<Networking::Viewport>(packet.payload);
+                } else if (std::holds_alternative<Packet::Viewport>(packet.payload)) {
+                    Packet::Viewport viewport = std::get<Packet::Viewport>(packet.payload);
                     std::cout << "------ Message Viewport------" << std::endl;
                     std::cout << "ID: " << packet.id << std::endl;
                     std::cout << viewport.payload->ToString() << std::endl;
                     std::cout << "---------------------" << std::endl;
-                } else if (std::holds_alternative<Networking::TqlQuery>(packet.payload)) {
-                    Networking::TqlQuery tqlQuery = std::get<Networking::TqlQuery>(packet.payload);
+                } else if (std::holds_alternative<Packet::TqlQuery>(packet.payload)) {
+                    Packet::TqlQuery tqlQuery = std::get<Packet::TqlQuery>(packet.payload);
                     std::cout << "------ TQL Query ------" << std::endl;
                     std::cout << "ID: " << packet.id << std::endl;
                     std::cout << "Query: " << tqlQuery.query << std::endl;
@@ -159,8 +160,8 @@ int main() {
                 payload += "0";
             }
             
-            ClientSessionController::Packet packet;
-            Networking::Standard standard;
+            Packet::Packet packet;
+            Packet::Standard standard;
             standard.payload = payload;
             packet.payload = standard;
 
@@ -171,8 +172,8 @@ int main() {
             while (true) {
                 clientSessionController->pushRequest(packet);
                 while(clientSessionController->hasResponse()) {
-                    ClientSessionController::Packet packet = clientSessionController->popResponse();
-                    // Networking::Standard standard = std::get<Networking::Standard>(packet.payload);
+                    Packet::Packet packet = clientSessionController->popResponse();
+                    // Packet::Standard standard = std::get<Packet::Standard>(packet.payload);
                     lastPacketId = packet.id;
                     receivedPackets++;
                 }
@@ -188,8 +189,8 @@ int main() {
             }
         } else if (option == 4) {
           std::shared_ptr<arrow::Table> table = openCsvFile();
-          ClientSessionController::Packet packet;
-          ClientSessionController::File file;
+          Packet::Packet packet;
+          Packet::File file;
           file.start = 0;
           file.end = table->num_rows();
           file.payload = table;
@@ -212,11 +213,11 @@ int main() {
           ClientSessionController::PacketInfo packetInfo = clientSessionController->peekResponse(index);
           std::cout << "--- PacketInfo ---" << std::endl;
           std::string payloadType = "";
-          if (std::holds_alternative<ClientSessionController::Standard>(packetInfo.payloadType))
+          if (std::holds_alternative<Packet::Standard>(packetInfo.payloadType))
               payloadType = "Standard";
-          else if (std::holds_alternative<ClientSessionController::File>(packetInfo.payloadType))
+          else if (std::holds_alternative<Packet::File>(packetInfo.payloadType))
               payloadType = "File";
-          else if (std::holds_alternative<ClientSessionController::Viewport>(packetInfo.payloadType))
+          else if (std::holds_alternative<Packet::Viewport>(packetInfo.payloadType))
               payloadType = "Viewport";
           else
               payloadType = "Invalid";
@@ -225,8 +226,8 @@ int main() {
           std::cout << "---    ---     ---" << std::endl;
         } else if (option == 6) {
           std::shared_ptr<arrow::Table> table = openCsvFile();
-          ClientSessionController::Packet packet;
-          ClientSessionController::Viewport viewport;
+          Packet::Packet packet;
+          Packet::Viewport viewport;
           viewport.xStart = 0;
           viewport.xEnd = table->num_rows();
           viewport.yStart = 0;
@@ -237,8 +238,8 @@ int main() {
 
           std::cout << "Done!" << std::endl;
         } else if (option == 7) {
-          ClientSessionController::Packet packet;
-          ClientSessionController::TqlQuery tqlQuery;
+          Packet::Packet packet;
+          Packet::TqlQuery tqlQuery;
           std::string query = requestString("Query >");
           tqlQuery.query = query;
           packet.payload = tqlQuery;
