@@ -3,8 +3,8 @@
 #include <stdexcept>
 
 namespace ttp2::asn1::decode {
-  ttp2::Networking::Packet decode(std::vector<char> derBuffer) {
-    ttp2::Networking::Packet data;
+  ttp2::Packet::Packet decode(std::vector<char> derBuffer) {
+    ttp2::Packet::Packet data;
 
     asn1_node definitions = nullptr;
     asn1_node packet = nullptr;
@@ -48,14 +48,14 @@ namespace ttp2::asn1::decode {
     return data;
   }
 
-  ttp2::Networking::Standard decodeStandard(asn1_node packet) {
-    ttp2::Networking::Standard standard;
+  ttp2::Packet::Standard decodeStandard(asn1_node packet) {
+    ttp2::Packet::Standard standard;
     standard.payload = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.standard.payload");
     return standard;
   }
   
-  ttp2::Networking::File decodeFile(asn1_node packet) {
-    ttp2::Networking::File file;
+  ttp2::Packet::File decodeFile(asn1_node packet) {
+    ttp2::Packet::File file;
     file.filePath = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.file.filePath");
     file.start = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.start");
     file.end = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.end");
@@ -67,8 +67,8 @@ namespace ttp2::asn1::decode {
     return file;
   }
   
-  ttp2::Networking::ViewportRequest decodeViewportRequest(asn1_node packet) {
-    ttp2::Networking::ViewportRequest viewportRequest;
+  ttp2::Packet::ViewportRequest decodeViewportRequest(asn1_node packet) {
+    ttp2::Packet::ViewportRequest viewportRequest;
 
     viewportRequest.xStart = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.xStart");
     viewportRequest.xEnd = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.xEnd");
@@ -78,8 +78,8 @@ namespace ttp2::asn1::decode {
     return viewportRequest;
   }
   
-  ttp2::Networking::Viewport decodeViewport(asn1_node packet) {
-    ttp2::Networking::Viewport viewport;
+  ttp2::Packet::Viewport decodeViewport(asn1_node packet) {
+    ttp2::Packet::Viewport viewport;
     viewport.xStart = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xStart");
     viewport.xEnd = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xEnd");
     viewport.yStart = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.yStart");
@@ -90,8 +90,8 @@ namespace ttp2::asn1::decode {
     return viewport;
   }
   
-  ttp2::Networking::TqlQuery decodeTqlQuery(asn1_node packet) {
-    ttp2::Networking::TqlQuery tqlQuery;
+  ttp2::Packet::TqlQuery decodeTqlQuery(asn1_node packet) {
+    ttp2::Packet::TqlQuery tqlQuery;
     tqlQuery.query = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.tqlQuery.query");
     return tqlQuery;
   }
