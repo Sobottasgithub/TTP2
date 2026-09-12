@@ -30,6 +30,11 @@ TqlQuery ::= SEQUENCE {
 	query OCTET STRING
 }
 
+Error ::= SEQUENCE {
+	code INTEGER,
+	message OCTET STRING
+}
+
 Packet ::= SEQUENCE {
 	id INTEGER,
 	payload CHOICE {
@@ -37,7 +42,8 @@ Packet ::= SEQUENCE {
 		file [1] File,
 		viewportRequest [2] ViewportRequest,
 		viewport [3] Viewport,
-		tqlQuery [4] TqlQuery
+		tqlQuery [4] TqlQuery,
+		error [5] Error
 	}
 } 
 

@@ -35,6 +35,8 @@ namespace ttp2::asn1::decode {
         data.payload = decodeViewport(packet);
       } else if (typeNameString == "tqlQuery") {
         data.payload = decodeTqlQuery(packet);
+      } else if (typeNameString == "error") {
+        data.payload = decodeError(packet);
       } else {
         throw std::invalid_argument("Error decoding payload: Unknown type!");
       }
@@ -94,5 +96,12 @@ namespace ttp2::asn1::decode {
     ttp2::Packet::TqlQuery tqlQuery;
     tqlQuery.query = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.tqlQuery.query");
     return tqlQuery;
+  }
+
+  ttp2::Packet::Error decodeError(asn1_node packet) {
+    ttp2::Packet::Error error;
+    error.code = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.error.code");
+    error.message = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.error.message");
+    return error;
   }
 }

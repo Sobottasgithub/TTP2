@@ -27,6 +27,9 @@ const asn1_static_node packets_asn1_tab[] = {
   { "payload", 7, NULL },
   { "TqlQuery", 1610612741, NULL },
   { "query", 7, NULL },
+  { "Error", 1610612741, NULL },
+  { "code", 1073741827, NULL },
+  { "message", 7, NULL },
   { "Packet", 536870917, NULL },
   { "id", 1073741827, NULL },
   { "payload", 536870930, NULL },
@@ -38,7 +41,9 @@ const asn1_static_node packets_asn1_tab[] = {
   { NULL, 2056, "2"},
   { "viewport", 1610620930, "Viewport"},
   { NULL, 2056, "3"},
-  { "tqlQuery", 536879106, "TqlQuery"},
+  { "tqlQuery", 1610620930, "TqlQuery"},
   { NULL, 2056, "4"},
+  { "error", 536879106, "Error"},
+  { NULL, 2056, "5"},
   { NULL, 0, NULL }
 };

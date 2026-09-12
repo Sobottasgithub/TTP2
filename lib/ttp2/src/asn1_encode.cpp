@@ -1,6 +1,7 @@
 #include "../include/asn1_encode.h"
 #include "../include/asn1_helpers.h"
 #include <stdexcept>
+#include <variant>
 
 namespace ttp2::asn1::encode {
   std::vector<unsigned char> encode(ttp2::Packet::payloadVariants payload, int id) {
@@ -27,8 +28,10 @@ namespace ttp2::asn1::encode {
       packet = encodeViewport(packet, std::get<ttp2::Packet::Viewport>(payload));
     } else if (std::holds_alternative<ttp2::Packet::TqlQuery>(payload)) {
       packet = encodeTqlQuery(packet, std::get<ttp2::Packet::TqlQuery>(payload));
+    } else if (std::holds_alternative<ttp2::Packet::Error>(payload)) {
+      packet = encodeError(packet, std::get<ttp2::Packet::Error>(payload));
     }
-
+    
     int derLen = 0;
     asn1_der_coding(packet, "", nullptr, &derLen, nullptr);
     std::vector<unsigned char> buffer(derLen);
@@ -144,6 +147,23 @@ namespace ttp2::asn1::encode {
     // Write content
     std::string query = tqlQuery.query;
     packet = ttp2::Asn1Helpers::asn1EncodePayload(query, packet, "payload.tqlQuery.query");
+    return packet;
+  }
+
+  asn1_node encodeError(asn1_node packet, ttp2::Packet::Error error) {
+    // Write structure
+    int status = asn1_write_value(packet, "payload", "error", 0);
+    if (status != ASN1_SUCCESS) {
+      throw std::invalid_argument("ASN1 set payload as error failed!");
+    }
+
+    // Write content
+    int errorCode = error.code;
+    packet = ttp2::Asn1Helpers::asn1EncodePayload(errorCode, packet, "payload.error.code");
+
+    std::string errorMessage = error.message;
+    packet = ttp2::Asn1Helpers::asn1EncodePayload(errorMessage, packet, "payload.error.message");
+    
     return packet;
   }
 }

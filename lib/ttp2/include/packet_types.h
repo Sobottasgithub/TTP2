@@ -36,7 +36,12 @@ namespace ttp2::Packet {
     std::string query = "";
   };
 
-  typedef std::variant<Standard, File, ViewportRequest, Viewport, TqlQuery> payloadVariants;
+  struct Error {
+    int code = 0;
+    std::string message = "";
+  };
+
+  typedef std::variant<Standard, File, ViewportRequest, Viewport, TqlQuery, Error> payloadVariants;
 
   struct Packet {
     int id = -1;
