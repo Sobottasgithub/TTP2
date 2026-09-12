@@ -108,8 +108,10 @@ int main() {
     });
 
     while (clientSessionController->isConnected()) {
-        int option = requestInt("Choose option\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) peek index\n(6) Viewport\n(7) TqlQuery\n(8) Exit\nnumber: ");
-        if (option == 1) {
+        int option = requestInt("Choose option\n(0) Exit\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) peek index\n(6) Viewport\n(7) TqlQuery\n(8) Error\nnumber: ");
+        if (option == 0) {
+          clientSessionController->disconnect();  
+        } else if (option == 1) {
             std::string payload = requestString("(string) Payload: ");
         
             Packet::Packet packet;
@@ -133,7 +135,7 @@ int main() {
                     std::cout << "---------------------" << std::endl;
                 } else if (std::holds_alternative<Packet::File>(packet.payload)) {
                     Packet::File file = std::get<Packet::File>(packet.payload);
-                    std::cout << "------ Message ------" << std::endl;
+                    std::cout << "------ Viewport  ------" << std::endl;
                     std::cout << "ID: " << packet.id << std::endl;
                     std::cout << file.payload->ToString() << std::endl;
                     std::cout << "---------------------" << std::endl;
@@ -148,6 +150,13 @@ int main() {
                     std::cout << "------ TQL Query ------" << std::endl;
                     std::cout << "ID: " << packet.id << std::endl;
                     std::cout << "Query: " << tqlQuery.query << std::endl;
+                    std::cout << "---------------------" << std::endl;
+                } else if (std::holds_alternative<Packet::Error>(packet.payload)) {
+                    Packet::Error error = std::get<Packet::Error>(packet.payload);
+                    std::cout << "------ Error ------" << std::endl;
+                    std::cout << "ID: " << packet.id << std::endl;
+                    std::cout << "Code: " << error.code << std::endl;
+                    std::cout << "Message: " << error.message << std::endl;
                     std::cout << "---------------------" << std::endl;
                 }
             }
@@ -246,7 +255,13 @@ int main() {
           clientSessionController->pushRequest(packet);
           std::cout << "Done!" << std::endl;
         } else if (option == 8) {
-          clientSessionController->disconnect();  
+          Packet::Packet packet;
+          Packet::Error error;
+          error.message = "ERROR!";
+          error.code = 404;
+          packet.payload = error;
+          clientSessionController->pushRequest(packet);
+          std::cout << "Done!" << std::endl;
         } else {
             std::cout << "Invalid!" << std::endl;
         }
