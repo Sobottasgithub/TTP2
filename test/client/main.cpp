@@ -86,22 +86,8 @@ std::shared_ptr<arrow::Table> openCsvFile() {
 int main() {
     std::string ipAddress = requestString("Server ipv4 (string): ");
     int port = requestInt("Server port (int): ");
-
-    int serverSocket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-
-    sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(port);
-    serverAddress.sin_addr.s_addr = inet_addr(ipAddress.c_str());
-
-    int connectionResult = connect(serverSocket, (struct sockaddr*) &serverAddress, sizeof(serverAddress));
     
-    if (connectionResult < 0 && errno != EINPROGRESS) {
-        std::cout << "Connection failed!" << std::endl;
-        return -1;
-    }
-    
-    auto clientSessionController = std::make_shared<ClientSessionController>(serverSocket);
+    auto clientSessionController = std::make_shared<ClientSessionController>(ipAddress, port);
 
     std::thread networkThread([clientSessionController]() {
         clientSessionController->networkingSession();

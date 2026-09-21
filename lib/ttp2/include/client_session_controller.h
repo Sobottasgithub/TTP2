@@ -9,6 +9,7 @@ namespace ttp2 {
   {
       public:
         ClientSessionController();
+        ClientSessionController(std::string ipV4, int port);
         ClientSessionController(int &socket);
         void networkingSession();
         void disconnect() override;
