@@ -64,7 +64,27 @@ namespace ttp2 {
     }
 
     return packet;
+  }
 
+  asn1_node Asn1Helpers::asn1EncodePayload(std::vector<std::string> payload, asn1_node packet, const char* asn1Key) {
+    for (const std::string& item : payload) {
+      int status = asn1_write_value(packet, asn1Key, "NEW", 1);
+      if (status != ASN1_SUCCESS) {
+          std::string asn1KeyString = asn1Key;
+          tablog::TablogRegistry::getInstance().get("TTP2")->log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed (adding new element)!");
+          return packet;
+      }
+
+      std::string lastKey = std::string(asn1Key) + ".?LAST";
+      status = asn1_write_value(packet, lastKey.c_str(), item.c_str(), item.length());
+      if (status != ASN1_SUCCESS) {
+          std::string asn1KeyString = asn1Key;
+          tablog::TablogRegistry::getInstance().get("TTP2")->log(tablog::ERROR, "ASN1 set " + asn1KeyString + " failed (writing value)!");
+          return packet;
+      }
+    }
+
+    return packet;
   }
 
   std::string Asn1Helpers::asn1DecodePayloadString(asn1_node packet, const char* asn1Key) {
@@ -113,6 +133,33 @@ namespace ttp2 {
         return buffer;
     }
     return buffer;
+  }
+
+  std::vector<std::string> Asn1Helpers::asn1DecodePayloadVector(asn1_node packet, const char* asn1Key) {
+    std::vector<std::string> payloadVector;
+    int numElements = 0;
+
+    int status = asn1_number_of_elements(packet, asn1Key, &numElements);
+    if (status != ASN1_SUCCESS || numElements <= 0) {
+      return payloadVector;
+    }
+
+    for (int i = 1; i <= numElements; ++i) {
+      std::string elementKey = std::string(asn1Key) + "." + std::to_string(i);
+
+      int len = 0;
+      status = asn1_read_value(packet, elementKey.c_str(), NULL, &len);
+      if (status == ASN1_MEM_ERROR && len > 0) {
+        std::vector<char> buffer(len);
+
+        status = asn1_read_value(packet, elementKey.c_str(), buffer.data(), &len);
+        if (status == ASN1_SUCCESS) {
+          payloadVector.emplace_back(buffer.data(), len);
+        }
+      }
+    }
+
+    return payloadVector;
   }
 
   std::shared_ptr<arrow::Buffer> Asn1Helpers::tableToBuffer(const std::shared_ptr<arrow::Table>& table) {

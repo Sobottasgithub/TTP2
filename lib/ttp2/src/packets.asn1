@@ -1,5 +1,5 @@
 Packets DEFINITIONS EXPLICIT TAGS ::= BEGIN
-
+-- Normal packets
 Standard ::= SEQUENCE {
 	payload OCTET STRING
 }
@@ -35,6 +35,15 @@ Error ::= SEQUENCE {
 	message OCTET STRING
 }
 
+-- TDFS specific
+Ls ::= SEQUENCE {
+	directory OCTET STRING
+}
+
+LsSolution ::= SEQUENCE {
+	directoryItems SEQUENCE OF UTF8String
+}
+
 Packet ::= SEQUENCE {
 	id INTEGER,
 	payload CHOICE {
@@ -43,7 +52,9 @@ Packet ::= SEQUENCE {
 		viewportRequest [2] ViewportRequest,
 		viewport [3] Viewport,
 		tqlQuery [4] TqlQuery,
-		error [5] Error
+		error [5] Error,
+		ls [6] Ls,
+		lsSolution [7] LsSolution
 	}
 } 
 

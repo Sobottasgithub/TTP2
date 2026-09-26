@@ -1,5 +1,8 @@
 #include "../include/asn1_decode.h"
 #include "../include/asn1_helpers.h"
+#include "../include/asn1_tdfs_decode.h"
+#include "../include/tdfs_packet_types.h"
+
 #include <stdexcept>
 
 namespace ttp2::asn1::decode {
@@ -37,6 +40,10 @@ namespace ttp2::asn1::decode {
         data.payload = decodeTqlQuery(packet);
       } else if (typeNameString == "error") {
         data.payload = decodeError(packet);
+      } else if (typeNameString == "ls") {
+        data.payload = tdfs::decodeLs(packet);
+      } else if (typeNameString == "lsSolution") {
+        data.payload = tdfs::decodeLsSolution(packet);
       } else {
         throw std::invalid_argument("Error decoding payload: Unknown type!");
       }

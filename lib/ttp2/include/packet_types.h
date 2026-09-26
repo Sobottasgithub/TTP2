@@ -1,6 +1,8 @@
 #ifndef PACKET_TYPE_H
 #define PACKET_TYPE_H
 
+#include "tdfs_packet_types.h"
+
 #include <string>
 #include <arrow/table.h>
 #include <memory>
@@ -41,7 +43,8 @@ namespace ttp2::Packet {
     std::string message = "";
   };
 
-  typedef std::variant<Standard, File, ViewportRequest, Viewport, TqlQuery, Error> payloadVariants;
+  typedef std::variant<Standard, File, ViewportRequest, Viewport, TqlQuery, Error,
+                       tdfs::Ls, tdfs::LsSolution> payloadVariants;
 
   struct Packet {
     int id = -1;

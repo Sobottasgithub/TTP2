@@ -21,10 +21,12 @@ namespace ttp2 {
       static asn1_node asn1EncodePayload(std::string payload, asn1_node packet, const char* asn1Key);
       static asn1_node asn1EncodePayload(int payload, asn1_node packet, const char* asn1Key);
       static asn1_node asn1EncodePayload(const uint8_t* buffer, int size, asn1_node packet, const char* asn1Key);
+      static asn1_node asn1EncodePayload(std::vector<std::string> payload, asn1_node packet, const char* asn1Key);
 
       static std::string asn1DecodePayloadString(asn1_node packet, const char* asn1Key);
       static int asn1DecodePayloadInt(asn1_node packet, const char* asn1Key);
       static std::vector<uint8_t> asn1DecodePayloadBuffer(asn1_node packet, const char* asn1Key);
+      static std::vector<std::string> asn1DecodePayloadVector(asn1_node packet, const char* asn1Key);
 
       static std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
       static std::shared_ptr<arrow::Table> bufferToTable(const uint8_t* rawData, int64_t dataSize);
