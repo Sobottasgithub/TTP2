@@ -1,5 +1,6 @@
 #include "client_session_controller.h"
 #include "packet_types.h"
+#include "tdfs_packet_types.h"
 
 #include <arrow/csv/options.h>
 #include <arrow/table.h>
@@ -15,6 +16,7 @@
 #include <chrono>
 #include <arrow/csv/api.h>
 #include <arrow/io/api.h>
+#include <variant>
 
 using namespace ttp2;
 
@@ -94,7 +96,7 @@ int main() {
     });
 
     while (clientSessionController->isConnected()) {
-        int option = requestInt("Choose option\n(0) Exit\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) peek index\n(6) Viewport\n(7) TqlQuery\n(8) Error\nnumber: ");
+        int option = requestInt("Choose option\n(0) Exit\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) peek index\n(6) Viewport\n(7) TqlQuery\n(8) Error\n(9) TDFS\nnumber: ");
         if (option == 0) {
           clientSessionController->disconnect();  
         } else if (option == 1) {
@@ -143,6 +145,22 @@ int main() {
                     std::cout << "ID: " << packet.id << std::endl;
                     std::cout << "Code: " << error.code << std::endl;
                     std::cout << "Message: " << error.message << std::endl;
+                    std::cout << "---------------------" << std::endl;
+                } else if (std::holds_alternative<Packet::tdfs::Ls>(packet.payload)) {
+                    Packet::tdfs::Ls ls = std::get<Packet::tdfs::Ls>(packet.payload);
+                    std::cout << "------ TDFS LS ------" << std::endl;
+                    std::cout << "ID: " << packet.id << std::endl;
+                    std::cout << "Directory: " << ls.directory << std::endl;
+                    std::cout << "---------------------" << std::endl;
+                } else if (std::holds_alternative<Packet::tdfs::LsSolution>(packet.payload)) {
+                    Packet::tdfs::LsSolution lsSolution = std::get<Packet::tdfs::LsSolution>(packet.payload);
+                    std::cout << "------ TDFS LS ------" << std::endl;
+                    std::cout << "ID: " << packet.id << std::endl;
+                    std::cout << "CONTENT: " << std::flush;
+                    for (const std::string& item : lsSolution.content) {
+                        std::cout << item << std::flush;
+                    }
+                    std::cout << std::endl;
                     std::cout << "---------------------" << std::endl;
                 }
             }
@@ -248,6 +266,28 @@ int main() {
           packet.payload = error;
           clientSessionController->pushRequest(packet);
           std::cout << "Done!" << std::endl;
+        } else if (option == 9) {
+          int tdfsOption = requestInt("(0) back\n(1) ls\n(2) ls Solution\noption:");
+
+          if (tdfsOption == 0) {
+            std::cout << "Back!" << std::endl;
+          } else if (tdfsOption == 1) {
+            Packet::Packet packet;
+            Packet::tdfs::Ls ls;
+            ls.directory = "/home/test";
+            packet.payload = ls;
+            clientSessionController->pushRequest(packet);
+            std::cout << "Done!" << std::endl;
+          } else if (tdfsOption == 2) {
+            Packet::Packet packet;
+            Packet::tdfs::LsSolution lsSolution;
+            lsSolution.content = {"item1.txt", "item2.txt", "dir1/"};
+            packet.payload = lsSolution;
+            clientSessionController->pushRequest(packet);
+            std::cout << "Done!" << std::endl;
+          } else {
+            std::cout << "Invalid!" << std::endl;
+          }
         } else {
             std::cout << "Invalid!" << std::endl;
         }
