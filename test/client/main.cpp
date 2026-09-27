@@ -2,6 +2,8 @@
 #include "packet_types.h"
 #include "tdfs_packet_types.h"
 
+#include "src/helpers.h"
+
 #include <arrow/csv/options.h>
 #include <arrow/table.h>
 #include <iostream>
@@ -11,83 +13,15 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <thread>
-#include <regex>
-#include <filesystem>
 #include <chrono>
 #include <arrow/csv/api.h>
 #include <arrow/io/api.h>
-#include <variant>
 
 using namespace ttp2;
 
-bool isNumeric(const std::string& string) {
-  static const std::regex numberRegex(
-      R"(^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$)"
-  );
-  return std::regex_match(string, numberRegex);
-}
-
-std::string requestString(const std::string& message) {
-    std::string userInput;
-    std::cout << message << std::flush;
-    std::getline(std::cin, userInput);
-    return userInput;
-}
-
-int requestInt(const std::string& message) {
-    std::string userInput;
-
-    while (true) {
-        std::cout << message << std::flush;
-        std::getline(std::cin, userInput);
-
-        if (isNumeric(userInput)) {
-            return std::stoi(userInput);
-        }
-        std::cout << "Invalid input! Try again" << std::endl;
-    }
-}
-
-std::shared_ptr<arrow::Table> openCsvFile() {
-    std::string filePath { "" };
-    do {
-      if (filePath.length() > 0 && !std::filesystem::exists(filePath)) {
-          std::cout << "Incorrect filepath!" << std::endl;
-      }
-      filePath = requestString("(string) Filepath: ");
-    } while (!std::filesystem::exists(filePath));
-
-    arrow::io::IOContext ioContext = arrow::io::default_io_context();
-
-    arrow::Result<std::shared_ptr<arrow::io::ReadableFile>> maybeFile = arrow::io::ReadableFile::Open(filePath);
-    std::shared_ptr<arrow::io::InputStream> fileInput = *maybeFile;
-
-    arrow::csv::ReadOptions readOptions = arrow::csv::ReadOptions::Defaults();
-    arrow::csv::ParseOptions parseOptions = arrow::csv::ParseOptions::Defaults();
-    arrow::csv::ConvertOptions convertOptions = arrow::csv::ConvertOptions::Defaults();
-
-    arrow::Result<std::shared_ptr<arrow::csv::TableReader>> maybeReader = arrow::csv::TableReader::Make(ioContext,
-                                                    fileInput,
-                                                    readOptions,
-                                                    parseOptions,
-                                                    convertOptions);
-    if (!maybeReader.ok()) {
-     std::cout << "Error while instantiating TableReader!" << std::endl;
-    }
-    std::shared_ptr<arrow::csv::TableReader> reader = *maybeReader;
-
-    arrow::Result<std::shared_ptr<arrow::Table>> maybeTable = reader->Read();
-    if (!maybeTable.ok()) {
-      std::cout << "Error while read table from CSV file!" << std::endl;
-    }
-    std::shared_ptr<arrow::Table> table = *maybeTable;
-    return table;
-}
-
-
 int main() {
-    std::string ipAddress = requestString("Server ipv4 (string): ");
-    int port = requestInt("Server port (int): ");
+    std::string ipAddress = test::Helpers::requestString("Server ipv4 (string): ");
+    int port = test::Helpers::requestInt("Server port (int): ");
     
     auto clientSessionController = std::make_shared<ClientSessionController>(ipAddress, port);
 
@@ -96,11 +30,11 @@ int main() {
     });
 
     while (clientSessionController->isConnected()) {
-        int option = requestInt("Choose option\n(0) Exit\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) peek index\n(6) Viewport\n(7) TqlQuery\n(8) Error\n(9) TDFS\nnumber: ");
+        int option = test::Helpers::requestInt("Choose option\n(0) Exit\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) peek index\n(6) Viewport\n(7) TqlQuery\n(8) Error\n(9) TDFS\nnumber: ");
         if (option == 0) {
           clientSessionController->disconnect();  
         } else if (option == 1) {
-            std::string payload = requestString("(string) Payload: ");
+            std::string payload = test::Helpers::requestString("(string) Payload: ");
         
             Packet::Packet packet;
             Packet::Standard standard;
@@ -166,7 +100,7 @@ int main() {
             }
         } else if (option == 3) {
             std::cout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
-            int payloadSize = requestInt("(Int) payload size: ");
+            int payloadSize = test::Helpers::requestInt("(Int) payload size: ");
 
             std::string payload = "";
             for (int index = 0; index <= payloadSize; ++index) {
@@ -201,7 +135,7 @@ int main() {
                 }
             }
         } else if (option == 4) {
-          std::shared_ptr<arrow::Table> table = openCsvFile();
+          std::shared_ptr<arrow::Table> table = test::Helpers::openCsvFile();
           Packet::Packet packet;
           Packet::File file;
           file.start = 0;
@@ -216,7 +150,7 @@ int main() {
           int index = 0;
           do {
               std::cout << "Peek index: 0 to " << responseQueueSize << " | -1 to exit" << std::endl;
-              index = requestInt("(int) index: ");
+              index = test::Helpers::requestInt("(int) index: ");
           } while (index < -1 || index > responseQueueSize);
 
           if (index == -1) {
@@ -238,7 +172,7 @@ int main() {
           std::cout << "id: " << packetInfo.id << "\npacketType: " << payloadType.c_str() << std::endl;
           std::cout << "---    ---     ---" << std::endl;
         } else if (option == 6) {
-          std::shared_ptr<arrow::Table> table = openCsvFile();
+          std::shared_ptr<arrow::Table> table = test::Helpers::openCsvFile();
           Packet::Packet packet;
           Packet::Viewport viewport;
           viewport.xStart = 0;
@@ -253,7 +187,7 @@ int main() {
         } else if (option == 7) {
           Packet::Packet packet;
           Packet::TqlQuery tqlQuery;
-          std::string query = requestString("Query >");
+          std::string query = test::Helpers::requestString("Query >");
           tqlQuery.query = query;
           packet.payload = tqlQuery;
           clientSessionController->pushRequest(packet);
@@ -267,7 +201,7 @@ int main() {
           clientSessionController->pushRequest(packet);
           std::cout << "Done!" << std::endl;
         } else if (option == 9) {
-          int tdfsOption = requestInt("(0) back\n(1) ls\n(2) ls Solution\noption:");
+          int tdfsOption = test::Helpers::requestInt("(0) back\n(1) ls\n(2) ls Solution\noption:");
 
           if (tdfsOption == 0) {
             std::cout << "Back!" << std::endl;
