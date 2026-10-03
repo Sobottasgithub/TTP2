@@ -33,6 +33,8 @@ namespace ttp2::asn1::encode {
       packet = encodeTqlQuery(packet, std::get<ttp2::Packet::TqlQuery>(payload));
     } else if (std::holds_alternative<ttp2::Packet::Error>(payload)) {
       packet = encodeError(packet, std::get<ttp2::Packet::Error>(payload));
+    } else if (std::holds_alternative<ttp2::Packet::Universal>(payload)) {
+      packet = encodeUniversal(packet, std::get<ttp2::Packet::Universal>(payload));
     } else if (std::holds_alternative<ttp2::Packet::tdfs::Ls>(payload)) {
       packet = tdfs::encodeLs(packet, std::get<ttp2::Packet::tdfs::Ls>(payload));
     } else if (std::holds_alternative<ttp2::Packet::tdfs::LsSolution>(payload)) {

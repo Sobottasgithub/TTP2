@@ -41,6 +41,8 @@ namespace ttp2::asn1::decode {
         data.payload = decodeTqlQuery(packet);
       } else if (typeNameString == "error") {
         data.payload = decodeError(packet);
+      } else if (typeNameString == "universal") {
+        data.payload = decodeUniversal(packet);
       } else if (typeNameString == "ls") {
         data.payload = tdfs::decodeLs(packet);
       } else if (typeNameString == "lsSolution") {
