@@ -3,6 +3,7 @@
 #include "../include/asn1_tdfs_decode.h"
 #include "../include/tdfs_packet_types.h"
 
+#include <libtasn1.h>
 #include <stdexcept>
 
 namespace ttp2::asn1::decode {
@@ -110,5 +111,12 @@ namespace ttp2::asn1::decode {
     error.code = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.error.code");
     error.message = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.error.message");
     return error;
+  }
+
+  ttp2::Packet::Universal decodeUniversal(asn1_node packet) {
+    ttp2::Packet::Universal universal;
+    std::vector<uint8_t> buffer = ttp2::Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.universal.bytes");
+    universal.bytes = buffer;
+    return universal;
   }
 }

@@ -175,4 +175,18 @@ namespace ttp2::asn1::encode {
     
     return packet;
   }
+
+  asn1_node encodeUniversal(asn1_node packet, ttp2::Packet::Universal universal) {
+    // Write structure
+    int status = asn1_write_value(packet, "payload", "universal", 0);
+
+    if (status != ASN1_SUCCESS) {
+      throw std::invalid_argument("ASN1 set payload as universal failed!");
+    }
+
+    // Write contents
+    packet = ttp2::Asn1Helpers::asn1EncodePayload(universal.bytes.data(), universal.bytes.size(), packet, "payload.universal.bytes");
+
+    return packet;
+  }
 }

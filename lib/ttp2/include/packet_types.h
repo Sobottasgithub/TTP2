@@ -43,8 +43,12 @@ namespace ttp2::Packet {
     std::string message = "";
   };
 
+  struct Universal {
+    std::vector<uint8_t> bytes;
+  };
+
   typedef std::variant<Standard, File, ViewportRequest, Viewport, TqlQuery, Error,
-                       tdfs::Ls, tdfs::LsSolution> payloadVariants;
+                       Universal, tdfs::Ls, tdfs::LsSolution> payloadVariants;
 
   struct Packet {
     int id = -1;

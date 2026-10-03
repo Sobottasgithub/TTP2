@@ -35,6 +35,10 @@ Error ::= SEQUENCE {
 	message OCTET STRING
 }
 
+Universal ::= SEQUENCE {
+	bytes OCTET STRING
+}
+
 -- TDFS specific
 Ls ::= SEQUENCE {
 	directory OCTET STRING
@@ -53,8 +57,9 @@ Packet ::= SEQUENCE {
 		viewport [3] Viewport,
 		tqlQuery [4] TqlQuery,
 		error [5] Error,
-		ls [6] Ls,
-		lsSolution [7] LsSolution
+		universal [6] Universal,
+		ls [7] Ls,
+		lsSolution [8] LsSolution
 	}
 } 
 

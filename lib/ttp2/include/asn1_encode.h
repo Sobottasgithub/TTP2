@@ -19,6 +19,7 @@ namespace ttp2::asn1::encode {
   asn1_node encodeViewport(asn1_node packet, ttp2::Packet::Viewport viewport);
   asn1_node encodeTqlQuery(asn1_node packet, ttp2::Packet::TqlQuery tqlQuery);
   asn1_node encodeError(asn1_node packet, ttp2::Packet::Error error);
+  asn1_node encodeUniversal(asn1_node packet, ttp2::Packet::Universal universal);
 }
 
 #endif

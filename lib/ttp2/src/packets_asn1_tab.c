@@ -30,6 +30,8 @@ const asn1_static_node packets_asn1_tab[] = {
   { "Error", 1610612741, NULL },
   { "code", 1073741827, NULL },
   { "message", 7, NULL },
+  { "Universal", 1610612741, NULL },
+  { "bytes", 7, NULL },
   { "Ls", 1610612741, NULL },
   { "directory", 7, NULL },
   { "LsSolution", 1610612741, NULL },
@@ -50,9 +52,11 @@ const asn1_static_node packets_asn1_tab[] = {
   { NULL, 2056, "4"},
   { "error", 1610620930, "Error"},
   { NULL, 2056, "5"},
-  { "ls", 1610620930, "Ls"},
+  { "universal", 1610620930, "Universal"},
   { NULL, 2056, "6"},
-  { "lsSolution", 536879106, "LsSolution"},
+  { "ls", 1610620930, "Ls"},
   { NULL, 2056, "7"},
+  { "lsSolution", 536879106, "LsSolution"},
+  { NULL, 2056, "8"},
   { NULL, 0, NULL }
 };

@@ -19,6 +19,7 @@ namespace ttp2::asn1::decode {
   ttp2::Packet::Viewport decodeViewport(asn1_node packet);
   ttp2::Packet::TqlQuery decodeTqlQuery(asn1_node packet);
   ttp2::Packet::Error decodeError(asn1_node packet);
+  ttp2::Packet::Universal decodeUniversal(asn1_node packet);
 }
 
 #endif
