@@ -227,4 +227,18 @@ namespace ttp2 {
 
     return *tableResult;
   }
+
+  template <typename T>
+  std::vector<uint8_t> structToBytes(const T& data) {
+    std::vector<uint8_t> bytes(sizeof(T));
+    std::memcpy(bytes.data(), &data, sizeof(T));
+    return bytes;
+  }
+
+  template <typename T>
+  T bytesToStruct(const std::vector<uint8_t>& bytes) {
+    T data;
+    std::memcpy(&data, bytes.data(), sizeof(T));
+    return data;
+  }
 }

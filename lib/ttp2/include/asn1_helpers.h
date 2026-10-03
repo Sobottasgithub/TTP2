@@ -30,6 +30,12 @@ namespace ttp2 {
 
       static std::shared_ptr<arrow::Buffer> tableToBuffer(const std::shared_ptr<arrow::Table>& table);
       static std::shared_ptr<arrow::Table> bufferToTable(const uint8_t* rawData, int64_t dataSize);
+
+      template <typename T>
+      static std::vector<uint8_t> structToBytes(const T& data);
+      template <typename T>
+      static T bytesToStruct(const std::vector<uint8_t>& bytes);
+    
     private:
       static int bytesToInt(std::vector<char> bytes, int size);
   };
