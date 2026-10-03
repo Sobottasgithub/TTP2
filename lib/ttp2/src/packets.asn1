@@ -36,6 +36,7 @@ Error ::= SEQUENCE {
 }
 
 Universal ::= SEQUENCE {
+	type INTEGER,
 	bytes OCTET STRING
 }
 

@@ -31,6 +31,7 @@ const asn1_static_node packets_asn1_tab[] = {
   { "code", 1073741827, NULL },
   { "message", 7, NULL },
   { "Universal", 1610612741, NULL },
+  { "type", 1073741827, NULL },
   { "bytes", 7, NULL },
   { "Ls", 1610612741, NULL },
   { "directory", 7, NULL },

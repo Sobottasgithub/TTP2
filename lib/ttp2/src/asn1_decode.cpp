@@ -115,8 +115,8 @@ namespace ttp2::asn1::decode {
 
   ttp2::Packet::Universal decodeUniversal(asn1_node packet) {
     ttp2::Packet::Universal universal;
-    std::vector<uint8_t> buffer = ttp2::Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.universal.bytes");
-    universal.bytes = buffer;
+    universal.type = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.universal.type");
+    universal.bytes = ttp2::Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.universal.bytes");
     return universal;
   }
 }

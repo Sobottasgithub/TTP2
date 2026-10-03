@@ -185,6 +185,8 @@ namespace ttp2::asn1::encode {
     }
 
     // Write contents
+    int type = universal.type;
+    packet = ttp2::Asn1Helpers::asn1EncodePayload(type, packet, "payload.universal.type");
     packet = ttp2::Asn1Helpers::asn1EncodePayload(universal.bytes.data(), universal.bytes.size(), packet, "payload.universal.bytes");
 
     return packet;

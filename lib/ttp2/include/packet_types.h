@@ -44,6 +44,7 @@ namespace ttp2::Packet {
   };
 
   struct Universal {
+    int type;
     std::vector<uint8_t> bytes;
   };
 
