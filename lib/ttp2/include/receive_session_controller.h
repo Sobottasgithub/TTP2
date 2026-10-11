@@ -12,6 +12,13 @@ namespace ttp2 {
       void receiveSession();
       void disconnect() override;
 
+      bool hasRequest() = delete;
+      Packet::Packet popRequest() = delete;
+      int getRequestQueueSize() = delete;
+      void pushRequest(Packet::Packet request) = delete;
+      PacketInfo peekRequest() = delete;
+      PacketInfo peekRequest(int index) = delete;
+
     private:
       int socket;
       int epollFd;
