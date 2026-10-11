@@ -39,6 +39,7 @@
           enableLib ? false,
           enableClient ? false,
           enableServer ? false,
+          enablePeer ? false,
           extraInputs ? [ ],
         }:
         pkgs.stdenv.mkDerivation {
@@ -52,7 +53,8 @@
               -DCMAKE_BUILD_TYPE=Release \
               -DDEF_TTP2=${if enableLib then "ON" else "OFF"} \
               -DDEF_CLIENT=${if enableClient then "ON" else "OFF"} \
-              -DDEF_SERVER=${if enableServer then "ON" else "OFF"}
+              -DDEF_SERVER=${if enableServer then "ON" else "OFF"} \
+              -DDEF_PEER=${if enablePeer then "ON" else "OFF"}
           '';
 
           buildPhase = ''
@@ -94,12 +96,20 @@
             extraInputs = [ lib ];
           };
 
+          peer = mkTTP2Package {
+            pname = "ttp2-peer";
+            buildTarget = "ttp2-peer";
+            enablePeer = true;
+            extraInputs = [ lib ];
+          };
+
           full = mkTTP2Package {
             pname = "libttp2-full";
             buildTarget = "all";
             enableLib = true;
             enableServer = true;
             enableClient = true;
+            enablePeer = true;
           };
 
           default = self.packages.${system}.lib;
