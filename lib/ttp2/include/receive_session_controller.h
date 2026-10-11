@@ -8,7 +8,7 @@
 namespace ttp2 {
   class ReceiveSessionController: public Networking {
     public:
-      ReceiveSessionController();
+      ReceiveSessionController(int &socket);
       void receiveSession();
       void disconnect() override;
 

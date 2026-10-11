@@ -7,8 +7,9 @@
 #include <sys/epoll.h>
 
 namespace ttp2 {
-  ReceiveSessionController::ReceiveSessionController() {
+  ReceiveSessionController::ReceiveSessionController(int &socket) {
     configureLogger("TTP2");
+    this->socket = socket;
   }
   
   void ReceiveSessionController::receiveSession() {
