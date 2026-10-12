@@ -1,7 +1,7 @@
-#include <iostream>
+#include "src/cli.h"
 
 int main() {
-  std::cout << "PEER!" << std::endl;
+  test::Cli cli;
 
   return 0;
 }
