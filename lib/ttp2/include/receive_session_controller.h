@@ -8,6 +8,7 @@
 namespace ttp2 {
   class ReceiveSessionController: public Networking {
     public:
+      ReceiveSessionController(std::string ipV4, int port);
       ReceiveSessionController(int &socket);
       void receiveSession();
       void disconnect() override;

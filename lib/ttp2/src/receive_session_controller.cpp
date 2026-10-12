@@ -7,6 +7,23 @@
 #include <sys/epoll.h>
 
 namespace ttp2 {
+  ReceiveSessionController::ReceiveSessionController(std::string ipV4, int port) {
+    configureLogger("TTP2");
+    // WARNING: ::socket is used here because otherwise it would interfere with (int) this->socket
+    this->socket = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+
+    sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(port);
+    serverAddress.sin_addr.s_addr = inet_addr(ipV4.c_str());
+
+    int connectionResult = connect(this->socket, (struct sockaddr*) &serverAddress, sizeof(serverAddress));
+    
+    if (connectionResult < 0 && errno != EINPROGRESS) {
+        logger->log(tablog::ERROR, "Connection failed!");
+    }
+  }
+  
   ReceiveSessionController::ReceiveSessionController(int &socket) {
     configureLogger("TTP2");
     this->socket = socket;
