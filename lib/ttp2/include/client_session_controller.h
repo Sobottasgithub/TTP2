@@ -8,7 +8,6 @@ namespace ttp2 {
   class ClientSessionController: public Networking
   {
       public:
-        ClientSessionController();
         ClientSessionController(std::string ipV4, int port);
         ClientSessionController(int &socket);
         void networkingSession();

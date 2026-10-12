@@ -8,7 +8,6 @@ namespace ttp2 {
   class ServerSessionController: public Networking
   {
       public:
-        ServerSessionController();
         ServerSessionController(int serverSocket, int clientSocket);
         void networkingSession();
         void disconnect() override;
