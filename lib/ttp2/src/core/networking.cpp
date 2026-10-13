@@ -1,6 +1,6 @@
-#include "../include/networking.h"
-#include "../include/asn1_encode.h"
-#include "../include/asn1_decode.h"
+#include "../../include/networking.h"
+#include "../../include/asn1_encode.h"
+#include "../../include/asn1_decode.h"
 
 #include <tablog_registry.h>
 #include <tablog.h>
