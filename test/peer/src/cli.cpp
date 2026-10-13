@@ -1,14 +1,11 @@
 #include "cli.h"
 
-#include "peer_session_controller.h" 
 
 #include <iostream>
 #include <regex>
 
 namespace test {
-  Cli::Cli() {
-    ttp2::PeerSessionController peerSessionController;
-    
+  Cli::Cli() {    
     while (true) {
       int option = requestInt("(1) connect\n(2) send\n(3) receive\nchoose option:");
 
