@@ -1,5 +1,5 @@
-#include "../../include/asn1_tdfs_encode.h"
-#include "../../include/asn1_helpers.h"
+#include "../../include/helpers/asn1_tdfs_encode.h"
+#include "../../include/helpers/asn1_helpers.h"
 
 namespace ttp2::asn1::encode {
   namespace tdfs {

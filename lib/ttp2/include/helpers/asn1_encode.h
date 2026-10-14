@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "packet_types.h"
+#include "../packet_types.h"
 
 extern "C" {
 #include <libtasn1.h>

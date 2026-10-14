@@ -1,7 +1,7 @@
 #ifndef SERVER_SESSION_CONTROLLER_H
 #define SERVER_SESSION_CONTROLLER_H
 
-#include "networking.h"
+#include "core/networking.h"
 #include <sys/epoll.h>
 
 namespace ttp2 {

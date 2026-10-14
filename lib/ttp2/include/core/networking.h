@@ -1,7 +1,7 @@
 #ifndef NETWORKING_H
 #define NETWORKING_H
 
-#include "packet_types.h"
+#include "../packet_types.h"
 
 #include <tablog.h>
 

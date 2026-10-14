@@ -1,4 +1,4 @@
-#include "../../include/asn1_helpers.h"
+#include "../../include/helpers/asn1_helpers.h"
 
 #include <stdexcept>
 #include <tablog_registry.h>
