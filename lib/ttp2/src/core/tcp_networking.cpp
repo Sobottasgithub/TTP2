@@ -1,4 +1,4 @@
-#include "../../include/core/networking.h"
+#include "../../include/core/tcp_networking.h"
 #include "../../include/helpers/asn1_helpers.h"
 #include "../../include/helpers/asn1_decode.h"
 #include "../../include/helpers/asn1_encode.h"
@@ -37,22 +37,22 @@ extern const asn1_static_node packets_asn1_tab[];
 }
 
 namespace ttp2 {
-  bool Networking::hasResponse() {
+  bool TcpNetworking::hasResponse() {
     std::lock_guard<std::mutex> lock(mtx);
     return !responseQueue.empty();
   }
 
-  bool Networking::hasRequest() {
+  bool TcpNetworking::hasRequest() {
     std::lock_guard<std::mutex> lock(mtx);
     return !requestQueue.empty();
   }
 
-  bool Networking::isConnected() {
+  bool TcpNetworking::isConnected() {
     std::lock_guard<std::mutex> lock(mtx);
     return connected;
   }
 
-  Packet::Packet Networking::popRequest() {
+  Packet::Packet TcpNetworking::popRequest() {
     std::lock_guard<std::mutex> lock(mtx);
     if (!requestQueue.empty()) {
       Packet::Packet firstRequest = requestQueue[0];
@@ -63,7 +63,7 @@ namespace ttp2 {
     return emptyPacket;
   }
 
-  Packet::Packet Networking::popResponse() {
+  Packet::Packet TcpNetworking::popResponse() {
     std::lock_guard<std::mutex> lock(mtx);
     if (!responseQueue.empty()) {
       Packet::Packet firstResponse = responseQueue[0];
@@ -74,31 +74,31 @@ namespace ttp2 {
     return emptyPacket;
   }
 
-  void Networking::pushResponse(Packet::Packet response) {
+  void TcpNetworking::pushResponse(Packet::Packet response) {
     std::lock_guard<std::mutex> lock(mtx);
     responseQueue.push_back(response);
   }
 
-  void Networking::pushRequest(Packet::Packet request) {
+  void TcpNetworking::pushRequest(Packet::Packet request) {
     std::lock_guard<std::mutex> lock(mtx);
     requestQueue.push_back(request);
   }
 
-  int Networking::getRequestQueueSize() {
+  int TcpNetworking::getRequestQueueSize() {
     std::lock_guard<std::mutex> lock(mtx);
     return requestQueue.size();
   }
 
-  int Networking::getResponseQueueSize() {
+  int TcpNetworking::getResponseQueueSize() {
     std::lock_guard<std::mutex> lock(mtx);
     return responseQueue.size();
   }
 
-  int Networking::sendPacket(int socket, Packet::Packet packet) {
+  int TcpNetworking::sendPacket(int socket, Packet::Packet packet) {
     return sendMessage(socket, packet.id, packet.payload);
   }
 
-  int Networking::sendMessage(int socket, int id,
+  int TcpNetworking::sendMessage(int socket, int id,
                               Packet::payloadVariants payload) {
     if (id == -1) {
       id = autoId;
@@ -120,7 +120,7 @@ namespace ttp2 {
     return 0;
   }
 
-  Packet::Packet Networking::receiveMessage(int socket) {
+  Packet::Packet TcpNetworking::receiveMessage(int socket) {
     Packet::Packet data;
 
     unsigned char temp[4096];
@@ -169,7 +169,7 @@ namespace ttp2 {
     }
   }
 
-  ssize_t Networking::sendBytes(int socket, const char *buffer, size_t max) {
+  ssize_t TcpNetworking::sendBytes(int socket, const char *buffer, size_t max) {
     size_t sentBytes = 0;
     while (sentBytes < max) {
       ssize_t sent = send(socket, buffer + sentBytes, max - sentBytes, 0);
@@ -182,7 +182,7 @@ namespace ttp2 {
     return sentBytes;
   }
 
-  std::string Networking::getLocalIpAddress(std::string interface) {
+  std::string TcpNetworking::getLocalIpAddress(std::string interface) {
     struct ifaddrs *ifaddr = nullptr;
 
     // Get linked list of network interfaces
@@ -214,12 +214,12 @@ namespace ttp2 {
     return result;
   }
 
-  Networking::PacketInfo Networking::peekResponse() {
+  TcpNetworking::PacketInfo TcpNetworking::peekResponse() {
     return peekResponse(0);
   }
 
-  Networking::PacketInfo Networking::peekResponse(int index) {
-    Networking::PacketInfo packetInfo;
+  TcpNetworking::PacketInfo TcpNetworking::peekResponse(int index) {
+    TcpNetworking::PacketInfo packetInfo;
     if (index > getResponseQueueSize() - 1 || index < 0) {
       logger->log(tablog::ERROR, "Invalid peek request: " + std::to_string(index));
       return packetInfo;
@@ -231,12 +231,12 @@ namespace ttp2 {
     return packetInfo;
   }
 
-  Networking::PacketInfo Networking::peekRequest() {
+  TcpNetworking::PacketInfo TcpNetworking::peekRequest() {
     return peekRequest(0);
   }
 
-  Networking::PacketInfo Networking::peekRequest(int index) {
-    Networking::PacketInfo packetInfo;
+  TcpNetworking::PacketInfo TcpNetworking::peekRequest(int index) {
+    TcpNetworking::PacketInfo packetInfo;
     if (index > getRequestQueueSize() - 1 || index < 0) {
       logger->log(tablog::ERROR, "Invalid peek request: " + std::to_string(index));
       return packetInfo;
@@ -248,7 +248,7 @@ namespace ttp2 {
     return packetInfo;
   }
 
-  std::string Networking::getBroadcastIpAddress() {
+  std::string TcpNetworking::getBroadcastIpAddress() {
     struct ifaddrs *ifaddr = nullptr;
     std::string broadcastIP;
 
@@ -283,7 +283,7 @@ namespace ttp2 {
     return broadcastIP;
   }
 
-  bool Networking::isValidIpV4(std::string &ipString) {
+  bool TcpNetworking::isValidIpV4(std::string &ipString) {
     if (ipString.size() < 7)
       return false;
 
@@ -316,7 +316,7 @@ namespace ttp2 {
     return true;
   }
 
-  int Networking::bytesToInt(std::vector<char> bytes, int size) {
+  int TcpNetworking::bytesToInt(std::vector<char> bytes, int size) {
     int result = 0;
     for (int index = 0; index < size; index++)
     {
@@ -326,7 +326,7 @@ namespace ttp2 {
     return result;
   }
 
-  bool Networking::isValidInterface(std::string &interface) {
+  bool TcpNetworking::isValidInterface(std::string &interface) {
       struct ifaddrs *addresses;
       getifaddrs(&addresses);
 
@@ -343,9 +343,9 @@ namespace ttp2 {
       return isValid;
   }
 
-  void Networking::disconnect() {}
+  void TcpNetworking::disconnect() {}
 
-  void Networking::configureLogger(std::string name) {
+  void TcpNetworking::configureLogger(std::string name) {
     tablog::TablogRegistry* registry = &tablog::TablogRegistry::getInstance();
     std::shared_ptr<tablog::Tablog> logger = std::make_shared<tablog::Tablog>();
     logger->configure(name, true);
