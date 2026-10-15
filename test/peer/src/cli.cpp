@@ -8,7 +8,10 @@
 
 namespace test {
   Cli::Cli() {
-    auto peerSessionController = std::make_shared<ttp2::PeerSessionController>();
+    std::string ip = requestString("Server ip: ");
+    int port = requestInt("Server port: ");
+    
+    auto peerSessionController = std::make_shared<ttp2::PeerSessionController>(ip.c_str(), port);
     std::thread networkingSession([peerSessionController]() {
       peerSessionController->networkingSession();
     });

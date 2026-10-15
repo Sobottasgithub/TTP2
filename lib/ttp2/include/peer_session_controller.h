@@ -6,6 +6,7 @@
 namespace ttp2 {
   class PeerSessionController : public UdpNetworking {
     public:
+      PeerSessionController(const char *ip, int port);
       void networkingSession();
     private:
       void receiveSession();

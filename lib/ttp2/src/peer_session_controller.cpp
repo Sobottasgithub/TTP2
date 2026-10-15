@@ -4,6 +4,10 @@
 #include <sys/epoll.h>
 
 namespace ttp2 {
+  PeerSessionController::PeerSessionController(const char *ip, int port) {
+    this->createServerSocket(ip, port);
+  }
+  
   void PeerSessionController::networkingSession() {
     std::thread sendSessionThread([this]() {
         this->sendSession();
