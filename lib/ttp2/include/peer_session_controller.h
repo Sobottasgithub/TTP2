@@ -6,6 +6,10 @@
 namespace ttp2 {
   class PeerSessionController : public UdpNetworking {
     public:
+      void networkingSession();
+    private:
+      void receiveSession();
+      void sendSession();
   };
 }
 

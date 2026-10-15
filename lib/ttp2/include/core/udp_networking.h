@@ -2,6 +2,7 @@
 #define UDP_NETWORKING_H
 
 #include <string>
+#include <sys/epoll.h>
 
 namespace ttp2 {
   class UdpNetworking {
