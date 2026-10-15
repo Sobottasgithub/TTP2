@@ -49,6 +49,33 @@ namespace ttp2 {
   }
   
   void PeerSessionController::sendSession() {
-    // TODO: send all Packets from queue
-  } 
+    while (true) {
+      if (this->sendQueue.size() > 0) {
+        AddressedPacket addressedPacket = this->sendQueue.at(0);
+        const char *message = "HelloWorld!!!"; // TODO: Replace with real packet later!
+        sendMessageTo(addressedPacket.ip, addressedPacket.port, message);
+      }
+    }
+  }
+
+  void PeerSessionController::sendPacket(AddressedPacket addressedPacket) {
+    sendQueue.push_back(addressedPacket);
+  }
+  
+  PeerSessionController::AddressedPacket PeerSessionController::receivePacket() {
+    AddressedPacket addressedPacket;
+    if (hasPacket()) {
+      addressedPacket = this->receivedQueue.at(0);
+      this->receivedQueue.erase(this->receivedQueue.begin());
+      return addressedPacket;
+    }
+    return addressedPacket;
+  }
+  
+  bool PeerSessionController::hasPacket() {
+    if (this->receivedQueue.size() > 0) {
+      return true;
+    }
+    return false;
+  }
 }
