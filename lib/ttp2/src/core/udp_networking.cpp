@@ -8,9 +8,8 @@
 #include <sys/types.h> 
 #include <sys/socket.h> 
 #include <arpa/inet.h> 
-#include <netinet/in.h>
 #include <sys/epoll.h>
-#include <fcntl.h>
+#include <netinet/in.h>
 
 namespace ttp2 {
   void UdpNetworking::createServerSocket(const char *ip, int port) {
@@ -46,6 +45,17 @@ namespace ttp2 {
       close(this->epollFd);
       throw std::runtime_error("epoll_ctl failed");
     }
+  }
+
+  std::string UdpNetworking::receivePacketFrom() {
+    sockaddr_in clientAddress{};
+    socklen_t clientLength = sizeof(clientAddress);
+    char buffer[1024];
+    ssize_t bytes = recvfrom(this->serverSocket, buffer, sizeof(buffer), 0, 
+                             (struct sockaddr*)&clientAddress, &clientLength);
+
+    std::cout << buffer << std::endl;
+    return "";
   }
 
   void UdpNetworking::sendMessageTo(const char *ip, int port, const char *buffer) {
