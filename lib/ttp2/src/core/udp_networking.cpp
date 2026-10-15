@@ -10,14 +10,15 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h>
 #include <sys/epoll.h>
+#include <fcntl.h>
 
 namespace ttp2 {
   void UdpNetworking::createServerSocket(const char *ip, int port) {
     struct sockaddr_in serverAddress; 
       
-    if ((this->serverSocket = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((this->serverSocket = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0)) < 0) {
       throw std::runtime_error("Failed creating the server socket"); 
-    } 
+    }
       
     memset(&serverAddress, 0, sizeof(serverAddress)); 
       
