@@ -23,12 +23,18 @@ namespace ttp2 {
       AddressedPacket receivePacket();
       bool hasPacket();
 
+      bool isConnected();
+      void disconnect();
+
     private:
+      std::mutex connectedMutex;
       std::mutex receiveMutex;
       std::mutex sendMutex;
       
       std::vector<AddressedPacket> receivedQueue = {};
       std::vector<AddressedPacket> sendQueue = {};
+
+      bool connected = true;
       
       void receiveSession();
       void sendSession();

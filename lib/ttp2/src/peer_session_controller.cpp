@@ -3,6 +3,7 @@
 #include <mutex>
 #include <thread>
 #include <sys/epoll.h>
+#include <unistd.h>
 
 namespace ttp2 {
   PeerSessionController::PeerSessionController(const char *ip, int port) {
@@ -18,7 +19,7 @@ namespace ttp2 {
         this->receiveSession();
     });
  
-    while (true) {
+    while (isConnected()) {
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
@@ -35,7 +36,7 @@ namespace ttp2 {
     static const int maxEvents = 100;
     epoll_event events[maxEvents];
 
-    while (true) {
+    while (isConnected()) {
       int receivedEvents = epoll_wait(this->epollFd, events, maxEvents, -1);
       if (receivedEvents == -1) {
         if (errno == EINTR) continue;
@@ -52,7 +53,7 @@ namespace ttp2 {
   }
   
   void PeerSessionController::sendSession() {
-    while (true) {
+    while (isConnected()) {
       std::unique_lock<std::mutex> lock(sendMutex);
       if (this->sendQueue.size() > 0) {
         AddressedPacket addressedPacket = this->sendQueue.at(0);
@@ -85,5 +86,17 @@ namespace ttp2 {
       return true;
     }
     return false;
+  }
+
+  bool PeerSessionController::isConnected() {
+    std::lock_guard<std::mutex> lock(connectedMutex);
+    return this->connected;
+  }
+  
+  void PeerSessionController::disconnect() {
+    std::lock_guard<std::mutex> lock(connectedMutex);
+    this->connected = false;
+    close(this->serverSocket);
+    close(this->epollFd);
   }
 }
