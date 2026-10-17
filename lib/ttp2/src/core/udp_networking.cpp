@@ -49,11 +49,21 @@ namespace ttp2 {
   std::string UdpNetworking::receivePacketFrom() {
     sockaddr_in clientAddress{};
     socklen_t clientLength = sizeof(clientAddress);
-    char buffer[1024];
-    ssize_t bytes = recvfrom(this->serverSocket, buffer, sizeof(buffer), 0, 
+
+    std::vector<char> buffer(1024);
+    ssize_t bytes = recvfrom(this->serverSocket, buffer.data(), buffer.size(), MSG_PEEK | MSG_TRUNC, 
                              (struct sockaddr*)&clientAddress, &clientLength);
 
-    std::cout << buffer << std::endl;
+    if (bytes < 0) {
+      std::cout << "Error while receiving" << std::endl;
+      return "";
+    } else if (static_cast<size_t>(bytes) > buffer.size()) {
+      buffer.resize(bytes);
+      bytes = recvfrom(this->serverSocket, buffer.data(), buffer.size(), 0, 
+                       (struct sockaddr*)&clientAddress, &clientLength);
+    }
+    
+    std::cout << std::string(buffer.begin(), buffer.end()) << std::endl;
     return "";
   }
 
