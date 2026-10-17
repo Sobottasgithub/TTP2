@@ -1,5 +1,6 @@
 #include "../include/peer_session_controller.h"
 
+#include <mutex>
 #include <thread>
 #include <sys/epoll.h>
 
@@ -42,7 +43,9 @@ namespace ttp2 {
 
       for (int index = 0; index < receivedEvents; ++index) {
         if (events[index].data.fd == this->serverSocket) {
+          std::unique_lock<std::mutex> lock(receiveMutex);
           receivePacketFrom(); // TODO: Push received Packet
+          lock.unlock();
         }
       }
     }
@@ -50,19 +53,23 @@ namespace ttp2 {
   
   void PeerSessionController::sendSession() {
     while (true) {
+      std::unique_lock<std::mutex> lock(sendMutex);
       if (this->sendQueue.size() > 0) {
         AddressedPacket addressedPacket = this->sendQueue.at(0);
         const char *message = "HelloWorld!!!"; // TODO: Replace with real packet later!
         sendMessageTo(addressedPacket.ip, addressedPacket.port, message);
       }
+      lock.unlock();
     }
   }
 
   void PeerSessionController::sendPacket(AddressedPacket addressedPacket) {
+    std::lock_guard<std::mutex> lock(sendMutex);
     sendQueue.push_back(addressedPacket);
   }
   
   PeerSessionController::AddressedPacket PeerSessionController::receivePacket() {
+    std::lock_guard<std::mutex> lock(receiveMutex);
     AddressedPacket addressedPacket;
     if (hasPacket()) {
       addressedPacket = this->receivedQueue.at(0);
@@ -73,6 +80,7 @@ namespace ttp2 {
   }
   
   bool PeerSessionController::hasPacket() {
+    std::lock_guard<std::mutex> lock(receiveMutex);
     if (this->receivedQueue.size() > 0) {
       return true;
     }

@@ -5,6 +5,7 @@
 #include "packet_types.h"
 
 #include <vector>
+#include <mutex>
 
 namespace ttp2 {
   class PeerSessionController : public UdpNetworking {
@@ -23,6 +24,9 @@ namespace ttp2 {
       bool hasPacket();
 
     private:
+      std::mutex receiveMutex;
+      std::mutex sendMutex;
+      
       std::vector<AddressedPacket> receivedQueue = {};
       std::vector<AddressedPacket> sendQueue = {};
       
