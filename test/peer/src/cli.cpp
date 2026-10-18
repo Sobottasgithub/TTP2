@@ -4,18 +4,25 @@
 
 #include <iostream>
 #include <regex>
+#include <thread>
 
 namespace test {
-  Cli::Cli() {    
+  Cli::Cli() {
+    std::string ip = requestString("Server ip: ");
+    int port = requestInt("Server port: ");
+    
+    auto peerSessionController = std::make_shared<ttp2::PeerSessionController>(ip.c_str(), port);
+    std::thread networkingSession([peerSessionController]() {
+      peerSessionController->networkingSession();
+    });
+    
     while (true) {
-      int option = requestInt("(1) connect\n(2) send\n(3) receive\nchoose option: ");
+      int option = requestInt("(1) send\n(2) receive\nchoose option: ");
 
       switch (option) {
         case 1:
           continue;
         case 2:
-          continue;
-        case 3:
           continue;
         default:
           std::cout << "Unknown option!" << std::endl;
