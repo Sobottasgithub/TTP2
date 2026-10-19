@@ -1,6 +1,7 @@
 #include "../../include/core/udp_networking.h"
 
 #include "../../include/helpers/asn1_encode.h"
+#include "../../include/helpers/asn1_decode.h"
 
 #include <bits/stdc++.h> 
 #include <stdexcept>
@@ -48,7 +49,8 @@ namespace ttp2 {
     }
   }
 
-  std::string UdpNetworking::receivePacketFrom() {
+  Packet::Packet UdpNetworking::receivePacketFrom() {
+    Packet::Packet packet;
     sockaddr_in clientAddress{};
     socklen_t clientLength = sizeof(clientAddress);
 
@@ -58,18 +60,26 @@ namespace ttp2 {
 
     if (bytes < 0) {
       std::cout << "Error while receiving" << std::endl;
-      return "";
+      return packet;
     } else if (static_cast<size_t>(bytes) > buffer.size()) {
       buffer.resize(bytes);
       bytes = recvfrom(this->serverSocket, buffer.data(), buffer.size(), 0, 
                        (struct sockaddr*)&clientAddress, &clientLength);
     }
-    
+
+    // DEBUG
+    char clientIP[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(clientAddress.sin_addr), clientIP, INET_ADDRSTRLEN);
+    uint16_t clientPort = ntohs(clientAddress.sin_port);
+    std::cout << "Client IP: " << clientIP << std::endl;
+    std::cout << "Client Port: " << clientPort << std::endl;
     std::cout << std::string(buffer.begin(), buffer.end()) << std::endl;
-    return "";
+
+    packet = asn1::decode::decode(buffer);
+    return packet;
   }
 
-  void UdpNetworking::sendPacket(const char *ip, int port, ttp2::Packet::Packet packet) {
+  void UdpNetworking::sendPacketTo(const char *ip, int port, ttp2::Packet::Packet packet) {
     std::vector<unsigned char> encodedPacket = ttp2::asn1::encode::encode(packet.payload, packet.id);
     const char* encodedData = reinterpret_cast<const char*>(encodedPacket.data());
     sendMessageTo(ip, port, encodedData);

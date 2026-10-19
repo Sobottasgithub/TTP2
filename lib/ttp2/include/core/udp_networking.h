@@ -11,7 +11,7 @@ namespace ttp2 {
     public:
       void createServerSocket(const char *ip, int port);
       void sendMessageTo(const char *ip, int port, const char *buffer);
-      std::string receivePacketFrom();
+      Packet::Packet receivePacketFrom();
       void sendPacketTo(const char *ip, int port, ttp2::Packet::Packet packet);
 
     protected:      
