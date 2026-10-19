@@ -45,7 +45,7 @@ namespace ttp2 {
       for (int index = 0; index < receivedEvents; ++index) {
         if (events[index].data.fd == this->serverSocket) {
           std::unique_lock<std::mutex> lock(receiveMutex);
-          receivePacketFrom(); // TODO: Push received Packet
+          receivePacketFrom();
           lock.unlock();
         }
       }
@@ -57,6 +57,7 @@ namespace ttp2 {
       std::unique_lock<std::mutex> lock(sendMutex);
       if (this->sendQueue.size() > 0) {
         AddressedPacket addressedPacket = this->sendQueue.at(0);
+        this->sendQueue.erase(this->sendQueue.begin());
         sendPacketTo(addressedPacket.ip, addressedPacket.port, addressedPacket.packet);
       }
       lock.unlock();

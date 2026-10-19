@@ -102,7 +102,5 @@ namespace ttp2 {
 
     sendto(serverSocket, buffer, strlen(buffer), MSG_CONFIRM,
            (const struct sockaddr *)&serverAddress, sizeof(serverAddress));
-
-    std::cout << "SEND!" << std::endl;
   }
 }
