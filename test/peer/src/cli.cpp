@@ -1,6 +1,7 @@
 #include "cli.h"
 
 #include "peer_session_controller.h"
+#include "packet_types.h"
 
 #include <iostream>
 #include <regex>
@@ -18,10 +19,28 @@ namespace test {
     
     while (true) {
       int option = requestInt("(1) send\n(2) receive\nchoose option: ");
+      
+      std::string receiverIp = "";
+      int receiverPort = 0;
+      std::string message = "";
+      ttp2::PeerSessionController::AddressedPacket addressPacket; 
+      ttp2::Packet::Packet packet;
+      ttp2::Packet::Standard standardPacket;
 
       switch (option) {
         case 1:
-          continue;
+          receiverIp = requestString("Server ip: ");
+          receiverPort = requestInt("Server port: ");
+          message = requestString("Message: ");
+
+          standardPacket.payload = message;
+          packet.payload = standardPacket;
+          packet.id = 1;
+          addressPacket.ip = receiverIp.c_str();
+          addressPacket.port = receiverPort;
+          addressPacket.packet = packet;
+
+          peerSessionController->sendPacket(addressPacket);
         case 2:
           continue;
         default:
