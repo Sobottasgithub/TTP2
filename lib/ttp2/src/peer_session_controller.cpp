@@ -57,8 +57,7 @@ namespace ttp2 {
       std::unique_lock<std::mutex> lock(sendMutex);
       if (this->sendQueue.size() > 0) {
         AddressedPacket addressedPacket = this->sendQueue.at(0);
-        const char *message = "HelloWorld!!!"; // TODO: Replace with real packet later!
-        sendMessageTo(addressedPacket.ip, addressedPacket.port, message);
+        sendPacketTo(addressedPacket.ip, addressedPacket.port, addressedPacket.packet);
       }
       lock.unlock();
     }

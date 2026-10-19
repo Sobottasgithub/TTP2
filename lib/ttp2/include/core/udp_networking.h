@@ -4,12 +4,15 @@
 #include <string>
 #include <sys/epoll.h>
 
+#include "../packet_types.h"
+
 namespace ttp2 {
   class UdpNetworking {
     public:
       void createServerSocket(const char *ip, int port);
       void sendMessageTo(const char *ip, int port, const char *buffer);
       std::string receivePacketFrom();
+      void sendPacketTo(const char *ip, int port, ttp2::Packet::Packet packet);
 
     protected:      
       int serverSocket;

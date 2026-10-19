@@ -1,5 +1,7 @@
 #include "../../include/core/udp_networking.h"
 
+#include "../../include/helpers/asn1_encode.h"
+
 #include <bits/stdc++.h> 
 #include <stdexcept>
 #include <stdlib.h> 
@@ -65,6 +67,12 @@ namespace ttp2 {
     
     std::cout << std::string(buffer.begin(), buffer.end()) << std::endl;
     return "";
+  }
+
+  void UdpNetworking::sendPacket(const char *ip, int port, ttp2::Packet::Packet packet) {
+    std::vector<unsigned char> encodedPacket = ttp2::asn1::encode::encode(packet.payload, packet.id);
+    const char* encodedData = reinterpret_cast<const char*>(encodedPacket.data());
+    sendMessageTo(ip, port, encodedData);
   }
 
   void UdpNetworking::sendMessageTo(const char *ip, int port, const char *buffer) {
