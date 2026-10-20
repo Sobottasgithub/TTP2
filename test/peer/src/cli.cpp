@@ -41,7 +41,19 @@ namespace test {
           addressPacket.packet = packet;
 
           peerSessionController->sendPacket(addressPacket);
+          continue;
         case 2:
+          while (peerSessionController->hasPacket()) {
+            ttp2::PeerSessionController::AddressedPacket receivedPacket = peerSessionController->popReceivedPacket();
+            std::cout << "-------------Start-------------" << std::endl;
+            std::cout << "IP: " << receivedPacket.ip << std::endl;
+            std::cout << "ID: " << receivedPacket.packet.id << std::endl;
+            if (std::holds_alternative<ttp2::Packet::Standard>(receivedPacket.packet.payload)) {
+              ttp2::Packet::Standard standard = std::get<ttp2::Packet::Standard>(receivedPacket.packet.payload);
+              std::cout << "Payload: " << standard.payload << std::endl;
+            }
+            std::cout << "------------- End -------------" << std::endl;
+          }
           continue;
         default:
           std::cout << "Unknown option!" << std::endl;

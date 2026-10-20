@@ -44,8 +44,14 @@ namespace ttp2 {
 
       for (int index = 0; index < receivedEvents; ++index) {
         if (events[index].data.fd == this->serverSocket) {
+          AddressedPacket addressedPacket;
           std::unique_lock<std::mutex> lock(receiveMutex);
-          receivePacketFrom();
+          // type INFO: string, int Packet::Packet
+          auto [ip, port, packet] = receivePacketFrom();
+          addressedPacket.ip = ip.c_str();
+          addressedPacket.port = port;
+          addressedPacket.packet = packet;
+          receivedQueue.push_back(addressedPacket);
           lock.unlock();
         }
       }
@@ -69,10 +75,10 @@ namespace ttp2 {
     sendQueue.push_back(addressedPacket);
   }
   
-  PeerSessionController::AddressedPacket PeerSessionController::receivePacket() {
+  PeerSessionController::AddressedPacket PeerSessionController::popReceivedPacket() {
     std::lock_guard<std::mutex> lock(receiveMutex);
     AddressedPacket addressedPacket;
-    if (hasPacket()) {
+    if (receivedQueue.size() > 0) {
       addressedPacket = this->receivedQueue.at(0);
       this->receivedQueue.erase(this->receivedQueue.begin());
       return addressedPacket;

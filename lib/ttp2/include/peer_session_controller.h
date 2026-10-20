@@ -20,7 +20,7 @@ namespace ttp2 {
       void networkingSession();
 
       void sendPacket(AddressedPacket addressedPacket);
-      AddressedPacket receivePacket();
+      AddressedPacket popReceivedPacket();
       bool hasPacket();
 
       bool isConnected();
