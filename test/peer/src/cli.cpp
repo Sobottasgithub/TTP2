@@ -61,7 +61,6 @@ namespace test {
     }
   }
 
-
   bool Cli::isNumeric(const std::string& string) {
     static const std::regex numberRegex(
         R"(^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$)"

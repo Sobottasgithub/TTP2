@@ -5,8 +5,24 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
+#include <tablog.h>
+#include <tablog_registry.h>
+
 namespace ttp2 {
   PeerSessionController::PeerSessionController(const char *ip, int port) {
+    std::string name = "Peer - TTP2";
+    tablog::TablogRegistry* registry = &tablog::TablogRegistry::getInstance();
+    this->logger = std::make_shared<tablog::Tablog>();
+
+    struct LoglevelConfig {
+      std::string color = "";
+      bool visible = true;
+    };
+    tablog::Tablog::LoglevelConfig debugConfig;
+    debugConfig.visible = false;
+    this->logger->configure(name, true, true, true, false, debugConfig);
+    registry->registerLogger(name, logger);
+
     this->createServerSocket(ip, port);
   }
   
@@ -51,6 +67,7 @@ namespace ttp2 {
           addressedPacket.ip = ip.c_str();
           addressedPacket.port = port;
           addressedPacket.packet = packet;
+          logger->log(tablog::DEBUG, "Received message from ip: " + ip);
           receivedQueue.push_back(addressedPacket);
           lock.unlock();
         }
@@ -65,6 +82,7 @@ namespace ttp2 {
         AddressedPacket addressedPacket = this->sendQueue.at(0);
         this->sendQueue.erase(this->sendQueue.begin());
         sendPacketTo(addressedPacket.ip, addressedPacket.port, addressedPacket.packet);
+        logger->log(tablog::DEBUG, "Packet sent");
       }
       lock.unlock();
     }
@@ -101,6 +119,7 @@ namespace ttp2 {
   
   void PeerSessionController::disconnect() {
     std::lock_guard<std::mutex> lock(connectedMutex);
+    logger->log(tablog::DEBUG, "Disconnect");
     this->connected = false;
     close(this->serverSocket);
     close(this->epollFd);

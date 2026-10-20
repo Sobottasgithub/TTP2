@@ -57,14 +57,14 @@ namespace ttp2 {
     ssize_t bytes = recvfrom(this->serverSocket, nullptr, 0, MSG_PEEK | MSG_TRUNC, 
                              (struct sockaddr*)&clientAddress, &clientLength);
     if (bytes < 0) {
-      std::cout << "Error while receiving" << std::endl;
+      logger->log(tablog::ERROR, "Error while receiving");
       return {"", -1, packet};
     }
     std::vector<unsigned char> buffer(bytes);
     bytes = recvfrom(this->serverSocket, buffer.data(), buffer.size(), 0, 
                      (struct sockaddr*)&clientAddress, &clientLength);
     if (bytes < 0) {
-      std::cout << "Error while consuming packet" << std::endl;
+      logger->log(tablog::ERROR, "Error while consuming packet");
       return {"", -1, packet};
     }
     

@@ -4,6 +4,7 @@
 #include <string>
 #include <sys/epoll.h>
 #include <tuple>
+#include <tablog.h>
 
 #include "../packet_types.h"
 
@@ -15,7 +16,9 @@ namespace ttp2 {
       std::tuple<std::string, int, Packet::Packet> receivePacketFrom();
       void sendPacketTo(const char *ip, int port, ttp2::Packet::Packet packet);
 
-    protected:      
+    protected:
+      std::shared_ptr<tablog::Tablog> logger;
+
       int serverSocket;
       int epollFd;
   };
