@@ -1,5 +1,19 @@
-<h1 id="include">Include</h1>
-
+# Include
+Add the following to your flake:
+```nix
+inputs = {
+    ...
+    ttp2 = {
+      url = "github:Sobottasgithub/ttp2";
+    };
+    ...
+};
+```
+After that you can just use it like a normal lib.
+Now add the following to your Cmake:
+```CMake
+target_link_libraries(YOURNAME PRIVATE ttp2)
+```
 # Use
 To use TTP2 in your project you need to [include](#include) it in first. <br>
 After including TTP2 to your project you can start to program the server.
