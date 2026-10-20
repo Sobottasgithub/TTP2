@@ -96,7 +96,8 @@ Now you can enjoy TTP2 with the functions provided below:
    - std::string getLocalIpAddress(std::string interface);
 
 # Test
-To test the TTP2 protocol you need to start the server first using:
+## TCP
+To test the TTP2 TCP protocol you need to start the server first using:
 ```
 nix run .#server
 ```
@@ -104,3 +105,10 @@ After that you can start the client with:
 ```
 nix run .#client
 ```
+
+## UDP
+To test the TTP2 UDP protocol you need to start at least two peers on one or more devices:
+```
+nix run .#peer
+```
+If you run more that one peers on one device make sure to use different ports.
