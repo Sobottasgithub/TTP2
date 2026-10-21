@@ -149,11 +149,13 @@ namespace test {
     int lastPacketId = 0;
     while (true) {
         this->clientSessionController->pushRequest(packet);
-        while(this->clientSessionController->hasResponse()) {
+        int count = 10;
+        while(count > 0 && this->clientSessionController->hasResponse()) {
             ttp2::Packet::Packet packet = this->clientSessionController->popResponse();
             // Packet::Standard standard = std::get<Packet::Standard>(packet.payload);
             lastPacketId = packet.id;
             receivedPackets++;
+            count--;
         }
     
         std::chrono::time_point end = std::chrono::steady_clock::now();

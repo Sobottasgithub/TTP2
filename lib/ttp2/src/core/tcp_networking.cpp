@@ -38,22 +38,22 @@ extern const asn1_static_node packets_asn1_tab[];
 
 namespace ttp2 {
   bool TcpNetworking::hasResponse() {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(responseMutex);
     return !responseQueue.empty();
   }
 
   bool TcpNetworking::hasRequest() {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(requestMutex);
     return !requestQueue.empty();
   }
 
   bool TcpNetworking::isConnected() {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(connectedMutex);
     return connected;
   }
 
   Packet::Packet TcpNetworking::popRequest() {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(requestMutex);
     if (!requestQueue.empty()) {
       Packet::Packet firstRequest = requestQueue[0];
       requestQueue.erase(requestQueue.begin());
@@ -64,7 +64,7 @@ namespace ttp2 {
   }
 
   Packet::Packet TcpNetworking::popResponse() {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(responseMutex);
     if (!responseQueue.empty()) {
       Packet::Packet firstResponse = responseQueue[0];
       responseQueue.erase(responseQueue.begin());
@@ -75,22 +75,22 @@ namespace ttp2 {
   }
 
   void TcpNetworking::pushResponse(Packet::Packet response) {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(responseMutex);
     responseQueue.push_back(response);
   }
 
   void TcpNetworking::pushRequest(Packet::Packet request) {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(requestMutex);
     requestQueue.push_back(request);
   }
 
   int TcpNetworking::getRequestQueueSize() {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(requestMutex);
     return requestQueue.size();
   }
 
   int TcpNetworking::getResponseQueueSize() {
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(responseMutex);
     return responseQueue.size();
   }
 
@@ -225,7 +225,7 @@ namespace ttp2 {
       return packetInfo;
     }
 
-    std::lock_guard<std::mutex> lock(mtx);
+    std::lock_guard<std::mutex> lock(responseMutex);
     packetInfo.id = responseQueue[index].id;
     packetInfo.payloadType = responseQueue[index].payload;
     return packetInfo;
@@ -236,13 +236,13 @@ namespace ttp2 {
   }
 
   TcpNetworking::PacketInfo TcpNetworking::peekRequest(int index) {
+    std::lock_guard<std::mutex> lock(requestMutex);
     TcpNetworking::PacketInfo packetInfo;
     if (index > getRequestQueueSize() - 1 || index < 0) {
       logger->log(tablog::ERROR, "Invalid peek request: " + std::to_string(index));
       return packetInfo;
     }
 
-    std::lock_guard<std::mutex> lock(mtx);
     packetInfo.id = requestQueue[index].id;
     packetInfo.payloadType = requestQueue[index].payload;
     return packetInfo;

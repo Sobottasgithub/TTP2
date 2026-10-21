@@ -65,7 +65,9 @@ namespace ttp2 {
 
         std::vector<Packet::Packet> requestQueue;
         std::vector<Packet::Packet> responseQueue;
-        std::mutex mtx;
+        std::mutex connectedMutex;
+        std::mutex requestMutex;
+        std::mutex responseMutex;
         ssize_t sendBytes(int socket, const char* buffer, size_t max);
 
         std::map<int, std::vector<unsigned char>> sessionBuffers;
