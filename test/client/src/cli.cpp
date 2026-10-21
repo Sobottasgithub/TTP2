@@ -132,6 +132,7 @@ namespace test {
   void Cli::benchmark() {
     std::cout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
     int payloadSize = test::Helpers::requestInt("(Int) payload size: ");
+    int delay = test::Helpers::requestInt("(Int) ms delay: ");
 
     std::string payload = "";
     for (int index = 0; index <= payloadSize; ++index) {
@@ -149,6 +150,7 @@ namespace test {
     int lastPacketId = 0;
     while (true) {
         this->clientSessionController->pushRequest(packet);
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
         int count = 10;
         while(count > 0 && this->clientSessionController->hasResponse()) {
             ttp2::Packet::Packet packet = this->clientSessionController->popResponse();
