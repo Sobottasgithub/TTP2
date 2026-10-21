@@ -1,7 +1,7 @@
-#ifndef NETWORKING_H
-#define NETWORKING_H
+#ifndef TCP_NETWORKING_H
+#define TCP_NETWORKING_H
 
-#include "packet_types.h"
+#include "../packet_types.h"
 
 #include <tablog.h>
 
@@ -16,7 +16,7 @@
 #include <arrow/io/api.h>
 
 namespace ttp2 {
-  class Networking
+  class TcpNetworking
   {
       public:
         bool isConnected();

@@ -1,6 +1,103 @@
-<h1 id="include">Include</h1>
+# Include
+Add the following to your flake:
+```nix
+inputs = {
+    ...
+    ttp2 = {
+      url = "github:Sobottasgithub/ttp2";
+    };
+    ...
+};
+```
+After that you can just use it like a normal lib.
+Now add the following to your Cmake:
+```CMake
+target_link_libraries(YOURNAME PRIVATE ttp2)
+```
+# Types
+The following types are supported:
+```cpp
+  struct Standard {
+    std::string payload = "";
+  };
 
+  struct File {
+  	std::string filePath = "";
+    int start = -1;
+  	int end = -1;
+  	std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
+  };
+
+  struct ViewportRequest {
+    int xStart = 0;
+    int xEnd = 0;
+    int yStart = 0;
+    int yEnd = 0;
+  };
+
+  struct Viewport {
+    int xStart = 0;
+    int xEnd = 0;
+    int yStart = 0;
+    int yEnd = 0;
+    std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
+  };
+
+  struct TqlQuery {
+    std::string query = "";
+  };
+
+  struct Error {
+    int code = 0;
+    std::string message = "";
+  };
+
+  struct Universal {
+    int type;
+    std::vector<uint8_t> bytes;
+  };
+```
+<b>TDFS packet types</b>
+```cpp
+    struct Ls {
+      std::string directory;
+    };
+
+    struct LsSolution {
+      std::vector<std::string> content;
+    };
+
+```
+Then use it in the Packet wrapper to send it later:
+```cpp
+struct Packet {
+    int id = -1;
+    payloadVariants payload;  
+};
+```
 # Use
+## UDP
+To use TTP2 in your project you need to [include](#include) it in first. <br>
+After including TTP2 to your project you can start to program the server.
+```cpp
+    #include <peer_session_controller.h>
+```
+After including the peer_session_controller you can initialize it via:
+```cpp
+    auto peerSessionController = std::make_shared<ttp2::PeerSessionController>(ip, port);
+    std::thread networkingSession([peerSessionController]() {
+        peerSessionController->networkingSession();
+    });
+```
+Then you can use the following api functions:
+- void sendPacket(AddressedPacket addressedPacket);
+- AddressedPacket popReceivedPacket();
+- bool hasPacket();
+
+- bool isConnected();
+- void disconnect();
+
+## TCP
 To use TTP2 in your project you need to [include](#include) it in first. <br>
 After including TTP2 to your project you can start to program the server.
 1. Create a server tcp socket is set non blocking (SOCK_NONBLOCK):
@@ -96,7 +193,8 @@ Now you can enjoy TTP2 with the functions provided below:
    - std::string getLocalIpAddress(std::string interface);
 
 # Test
-To test the TTP2 protocol you need to start the server first using:
+## TCP
+To test the TTP2 TCP protocol you need to start the server first using:
 ```
 nix run .#server
 ```
@@ -104,3 +202,10 @@ After that you can start the client with:
 ```
 nix run .#client
 ```
+
+## UDP
+To test the TTP2 UDP protocol you need to start at least two peers on one or more devices:
+```
+nix run .#peer
+```
+If you run more that one peers on one device make sure to use different ports.

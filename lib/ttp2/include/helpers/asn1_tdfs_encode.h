@@ -1,7 +1,7 @@
 #ifndef ASN1_TDFS_ENCODE_H
 #define ASN1_TDFS_ENCODE_H
 
-#include "tdfs_packet_types.h"
+#include "../tdfs_packet_types.h"
 
 extern "C" {
 #include <libtasn1.h>

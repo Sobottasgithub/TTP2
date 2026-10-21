@@ -12,10 +12,6 @@
 #include <sys/epoll.h>
 
 namespace ttp2 {
-  ClientSessionController::ClientSessionController() {
-    configureLogger("TTP2");
-  }
-
   ClientSessionController::ClientSessionController(std::string ipV4, int port) {
     configureLogger("TTP2");
     // WARNING: ::socket is used here because otherwise it would interfere with (int) this->socket

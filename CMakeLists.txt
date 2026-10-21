@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(DEF_TTP2 "configure library" ON)
 option(DEF_CLIENT "configure client" ON)
 option(DEF_SERVER "configure server" ON)
+option(DEF_PEER "configure peer" ON)
 
 if(DEF_TTP2)
     add_subdirectory(lib/ttp2)
@@ -18,4 +19,8 @@ endif()
 
 if(DEF_SERVER)
     add_subdirectory(test/server)
+endif()
+
+if(DEF_PEER)
+    add_subdirectory(test/peer)
 endif()

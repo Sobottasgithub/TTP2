@@ -68,8 +68,7 @@ int main() {
         return -1;
     }
 
-    ServerSessionController tempServerSessionController;
-    std::string containerIP = tempServerSessionController.getLocalIpAddress(interface);
+    std::string containerIP = ServerSessionController::getLocalIpAddress(interface);
 
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;

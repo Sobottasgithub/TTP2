@@ -1,14 +1,13 @@
 #ifndef SERVER_SESSION_CONTROLLER_H
 #define SERVER_SESSION_CONTROLLER_H
 
-#include "networking.h"
+#include "core/tcp_networking.h"
 #include <sys/epoll.h>
 
 namespace ttp2 {
-  class ServerSessionController: public Networking
+  class ServerSessionController: public TcpNetworking
   {
       public:
-        ServerSessionController();
         ServerSessionController(int serverSocket, int clientSocket);
         void networkingSession();
         void disconnect() override;

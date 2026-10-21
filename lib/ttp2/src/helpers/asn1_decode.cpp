@@ -1,7 +1,7 @@
-#include "../include/asn1_decode.h"
-#include "../include/asn1_helpers.h"
-#include "../include/asn1_tdfs_decode.h"
-#include "../include/tdfs_packet_types.h"
+#include "../../include/helpers/asn1_decode.h"
+#include "../../include/helpers/asn1_helpers.h"
+#include "../../include/helpers/asn1_tdfs_decode.h"
+#include "../../include/tdfs_packet_types.h"
 
 #include <libtasn1.h>
 #include <stdexcept>

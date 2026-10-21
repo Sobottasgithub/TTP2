@@ -1,14 +1,13 @@
 #ifndef CLIENT_SESSION_CONTROLLER_H
 #define CLIENT_SESSION_CONTROLLER_H
 
-#include "networking.h"
+#include "core/tcp_networking.h"
 #include <sys/epoll.h>
 
 namespace ttp2 {
-  class ClientSessionController: public Networking
+  class ClientSessionController: public TcpNetworking
   {
       public:
-        ClientSessionController();
         ClientSessionController(std::string ipV4, int port);
         ClientSessionController(int &socket);
         void networkingSession();
