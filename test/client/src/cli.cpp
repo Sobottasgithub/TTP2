@@ -132,7 +132,7 @@ namespace test {
   void Cli::benchmark() {
     std::cout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
     int payloadSize = test::Helpers::requestInt("(Int) payload size: ");
-    int delay = test::Helpers::requestInt("(Int) ms delay: ");
+    int maxPacketCount = test::Helpers::requestInt("(Int) max packet count: ");
 
     std::string payload = "";
     for (int index = 0; index <= payloadSize; ++index) {
@@ -145,12 +145,13 @@ namespace test {
     packet.payload = standard;
 
     std::chrono::time_point start = std::chrono::steady_clock::now();
+    std::chrono::time_point deltaStart = std::chrono::steady_clock::now();
     int maxPackets = 0;
     int receivedPackets = 0;
     int lastPacketId = 0;
-    while (true) {
+    while (lastPacketId < maxPacketCount) {
         this->clientSessionController->pushRequest(packet);
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         int count = 10;
         while(count > 0 && this->clientSessionController->hasResponse()) {
             ttp2::Packet::Packet packet = this->clientSessionController->popResponse();
@@ -160,15 +161,17 @@ namespace test {
             count--;
         }
     
-        std::chrono::time_point end = std::chrono::steady_clock::now();
-        if (std::chrono::duration_cast<std::chrono::seconds>(end - start).count() >= 1) {
-            std::cout << "\r\033[2K" << "Last id: " << lastPacketId << " ~ " << receivedPackets << "pp/s" << " ~ max: " << maxPackets << "pp/s"<< std::flush;
-            start = end;
+        std::chrono::time_point deltaEnd = std::chrono::steady_clock::now();
+        if (std::chrono::duration_cast<std::chrono::seconds>(deltaEnd - deltaStart).count() >= 1) {
+            // std::cout << "\r\033[2K" << "Last id: " << lastPacketId << " ~ " << receivedPackets << "pp/s" << " ~ max: " << maxPackets << "pp/s"<< std::flush;
+            deltaStart = deltaEnd;
             if (receivedPackets > maxPackets)
                 maxPackets = receivedPackets;
             receivedPackets = 0;
         }
     }
+    std::chrono::time_point end = std::chrono::steady_clock::now();
+    std::cout << maxPackets << "pps max; " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() << "s" << std::endl;
   }
   
   void Cli::filePacket() {
