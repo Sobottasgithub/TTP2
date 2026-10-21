@@ -16,14 +16,14 @@
       tablog,
     }:
     let
-      supportedSystems = [ "x86_64-linux" "aarch64-linux" ];
+      supportedSystems = [ "x86_64-linux" ];
       forEachSystem = nixpkgs.lib.genAttrs supportedSystems;
     in
     {
       packages = forEachSystem (system:
         let
           pkgs = import nixpkgs { inherit system; };
-          version = "2.3.0";
+          version = "2.4.0";
           libtablog = tablog.packages.${system}.lib;
 
           commonDeps = with pkgs; [
