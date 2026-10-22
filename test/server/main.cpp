@@ -50,7 +50,7 @@ void clientManager(int serverSocket, int clientSocket) {
     while (serverSessionController->isConnected()) {
         if (serverSessionController->hasRequest()) {
             Packet::Packet packet = serverSessionController->popRequest();
-            // std::wcout << "Received packet id: " << packet.id << std::endl;
+            std::wcout << "Received packet id: " << packet.id << std::endl;
             serverSessionController->pushResponse(packet);
         }
     }

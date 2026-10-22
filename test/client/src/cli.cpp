@@ -146,6 +146,7 @@ namespace test {
 
     std::chrono::time_point start = std::chrono::steady_clock::now();
     std::chrono::time_point deltaStart = std::chrono::steady_clock::now();
+    std::vector<int> ppsCollection = {};
     int maxPackets = 0;
     int receivedPackets = 0;
     int lastPacketId = 0;
@@ -156,22 +157,30 @@ namespace test {
         while(count > 0 && this->clientSessionController->hasResponse()) {
             ttp2::Packet::Packet packet = this->clientSessionController->popResponse();
             // Packet::Standard standard = std::get<Packet::Standard>(packet.payload);
-            lastPacketId = packet.id;
             receivedPackets++;
             count--;
         }
-    
+
+        lastPacketId++;
+
         std::chrono::time_point deltaEnd = std::chrono::steady_clock::now();
         if (std::chrono::duration_cast<std::chrono::seconds>(deltaEnd - deltaStart).count() >= 1) {
             // std::cout << "\r\033[2K" << "Last id: " << lastPacketId << " ~ " << receivedPackets << "pp/s" << " ~ max: " << maxPackets << "pp/s"<< std::flush;
             deltaStart = deltaEnd;
             if (receivedPackets > maxPackets)
                 maxPackets = receivedPackets;
+            ppsCollection.push_back(receivedPackets);
             receivedPackets = 0;
         }
     }
     std::chrono::time_point end = std::chrono::steady_clock::now();
-    std::cout << maxPackets << "pps max; " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() << "s" << std::endl;
+
+    int total = 0;
+    for (int index = 0; index < ppsCollection.size(); index++) {
+        total += ppsCollection.at(index);
+    }
+    total = total / ppsCollection.size();
+    std::cout << maxPackets << "pps max; " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() << "s " << total << "pps AVG" << std::endl;
   }
   
   void Cli::filePacket() {
