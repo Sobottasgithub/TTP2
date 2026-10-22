@@ -35,7 +35,6 @@ namespace test {
 
           standardPacket.payload = message;
           packet.payload = standardPacket;
-          packet.id = 1;
           addressPacket.ip = receiverIp.c_str();
           addressPacket.port = receiverPort;
           addressPacket.packet = packet;

@@ -85,6 +85,11 @@ namespace ttp2 {
   }
 
   void UdpNetworking::sendPacketTo(const char *ip, int port, ttp2::Packet::Packet packet) {
+    if (packet.id == -1) {
+      packet.id = autoId;
+      autoId++;
+    }
+    
     std::vector<unsigned char> encodedPacket = ttp2::asn1::encode::encode(packet.payload, packet.id);
 
     uint32_t dataLen = static_cast<uint32_t>(encodedPacket.size());

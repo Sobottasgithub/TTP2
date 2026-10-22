@@ -21,6 +21,8 @@ namespace ttp2 {
 
       int serverSocket;
       int epollFd;
+
+      int autoId = 0;
   };
 }
 
