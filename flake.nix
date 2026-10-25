@@ -23,7 +23,7 @@
       packages = forEachSystem (system:
         let
           pkgs = import nixpkgs { inherit system; };
-          version = "2.4.0";
+          version = "2.4.1";
           libtablog = tablog.packages.${system}.lib;
 
           commonDeps = with pkgs; [
