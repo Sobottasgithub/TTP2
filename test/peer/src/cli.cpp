@@ -17,8 +17,8 @@ namespace test {
       peerSessionController->networkingSession();
     });
     
-    while (true) {
-      int option = requestInt("(1) send\n(2) receive\nchoose option: ");
+    while (peerSessionController->isConnected()) {
+      int option = requestInt("(1) send\n(2) receive\n(3) exit\nchoose option: ");
       
       std::string receiverIp = "";
       int receiverPort = 0;
@@ -54,9 +54,16 @@ namespace test {
             std::cout << "------------- End -------------" << std::endl;
           }
           continue;
+        case 3:
+          peerSessionController->disconnect();
+          continue;
         default:
           std::cout << "Unknown option!" << std::endl;
       }
+    }
+
+    if (networkingSession.joinable()) {
+      networkingSession.join();
     }
   }
 

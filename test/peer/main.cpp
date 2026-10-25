@@ -2,7 +2,6 @@
 
 int main() {
   test::Cli cli;
-
   return 0;
 }
 

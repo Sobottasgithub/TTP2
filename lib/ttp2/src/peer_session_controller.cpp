@@ -53,7 +53,7 @@ namespace ttp2 {
     epoll_event events[maxEvents];
 
     while (isConnected()) {
-      int receivedEvents = epoll_wait(this->epollFd, events, maxEvents, -1);
+      int receivedEvents = epoll_wait(this->epollFd, events, maxEvents, 1000);
       if (receivedEvents == -1) {
         if (errno == EINTR) continue;
       }
