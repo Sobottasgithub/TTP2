@@ -66,7 +66,7 @@ namespace ttp2 {
     const int MAX_EVENTS = 10;
     while (isConnected()) {
       struct epoll_event incomingEvents[MAX_EVENTS];
-      int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
+      int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, 1000);
     
       for (int index = 0; index < eventCount; ++index) {
         int fd = incomingEvents[index].data.fd;
