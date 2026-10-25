@@ -48,11 +48,11 @@ namespace ttp2 {
     }
 
     std::thread sendRequestSessionThread([this]() {
-        this->sendRequestSession();
+      this->sendRequestSession();
     });
 
     std::thread receiveResponseSessionThread([this]() {
-        this->receiveResponseSession();
+      this->receiveResponseSession();
     });
  
     while (isConnected()) {
@@ -73,7 +73,12 @@ namespace ttp2 {
 
     while (isConnected()) {
       struct epoll_event incomingEvents[MAX_EVENTS];
-      int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, -1);
+      int eventCount = epoll_wait(epollFd, incomingEvents, MAX_EVENTS, 1000);
+
+      if (eventCount < 0) {
+        if (errno == EINTR) continue;
+        break;
+      }
     
       for (int index = 0; index < eventCount; ++index) {
         int fd = incomingEvents[index].data.fd;

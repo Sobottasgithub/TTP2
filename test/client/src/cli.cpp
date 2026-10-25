@@ -54,10 +54,9 @@ namespace test {
             std::cout << "Invalid!" << std::endl;
         }
     }
-
-    std::cout << "Terminated!" << std::endl;
     
     networkThread.join();
+    std::cout << "Terminated!" << std::endl;
   }
 
   void Cli::readMessages() {

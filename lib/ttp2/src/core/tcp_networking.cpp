@@ -124,7 +124,7 @@ namespace ttp2 {
     Packet::Packet data;
 
     unsigned char temp[4096];
-    while (true) {
+    while (isConnected()) {
       ssize_t n = recv(socket, temp, sizeof(temp), 0);
       if (n > 0) {
         sessionBuffers[socket].insert(sessionBuffers[socket].end(), temp,
