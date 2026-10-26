@@ -141,8 +141,8 @@ namespace ttp2 {
       timeValue.tv_sec = 1;
       timeValue.tv_usec = 0;
       if (setsockopt(serverSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeValue, sizeof(timeValue)) < 0) {
-          close(serverSocket);
-          throw std::runtime_error("Set timeout socket option failed");
+        close(serverSocket);
+        throw std::runtime_error("Set timeout socket option failed");
       }
       char receiveBuffer[4];
       socklen_t len = sizeof(serverAddress);
@@ -150,12 +150,12 @@ namespace ttp2 {
                            (struct sockaddr *)&serverAddress, &len);
 
       if (bytesReceived < 0) {
-          if (errno == EWOULDBLOCK || errno == EAGAIN) {
-              // std::cout << "Receive timed out!" << std::endl;
-          } else {
-              throw std::runtime_error("recvfrom error");
-          }
-          maxResendCount--;
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+          // std::cout << "Receive timed out!" << std::endl;
+        } else {
+          throw std::runtime_error("recvfrom error");
+        }
+        maxResendCount--;
       } else {
         if (receiveBuffer[0] == '1') { 
           break;
