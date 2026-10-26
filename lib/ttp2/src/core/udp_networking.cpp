@@ -81,6 +81,12 @@ namespace ttp2 {
     );
 
     packet = asn1::decode::decode(derBuffer);
+
+    // INFO: ACKNOWLEDGE
+    const char *ackMessage = "1"; 
+    sendto(this->serverSocket, (const char *)ackMessage, strlen(ackMessage),  
+            MSG_CONFIRM, (const struct sockaddr *)&clientAddress, clientLength);
+    
     return {clientIP, clientPort, packet};
   }
 
@@ -125,5 +131,30 @@ namespace ttp2 {
 
     sendto(serverSocket, buffer, size, MSG_CONFIRM,
            (const struct sockaddr *)&serverAddress, sizeof(serverAddress));
+
+
+    // INFO: ACKNOWLEDGE
+    struct timeval timeValue;
+    timeValue.tv_sec = 1;
+    timeValue.tv_usec = 0;
+    if (setsockopt(serverSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeValue, sizeof(timeValue)) < 0) {
+        close(serverSocket);
+        throw std::runtime_error("Set timeout socket option failed");
+    }
+    char receiveBuffer[4];
+    socklen_t len = sizeof(serverAddress);
+    int bytesReceived = recvfrom(serverSocket, receiveBuffer, 4, MSG_WAITALL,
+                         (struct sockaddr *)&serverAddress, &len);
+
+    if (bytesReceived < 0) {
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            std::cout << "Receive timed out!" << std::endl;
+        } else {
+            throw std::runtime_error("recvfrom error");
+        }
+    } else {
+      std::cout << "ACK -->" << receiveBuffer[0] << std::endl;
+    }
+    close(serverSocket);
   }
 }
