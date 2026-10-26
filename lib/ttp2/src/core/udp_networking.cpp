@@ -6,6 +6,7 @@
 #include <bits/stdc++.h> 
 #include <stdexcept>
 #include <stdlib.h> 
+#include <string>
 #include <unistd.h> 
 #include <string.h> 
 #include <sys/types.h> 
@@ -129,31 +130,38 @@ namespace ttp2 {
     serverAddress.sin_port = htons(port);
     serverAddress.sin_addr.s_addr = inet_addr(ip);
 
-    sendto(serverSocket, buffer, size, MSG_CONFIRM,
-           (const struct sockaddr *)&serverAddress, sizeof(serverAddress));
+    int maxResendCount = 10;
+    while (maxResendCount > 0) {
+      sendto(serverSocket, buffer, size, MSG_CONFIRM,
+             (const struct sockaddr *)&serverAddress, sizeof(serverAddress));
 
 
-    // INFO: ACKNOWLEDGE
-    struct timeval timeValue;
-    timeValue.tv_sec = 1;
-    timeValue.tv_usec = 0;
-    if (setsockopt(serverSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeValue, sizeof(timeValue)) < 0) {
-        close(serverSocket);
-        throw std::runtime_error("Set timeout socket option failed");
-    }
-    char receiveBuffer[4];
-    socklen_t len = sizeof(serverAddress);
-    int bytesReceived = recvfrom(serverSocket, receiveBuffer, 4, MSG_WAITALL,
-                         (struct sockaddr *)&serverAddress, &len);
+      // INFO: ACKNOWLEDGE
+      struct timeval timeValue;
+      timeValue.tv_sec = 1;
+      timeValue.tv_usec = 0;
+      if (setsockopt(serverSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeValue, sizeof(timeValue)) < 0) {
+          close(serverSocket);
+          throw std::runtime_error("Set timeout socket option failed");
+      }
+      char receiveBuffer[4];
+      socklen_t len = sizeof(serverAddress);
+      int bytesReceived = recvfrom(serverSocket, receiveBuffer, 4, MSG_WAITALL,
+                           (struct sockaddr *)&serverAddress, &len);
 
-    if (bytesReceived < 0) {
-        if (errno == EWOULDBLOCK || errno == EAGAIN) {
-            std::cout << "Receive timed out!" << std::endl;
-        } else {
-            throw std::runtime_error("recvfrom error");
+      if (bytesReceived < 0) {
+          if (errno == EWOULDBLOCK || errno == EAGAIN) {
+              std::cout << "Receive timed out!" << std::endl;
+          } else {
+              throw std::runtime_error("recvfrom error");
+          }
+          maxResendCount--;
+      } else {
+        if (receiveBuffer[0] == '1') { 
+          break;
         }
-    } else {
-      std::cout << "ACK -->" << receiveBuffer[0] << std::endl;
+        maxResendCount--;
+      }
     }
     close(serverSocket);
   }
