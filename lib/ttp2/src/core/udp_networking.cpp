@@ -151,7 +151,7 @@ namespace ttp2 {
 
       if (bytesReceived < 0) {
           if (errno == EWOULDBLOCK || errno == EAGAIN) {
-              std::cout << "Receive timed out!" << std::endl;
+              // std::cout << "Receive timed out!" << std::endl;
           } else {
               throw std::runtime_error("recvfrom error");
           }
