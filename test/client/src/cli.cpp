@@ -154,7 +154,6 @@ namespace test {
         int count = 10;
         while(count > 0 && this->clientSessionController->hasResponse()) {
             ttp2::Packet::Packet packet = this->clientSessionController->popResponse();
-            // Packet::Standard standard = std::get<Packet::Standard>(packet.payload);
             receivedPackets++;
             count--;
         }
@@ -163,7 +162,6 @@ namespace test {
 
         std::chrono::time_point deltaEnd = std::chrono::steady_clock::now();
         if (std::chrono::duration_cast<std::chrono::seconds>(deltaEnd - deltaStart).count() >= 1) {
-            // std::cout << "\r\033[2K" << "Last id: " << lastPacketId << " ~ " << receivedPackets << "pp/s" << " ~ max: " << maxPackets << "pp/s"<< std::flush;
             deltaStart = deltaEnd;
             if (receivedPackets > maxPackets)
                 maxPackets = receivedPackets;
@@ -174,13 +172,20 @@ namespace test {
     std::chrono::time_point end = std::chrono::steady_clock::now();
 
     int total = 0;
-    for (int index = 0; index < ppsCollection.size(); index++) {
-        total += ppsCollection.at(index);
+    if (!ppsCollection.empty()) {
+        for (int index = 0; index < ppsCollection.size(); index++) {
+            total += ppsCollection.at(index);
+        }
+        total = total / ppsCollection.size();
+    } else {
+        total = receivedPackets; // Fallback for sub-second runs
     }
-    total = total / ppsCollection.size();
-    std::cout << maxPackets << "pps max; " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() << "s " << total << "pps AVG" << std::endl;
+
+    auto totalSeconds = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+    
+    std::cout << maxPackets << "pps max; " << totalSeconds << "s " << total << "pps AVG" << std::endl;
   }
-  
+    
   void Cli::filePacket() {
       std::shared_ptr<arrow::Table> table = test::Helpers::openCsvFile();
       ttp2::Packet::Packet packet;
