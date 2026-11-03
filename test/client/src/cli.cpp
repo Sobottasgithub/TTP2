@@ -201,6 +201,11 @@ namespace test {
     std::cout << "Total Data Sent: " << (totalBytesSent / 1024 / 1024) << " MB (" << totalMegabits << " Mb)" << std::endl;
     std::cout << "Throughput: " << throughputMbps << " Mbps" << std::endl;
     std::cout << maxPacketsPerSecond << " pps max; " << avgPps << " pps AVG" << std::endl;
+    std::cout << "Cleanup" << std::endl;
+    while (this->clientSessionController->hasResponse()) {
+        ttp2::Packet::Packet responsePacket = this->clientSessionController->popResponse();
+    }
+    std::cout << "done" << std::endl;
   }
 
   void Cli::filePacket() {
