@@ -140,42 +140,53 @@ namespace test {
     packet.payload = standard;
 
     auto start = std::chrono::steady_clock::now();
-    auto deltaStart = std::chrono::steady_clock::now();
-    
-    std::vector<int> ppsCollection = {};
+    auto deltaStart = start;
+
+    std::vector<int> ppsCollection;
+    ppsCollection.reserve(65);
+
     long long totalBytesSent = 0;
     int maxPacketsPerSecond = 0;
     int receivedPacketsThisSecond = 0;
-    
+
     const int benchmarkDurationSeconds = 60;
+    const uint64_t timeCheckInterval = 4096;
+    uint64_t iterations = 0;
 
     std::cout << "Running benchmark for 60 seconds..." << std::endl;
+    long long inFlight = 0;
+    const long long maxInFlight = 1000;
     while (true) {
-        auto now = std::chrono::steady_clock::now();
-        auto elapsedTotal = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
-        
-        if (elapsedTotal >= benchmarkDurationSeconds) {
-            break;
+        if (inFlight < maxInFlight) {
+            this->clientSessionController->pushRequest(packet);
+            totalBytesSent += payloadSize;
+            inFlight++;
         }
 
-        this->clientSessionController->pushRequest(packet);
-        totalBytesSent += payloadSize;
-
-        int count = 10;
-        while (count > 0 && this->clientSessionController->hasResponse()) {
-            ttp2::Packet::Packet responsePacket = this->clientSessionController->popResponse();
+        while (this->clientSessionController->hasResponse()) {
+            auto responsePacket = this->clientSessionController->popResponse();
             receivedPacketsThisSecond++;
-            count--;
+            inFlight--;
         }
+    
+        iterations++;
+        if ((iterations & (timeCheckInterval - 1)) == 0) {
+            auto now = std::chrono::steady_clock::now();
 
-        auto deltaEnd = std::chrono::steady_clock::now();
-        if (std::chrono::duration_cast<std::chrono::seconds>(deltaEnd - deltaStart).count() >= 1) {
-            deltaStart = deltaEnd;
-            if (receivedPacketsThisSecond > maxPacketsPerSecond) {
-                maxPacketsPerSecond = receivedPacketsThisSecond;
+            auto elapsedTotal = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
+            if (elapsedTotal >= benchmarkDurationSeconds) {
+                break;
             }
-            ppsCollection.push_back(receivedPacketsThisSecond);
-            receivedPacketsThisSecond = 0;
+
+            auto deltaElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - deltaStart).count();
+            if (deltaElapsed >= 1000) {
+                deltaStart = now;
+                if (receivedPacketsThisSecond > maxPacketsPerSecond) {
+                    maxPacketsPerSecond = receivedPacketsThisSecond;
+                }
+                ppsCollection.push_back(receivedPacketsThisSecond);
+                receivedPacketsThisSecond = 0;
+            }
         }
     }
 
@@ -207,7 +218,7 @@ namespace test {
     }
     std::cout << "done" << std::endl;
   }
-
+    
   void Cli::filePacket() {
       std::shared_ptr<arrow::Table> table = test::Helpers::openCsvFile();
       ttp2::Packet::Packet packet;
