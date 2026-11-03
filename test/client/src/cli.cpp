@@ -127,65 +127,82 @@ namespace test {
     packet.payload = standard;
     this->clientSessionController->pushRequest(packet);
   }
-  
-  void Cli::benchmark() {
-    std::cout << "~~~~~~ ~~~~~~ Benchmark ~~~~~~ ~~~~~~" << std::endl;
-    int payloadSize = test::Helpers::requestInt("(Int) payload size: ");
-    int maxPacketCount = test::Helpers::requestInt("(Int) max packet count: ");
 
-    std::string payload = "";
-    for (int index = 0; index <= payloadSize; ++index) {
-        payload += "0";
-    }
+  void Cli::benchmark() {
+    std::cout << "~~~~~~ ~~~~~~ 1 Minute Throughput Benchmark ~~~~~~ ~~~~~~" << std::endl;
+    int payloadSize = test::Helpers::requestInt("(Int) payload size (1460): ");
+
+    std::string payload(std::max(0, payloadSize), '0');
 
     ttp2::Packet::Packet packet;
     ttp2::Packet::Standard standard;
     standard.payload = payload;
     packet.payload = standard;
 
-    std::chrono::time_point start = std::chrono::steady_clock::now();
-    std::chrono::time_point deltaStart = std::chrono::steady_clock::now();
+    auto start = std::chrono::steady_clock::now();
+    auto deltaStart = std::chrono::steady_clock::now();
+    
     std::vector<int> ppsCollection = {};
-    int maxPackets = 0;
-    int receivedPackets = 0;
-    int lastPacketId = 0;
-    while (lastPacketId < maxPacketCount) {
+    long long totalBytesSent = 0;
+    int maxPacketsPerSecond = 0;
+    int receivedPacketsThisSecond = 0;
+    
+    const int benchmarkDurationSeconds = 60;
+
+    std::cout << "Running benchmark for 60 seconds..." << std::endl;
+    while (true) {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsedTotal = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
+        
+        if (elapsedTotal >= benchmarkDurationSeconds) {
+            break;
+        }
+
         this->clientSessionController->pushRequest(packet);
+        totalBytesSent += payloadSize;
+
         int count = 10;
-        while(count > 0 && this->clientSessionController->hasResponse()) {
-            ttp2::Packet::Packet packet = this->clientSessionController->popResponse();
-            receivedPackets++;
+        while (count > 0 && this->clientSessionController->hasResponse()) {
+            ttp2::Packet::Packet responsePacket = this->clientSessionController->popResponse();
+            receivedPacketsThisSecond++;
             count--;
         }
 
-        lastPacketId++;
-
-        std::chrono::time_point deltaEnd = std::chrono::steady_clock::now();
+        auto deltaEnd = std::chrono::steady_clock::now();
         if (std::chrono::duration_cast<std::chrono::seconds>(deltaEnd - deltaStart).count() >= 1) {
             deltaStart = deltaEnd;
-            if (receivedPackets > maxPackets)
-                maxPackets = receivedPackets;
-            ppsCollection.push_back(receivedPackets);
-            receivedPackets = 0;
+            if (receivedPacketsThisSecond > maxPacketsPerSecond) {
+                maxPacketsPerSecond = receivedPacketsThisSecond;
+            }
+            ppsCollection.push_back(receivedPacketsThisSecond);
+            receivedPacketsThisSecond = 0;
         }
     }
-    std::chrono::time_point end = std::chrono::steady_clock::now();
 
-    int total = 0;
-    if (!ppsCollection.empty()) {
-        for (int index = 0; index < ppsCollection.size(); index++) {
-            total += ppsCollection.at(index);
-        }
-        total = total / ppsCollection.size();
-    } else {
-        total = receivedPackets; // Fallback for sub-second runs
-    }
-
+    auto end = std::chrono::steady_clock::now();
     auto totalSeconds = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
-    
-    std::cout << maxPackets << "pps max; " << totalSeconds << "s " << total << "pps AVG" << std::endl;
+
+    int avgPps = 0;
+    if (!ppsCollection.empty()) {
+        int sum = 0;
+        for (size_t index = 0; index < ppsCollection.size(); index++) {
+            sum += ppsCollection.at(index);
+        }
+        avgPps = sum / ppsCollection.size();
+    } else {
+        avgPps = receivedPacketsThisSecond;
+    }
+
+    double totalMegabits = (totalBytesSent * 8.0) / 1000000.0;
+    double throughputMbps = (totalSeconds > 0) ? (totalMegabits / totalSeconds) : 0.0;
+
+    std::cout << "\n--- Benchmark Results ---" << std::endl;
+    std::cout << "Duration: " << totalSeconds << " seconds" << std::endl;
+    std::cout << "Total Data Sent: " << (totalBytesSent / 1024 / 1024) << " MB (" << totalMegabits << " Mb)" << std::endl;
+    std::cout << "Throughput: " << throughputMbps << " Mbps" << std::endl;
+    std::cout << maxPacketsPerSecond << " pps max; " << avgPps << " pps AVG" << std::endl;
   }
-    
+
   void Cli::filePacket() {
       std::shared_ptr<arrow::Table> table = test::Helpers::openCsvFile();
       ttp2::Packet::Packet packet;
