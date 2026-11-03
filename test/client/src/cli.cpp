@@ -151,7 +151,6 @@ namespace test {
     int lastPacketId = 0;
     while (lastPacketId < maxPacketCount) {
         this->clientSessionController->pushRequest(packet);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
         int count = 10;
         while(count > 0 && this->clientSessionController->hasResponse()) {
             ttp2::Packet::Packet packet = this->clientSessionController->popResponse();

@@ -40,10 +40,6 @@ namespace ttp2 {
         this->sendResponseSession();
     });
  
-    while (isConnected()) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
-
     if (receiveRequestSessionThread.joinable()) {
       receiveRequestSessionThread.join();
     }
