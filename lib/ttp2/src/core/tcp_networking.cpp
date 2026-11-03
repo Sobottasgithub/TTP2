@@ -53,7 +53,9 @@ namespace ttp2 {
   }
 
   Packet::Packet TcpNetworking::popRequest() {
-    std::lock_guard<std::mutex> lock(requestMutex);
+    std::unique_lock<std::mutex> lock(requestMutex);
+    requestConditionVariable.wait(lock, [this] { return !requestQueue.empty() || !connected; });
+    
     if (!requestQueue.empty()) {
       Packet::Packet firstRequest = requestQueue[0];
       requestQueue.erase(requestQueue.begin());
@@ -64,7 +66,9 @@ namespace ttp2 {
   }
 
   Packet::Packet TcpNetworking::popResponse() {
-    std::lock_guard<std::mutex> lock(responseMutex);
+    std::unique_lock<std::mutex> lock(responseMutex);
+    responseConditionVariable.wait(lock, [this] { return !responseQueue.empty() || !connected; });
+    
     if (!responseQueue.empty()) {
       Packet::Packet firstResponse = responseQueue[0];
       responseQueue.erase(responseQueue.begin());
@@ -75,13 +79,19 @@ namespace ttp2 {
   }
 
   void TcpNetworking::pushResponse(Packet::Packet response) {
-    std::lock_guard<std::mutex> lock(responseMutex);
-    responseQueue.push_back(response);
+    {
+      std::lock_guard<std::mutex> lock(responseMutex);
+      responseQueue.emplace_back(response);
+    }
+    responseConditionVariable.notify_one();
   }
 
   void TcpNetworking::pushRequest(Packet::Packet request) {
-    std::lock_guard<std::mutex> lock(requestMutex);
-    requestQueue.push_back(request);
+    {
+      std::lock_guard<std::mutex> lock(requestMutex);
+      requestQueue.emplace_back(request);
+    }
+    requestConditionVariable.notify_one();
   }
 
   int TcpNetworking::getRequestQueueSize() {

@@ -11,6 +11,7 @@
 #include <map>
 #include <variant>
 #include <memory>
+#include <condition_variable>
 #include <arrow/api.h>
 #include <arrow/ipc/api.h>
 #include <arrow/io/api.h>
@@ -54,6 +55,8 @@ namespace ttp2 {
         std::shared_ptr<tablog::Tablog> logger;
         
         bool connected = true;
+        std::condition_variable responseConditionVariable;
+        std::condition_variable requestConditionVariable;
       
         bool isNumeric(const std::string& string);
         int bytesToInt(std::vector<char> bytes, int size);
