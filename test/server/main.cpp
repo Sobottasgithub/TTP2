@@ -9,6 +9,7 @@
 #include <thread>
 #include <regex>
 #include <sys/epoll.h>
+#include <netinet/tcp.h>
 
 using namespace ttp2;
 
@@ -76,6 +77,10 @@ int main() {
     serverAddress.sin_addr.s_addr = inet_addr(containerIP.c_str());
 
     int serverSocket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+
+    int flag = 1;
+    setsockopt(serverSocket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int));
+    
     if(bind(serverSocket, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0) {
         std::wcout << "Bind failed!" << std::endl;
         return -1;

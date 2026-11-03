@@ -10,12 +10,16 @@
 #include <unistd.h>
 #include <thread>
 #include <sys/epoll.h>
+#include <netinet/tcp.h>
 
 namespace ttp2 {
   ClientSessionController::ClientSessionController(std::string ipV4, int port) {
     configureLogger("TTP2");
     // WARNING: ::socket is used here because otherwise it would interfere with (int) this->socket
     this->socket = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+
+    int flag = 1;
+    setsockopt(this->socket, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int));
 
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
