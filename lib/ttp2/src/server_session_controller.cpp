@@ -51,10 +51,13 @@ namespace ttp2 {
 
   void ServerSessionController::sendResponseSession() {
     while (isConnected()) {
-      if (hasResponse()) {
-        Packet::Packet responsePacket = popResponse();
-        int responseCode = sendPacket(clientSocket, responsePacket);
-      }
+      std::unique_lock<std::mutex> lock(responseMutex);
+      responseConditionVariable.wait(lock, [this] { return !responseQueue.empty() || !connected; });
+    
+      Packet::Packet firstResponse = responseQueue[0];
+      responseQueue.erase(responseQueue.begin());
+
+      int responseCode = sendPacket(clientSocket, firstResponse);
     }
   }
 

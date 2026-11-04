@@ -100,10 +100,13 @@ namespace ttp2 {
 
   void ClientSessionController::sendRequestSession() {
     while (isConnected()) {
-      if (hasRequest()) {
-        Packet::Packet request = popRequest();
-        int responseCode = sendPacket(socket, request);
-      }
+      std::unique_lock<std::mutex> lock(requestMutex);
+      requestConditionVariable.wait(lock, [this] { return !requestQueue.empty() || !connected; });
+    
+      Packet::Packet firstRequest = requestQueue[0];
+      requestQueue.erase(requestQueue.begin());
+
+      int responseCode = sendPacket(socket, firstRequest);
     }
   }
 
