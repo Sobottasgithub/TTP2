@@ -56,26 +56,18 @@ namespace ttp2 {
     std::unique_lock<std::mutex> lock(requestMutex);
     requestConditionVariable.wait(lock, [this] { return !requestQueue.empty() || !connected; });
     
-    if (!requestQueue.empty()) {
-      Packet::Packet firstRequest = requestQueue[0];
-      requestQueue.erase(requestQueue.begin());
-      return firstRequest;
-    }
-    Packet::Packet emptyPacket;
-    return emptyPacket;
+    Packet::Packet firstRequest = requestQueue[0];
+    requestQueue.erase(requestQueue.begin());
+    return firstRequest;
   }
 
   Packet::Packet TcpNetworking::popResponse() {
     std::unique_lock<std::mutex> lock(responseMutex);
     responseConditionVariable.wait(lock, [this] { return !responseQueue.empty() || !connected; });
     
-    if (!responseQueue.empty()) {
-      Packet::Packet firstResponse = responseQueue[0];
-      responseQueue.erase(responseQueue.begin());
-      return firstResponse;
-    }
-    Packet::Packet emptyPacket;
-    return emptyPacket;
+    Packet::Packet firstResponse = responseQueue[0];
+    responseQueue.erase(responseQueue.begin());
+    return firstResponse;
   }
 
   void TcpNetworking::pushResponse(Packet::Packet response) {
