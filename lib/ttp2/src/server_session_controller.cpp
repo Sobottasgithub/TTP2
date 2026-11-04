@@ -52,7 +52,7 @@ namespace ttp2 {
   void ServerSessionController::sendResponseSession() {
     while (isConnected()) {
       std::unique_lock<std::mutex> lock(responseMutex);
-      responseConditionVariable.wait(lock, [this] { return !responseQueue.empty() || !connected; });
+      responseConditionVariable.wait(lock, [this] { return !responseQueue.empty() || !isConnected(); });
     
       Packet::Packet firstResponse = responseQueue[0];
       responseQueue.erase(responseQueue.begin());

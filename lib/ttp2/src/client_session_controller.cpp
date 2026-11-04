@@ -101,7 +101,7 @@ namespace ttp2 {
   void ClientSessionController::sendRequestSession() {
     while (isConnected()) {
       std::unique_lock<std::mutex> lock(requestMutex);
-      requestConditionVariable.wait(lock, [this] { return !requestQueue.empty() || !connected; });
+      requestConditionVariable.wait(lock, [this] { return !requestQueue.empty() || !isConnected(); });
     
       Packet::Packet firstRequest = requestQueue[0];
       requestQueue.erase(requestQueue.begin());
