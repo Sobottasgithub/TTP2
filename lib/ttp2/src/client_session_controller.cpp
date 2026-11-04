@@ -69,7 +69,7 @@ namespace ttp2 {
   }
 
   void ClientSessionController::receiveResponseSession() {
-    const int MAX_EVENTS = 10;
+    const int MAX_EVENTS = 100;
 
     while (isConnected()) {
       struct epoll_event incomingEvents[MAX_EVENTS];

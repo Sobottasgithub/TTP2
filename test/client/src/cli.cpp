@@ -155,7 +155,7 @@ namespace test {
 
     std::cout << "Running benchmark for 60 seconds..." << std::endl;
     long long inFlight = 0;
-    const long long maxInFlight = 1000;
+    const long long maxInFlight = 500;
     while (true) {
         if (inFlight < maxInFlight) {
             this->clientSessionController->pushRequest(packet);
