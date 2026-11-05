@@ -18,7 +18,7 @@ namespace test {
     });
     
     while (peerSessionController->isConnected()) {
-      int option = requestInt("(1) send\n(2) receive\n(3) exit\nchoose option: ");
+      int option = requestInt("(0) exit\n(1) send\n(2) receive\n(3) benchmark\nchoose option: ");
       
       std::string receiverIp = "";
       int receiverPort = 0;
@@ -28,6 +28,9 @@ namespace test {
       ttp2::Packet::Standard standardPacket;
 
       switch (option) {
+        case 0:
+          peerSessionController->disconnect();
+          continue;
         case 1:
           receiverIp = requestString("Server ip: ");
           receiverPort = requestInt("Server port: ");
@@ -55,7 +58,6 @@ namespace test {
           }
           continue;
         case 3:
-          peerSessionController->disconnect();
           continue;
         default:
           std::cout << "Unknown option!" << std::endl;
