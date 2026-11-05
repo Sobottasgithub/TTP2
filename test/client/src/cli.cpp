@@ -13,7 +13,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <thread>
-#include <chrono>
 #include <arrow/csv/api.h>
 #include <arrow/io/api.h>
 
