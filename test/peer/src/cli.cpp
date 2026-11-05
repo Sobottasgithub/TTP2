@@ -1,4 +1,5 @@
 #include "cli.h"
+#include "benchmark.h"
 
 #include "peer_session_controller.h"
 #include "packet_types.h"
@@ -28,10 +29,10 @@ namespace test {
       ttp2::Packet::Standard standardPacket;
 
       switch (option) {
-        case 0:
+        case 0: {
           peerSessionController->disconnect();
           continue;
-        case 1:
+        } case 1: {
           receiverIp = requestString("Server ip: ");
           receiverPort = requestInt("Server port: ");
           message = requestString("Message: ");
@@ -44,7 +45,7 @@ namespace test {
 
           peerSessionController->sendPacket(addressPacket);
           continue;
-        case 2:
+        } case 2: {
           while (peerSessionController->hasPacket()) {
             ttp2::PeerSessionController::AddressedPacket receivedPacket = peerSessionController->popReceivedPacket();
             std::cout << "-------------Start-------------" << std::endl;
@@ -57,10 +58,19 @@ namespace test {
             std::cout << "------------- End -------------" << std::endl;
           }
           continue;
-        case 3:
-          continue;
-        default:
+        } case 3: {
+          std::thread benchmarkThread([this, &peerSessionController] {
+            benchmark::Benchmark benchmark(peerSessionController);
+          });
+
+          if (benchmarkThread.joinable()) {
+            benchmarkThread.join();
+          }
+          std::cout << "Done..." << std::endl;
+          continue;          
+        } default: {
           std::cout << "Unknown option!" << std::endl;
+        }
       }
     }
 
