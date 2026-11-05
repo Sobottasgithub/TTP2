@@ -157,7 +157,11 @@ namespace test {
     long long inFlight = 0;
     const long long maxInFlight = 500;
     while (true) {
-        thread sendThread(benchmarkSendSession);
+        if (inFlight < maxInFlight) {
+            this->clientSessionController->pushRequest(packet);
+            totalBytesSent += payloadSize;
+            inFlight++;
+        }
 
         while (this->clientSessionController->hasResponse()) {
             auto responsePacket = this->clientSessionController->popResponse();
@@ -185,8 +189,6 @@ namespace test {
             }
         }
     }
-
-    if 
 
     auto end = std::chrono::steady_clock::now();
     auto totalSeconds = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
