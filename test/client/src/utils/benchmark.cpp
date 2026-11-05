@@ -31,7 +31,7 @@ namespace test::benchmark {
     int receivedPacketsThisSecond = 0;
 
     const int benchmarkDurationSeconds = 60;
-    const uint64_t timeCheckInterval = 4096;
+    const uint64_t timeCheckInterval = 65536;
     uint64_t iterations = 0;
 
     std::cout << "Running benchmark for 60 seconds..." << std::endl;
