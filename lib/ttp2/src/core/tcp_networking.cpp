@@ -258,13 +258,13 @@ namespace ttp2 {
   }
 
   TcpNetworking::PacketInfo TcpNetworking::peekRequest(int index) {
-    std::lock_guard<std::mutex> lock(requestMutex);
     TcpNetworking::PacketInfo packetInfo;
     if (index > getRequestQueueSize() - 1 || index < 0) {
       logger->log(tablog::ERROR, "Invalid peek request: " + std::to_string(index));
       return packetInfo;
     }
 
+    std::lock_guard<std::mutex> lock(requestMutex);
     packetInfo.id = requestQueue[index].id;
     packetInfo.payloadType = requestQueue[index].payload;
     return packetInfo;
