@@ -6,15 +6,12 @@
 #include <libtasn1.h>
 #include <stdexcept>
 
-#include <iostream>
-
 namespace ttp2::asn1::decode {
   Decode::Decode() {
     char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
 
     if (asn1_array2tree(packets_asn1_tab, &definition, errorDescription) !=
         ASN1_SUCCESS) {
-      std::cout << "DECODE FAILS HERE!!!!" << std::endl;
       throw std::runtime_error(errorDescription);
     }
   }

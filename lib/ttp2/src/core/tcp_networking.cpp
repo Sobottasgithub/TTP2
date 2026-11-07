@@ -1,5 +1,4 @@
 #include "../../include/core/tcp_networking.h"
-#include "../../include/helpers/asn1_encode.h"
 
 #include <tablog_registry.h>
 #include <tablog.h>
@@ -107,7 +106,7 @@ namespace ttp2 {
 
     std::vector<unsigned char> buffer;
     try {
-      buffer = ttp2::asn1::encode::encode(payload, id);
+      buffer = this->encoder.encode(payload, id);
     } catch (const std::invalid_argument& invalidArgument) {
       logger->log(tablog::ERROR, invalidArgument.what());
       return -1;

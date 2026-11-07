@@ -3,6 +3,7 @@
 
 #include "../packet_types.h"
 #include "helpers/asn1_decode.h"
+#include "helpers/asn1_encode.h"
 
 #include <tablog.h>
 
@@ -78,6 +79,7 @@ namespace ttp2 {
         int autoId = 0;
 
         asn1::decode::Decode decoder;
+        asn1::encode::Encode encoder;
   };
 }
 

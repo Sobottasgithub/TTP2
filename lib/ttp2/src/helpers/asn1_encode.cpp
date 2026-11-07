@@ -7,18 +7,21 @@
 #include <variant>
 
 namespace ttp2::asn1::encode {
-  std::vector<unsigned char> encode(ttp2::Packet::payloadVariants payload, int id) {
-    asn1_node definitions = nullptr;
-    asn1_node packet = nullptr;
+  Encode::Encode() {
     char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
 
-    if (asn1_array2tree(packets_asn1_tab, &definitions, errorDescription) !=
+    if (asn1_array2tree(packets_asn1_tab, &definition, errorDescription) !=
         ASN1_SUCCESS) {
       std::string errorDescriptionString = errorDescription;
       throw std::invalid_argument("Error in sendMessage when loading asn1: " + errorDescriptionString);
     }
+  }
+  
+  std::vector<unsigned char> Encode::encode(ttp2::Packet::payloadVariants payload, int id) {
+    asn1_node packet = nullptr;
+    char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
 
-    asn1_create_element(definitions, "Packets.Packet", &packet);
+    asn1_create_element(definition, "Packets.Packet", &packet);
     packet = ttp2::Asn1Helpers::asn1EncodePayload(id, packet, "id");
 
     if (std::holds_alternative<ttp2::Packet::Standard>(payload)) {
@@ -54,12 +57,11 @@ namespace ttp2::asn1::encode {
     }
 
     asn1_delete_structure(&packet);
-    asn1_delete_structure(&definitions);
 
     return buffer;
   }
 
-  asn1_node encodeStandard(asn1_node packet, ttp2::Packet::Standard standard) {
+  asn1_node Encode::encodeStandard(asn1_node packet, ttp2::Packet::Standard standard) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "standard", 0);
 
@@ -71,7 +73,7 @@ namespace ttp2::asn1::encode {
     return ttp2::Asn1Helpers::asn1EncodePayload(standard.payload, packet, "payload.standard.payload");
   }
   
-  asn1_node encodeFile(asn1_node packet, ttp2::Packet::File file) {
+  asn1_node Encode::encodeFile(asn1_node packet, ttp2::Packet::File file) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "file", 0);
 
@@ -98,7 +100,7 @@ namespace ttp2::asn1::encode {
     return packet;
   }
   
-  asn1_node encodeViewportRequest(asn1_node packet, ttp2::Packet::ViewportRequest viewportRequest) {
+  asn1_node Encode::encodeViewportRequest(asn1_node packet, ttp2::Packet::ViewportRequest viewportRequest) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "viewportRequest", 0);
 
@@ -121,7 +123,7 @@ namespace ttp2::asn1::encode {
     return packet;
   }
   
-  asn1_node encodeViewport(asn1_node packet, ttp2::Packet::Viewport viewport) {
+  asn1_node Encode::encodeViewport(asn1_node packet, ttp2::Packet::Viewport viewport) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "viewport", 0);
 
@@ -148,7 +150,7 @@ namespace ttp2::asn1::encode {
     return packet;
   }
   
-  asn1_node encodeTqlQuery(asn1_node packet, ttp2::Packet::TqlQuery tqlQuery) {
+  asn1_node Encode::encodeTqlQuery(asn1_node packet, ttp2::Packet::TqlQuery tqlQuery) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "tqlQuery", 0);
     if (status != ASN1_SUCCESS) {
@@ -161,7 +163,7 @@ namespace ttp2::asn1::encode {
     return packet;
   }
 
-  asn1_node encodeError(asn1_node packet, ttp2::Packet::Error error) {
+  asn1_node Encode::encodeError(asn1_node packet, ttp2::Packet::Error error) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "error", 0);
     if (status != ASN1_SUCCESS) {
@@ -178,7 +180,7 @@ namespace ttp2::asn1::encode {
     return packet;
   }
 
-  asn1_node encodeUniversal(asn1_node packet, ttp2::Packet::Universal universal) {
+  asn1_node Encode::encodeUniversal(asn1_node packet, ttp2::Packet::Universal universal) {
     // Write structure
     int status = asn1_write_value(packet, "payload", "universal", 0);
 

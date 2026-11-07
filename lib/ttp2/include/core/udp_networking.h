@@ -8,6 +8,7 @@
 
 #include "../packet_types.h"
 #include "helpers/asn1_decode.h"
+#include "helpers/asn1_encode.h"
 
 namespace ttp2 {
   class UdpNetworking {
@@ -26,6 +27,7 @@ namespace ttp2 {
       int autoId = 0;
 
       asn1::decode::Decode decoder;
+      asn1::encode::Encode encoder;
   };
 }
 
