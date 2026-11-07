@@ -6,20 +6,25 @@
 #include <libtasn1.h>
 #include <stdexcept>
 
-namespace ttp2::asn1::decode {
-  ttp2::Packet::Packet decode(std::vector<char> derBuffer) {
-    ttp2::Packet::Packet data;
+#include <iostream>
 
-    asn1_node definitions = nullptr;
-    asn1_node packet = nullptr;
+namespace ttp2::asn1::decode {
+  Decode::Decode() {
     char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
 
-    if (asn1_array2tree(packets_asn1_tab, &definitions, errorDescription) !=
+    if (asn1_array2tree(packets_asn1_tab, &definition, errorDescription) !=
         ASN1_SUCCESS) {
-      return data;
+      std::cout << "DECODE FAILS HERE!!!!" << std::endl;
+      throw std::runtime_error(errorDescription);
     }
+  }
+  
+  ttp2::Packet::Packet Decode::decode(std::vector<char> derBuffer) {
+    char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
+    ttp2::Packet::Packet data;
+    asn1_node packet = nullptr;
 
-    asn1_create_element(definitions, "Packets.Packet", &packet);
+    asn1_create_element(definition, "Packets.Packet", &packet);
 
     if (asn1_der_decoding(&packet, derBuffer.data(), derBuffer.size(), errorDescription) ==
         ASN1_SUCCESS) {
@@ -55,18 +60,17 @@ namespace ttp2::asn1::decode {
     }
 
     asn1_delete_structure(&packet);
-    asn1_delete_structure(&definitions);
 
     return data;
   }
 
-  ttp2::Packet::Standard decodeStandard(asn1_node packet) {
+  ttp2::Packet::Standard Decode::decodeStandard(asn1_node packet) {
     ttp2::Packet::Standard standard;
     standard.payload = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.standard.payload");
     return standard;
   }
   
-  ttp2::Packet::File decodeFile(asn1_node packet) {
+  ttp2::Packet::File Decode::decodeFile(asn1_node packet) {
     ttp2::Packet::File file;
     file.filePath = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.file.filePath");
     file.start = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.file.start");
@@ -79,7 +83,7 @@ namespace ttp2::asn1::decode {
     return file;
   }
   
-  ttp2::Packet::ViewportRequest decodeViewportRequest(asn1_node packet) {
+  ttp2::Packet::ViewportRequest Decode::decodeViewportRequest(asn1_node packet) {
     ttp2::Packet::ViewportRequest viewportRequest;
 
     viewportRequest.xStart = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewportRequest.xStart");
@@ -90,7 +94,7 @@ namespace ttp2::asn1::decode {
     return viewportRequest;
   }
   
-  ttp2::Packet::Viewport decodeViewport(asn1_node packet) {
+  ttp2::Packet::Viewport Decode::decodeViewport(asn1_node packet) {
     ttp2::Packet::Viewport viewport;
     viewport.xStart = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xStart");
     viewport.xEnd = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.viewport.xEnd");
@@ -102,20 +106,20 @@ namespace ttp2::asn1::decode {
     return viewport;
   }
   
-  ttp2::Packet::TqlQuery decodeTqlQuery(asn1_node packet) {
+  ttp2::Packet::TqlQuery Decode::decodeTqlQuery(asn1_node packet) {
     ttp2::Packet::TqlQuery tqlQuery;
     tqlQuery.query = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.tqlQuery.query");
     return tqlQuery;
   }
 
-  ttp2::Packet::Error decodeError(asn1_node packet) {
+  ttp2::Packet::Error Decode::decodeError(asn1_node packet) {
     ttp2::Packet::Error error;
     error.code = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.error.code");
     error.message = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.error.message");
     return error;
   }
 
-  ttp2::Packet::Universal decodeUniversal(asn1_node packet) {
+  ttp2::Packet::Universal Decode::decodeUniversal(asn1_node packet) {
     ttp2::Packet::Universal universal;
     universal.type = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.universal.type");
     universal.bytes = ttp2::Asn1Helpers::asn1DecodePayloadBuffer(packet, "payload.universal.bytes");

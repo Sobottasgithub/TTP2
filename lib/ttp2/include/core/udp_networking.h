@@ -7,6 +7,7 @@
 #include <tablog.h>
 
 #include "../packet_types.h"
+#include "helpers/asn1_decode.h"
 
 namespace ttp2 {
   class UdpNetworking {
@@ -23,6 +24,8 @@ namespace ttp2 {
       int epollFd;
 
       int autoId = 0;
+
+      asn1::decode::Decode decoder;
   };
 }
 

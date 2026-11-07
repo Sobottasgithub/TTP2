@@ -1,6 +1,4 @@
 #include "../../include/core/tcp_networking.h"
-#include "../../include/helpers/asn1_helpers.h"
-#include "../../include/helpers/asn1_decode.h"
 #include "../../include/helpers/asn1_encode.h"
 
 #include <tablog_registry.h>
@@ -164,7 +162,7 @@ namespace ttp2 {
     buffer.erase(buffer.begin(), buffer.begin() + sizeof(uint32_t) + derLen);
 
     try {
-      return ttp2::asn1::decode::decode(derBuffer);
+      return this->decoder.decode(derBuffer);
     } catch (const std::invalid_argument& invalidArgument) {
       logger->log(tablog::ERROR, invalidArgument.what());
       return data;

@@ -2,6 +2,7 @@
 #define TCP_NETWORKING_H
 
 #include "../packet_types.h"
+#include "helpers/asn1_decode.h"
 
 #include <tablog.h>
 
@@ -9,7 +10,6 @@
 #include <vector>
 #include <mutex>
 #include <map>
-#include <variant>
 #include <memory>
 #include <condition_variable>
 #include <arrow/api.h>
@@ -76,6 +76,8 @@ namespace ttp2 {
         std::map<int, std::vector<unsigned char>> sessionBuffers;
 
         int autoId = 0;
+
+        asn1::decode::Decode decoder;
   };
 }
 
