@@ -112,12 +112,46 @@ namespace ttp2 {
       return -1;
     }
     
-    uint32_t size = htonl(buffer.size());
-    sendBytes(socket, reinterpret_cast<char *>(&size), sizeof(size));
-    sendBytes(socket, reinterpret_cast<char *>(buffer.data()), buffer.size());
+    if (buffer.size() > UINT32_MAX) {
+      logger->log(tablog::ERROR, "Payload too large to send. The max is 4gb");
+      return -1;
+    }
+
+    uint32_t netSize = htonl(static_cast<uint32_t>(buffer.size()));
+    
+    if (sendBytes(socket, reinterpret_cast<const char *>(&netSize), sizeof(netSize)) != sizeof(netSize)) {
+      return -1;
+    }
+
+    if (sendBytes(socket, reinterpret_cast<const char *>(buffer.data()), buffer.size()) != static_cast<ssize_t>(buffer.size())) {
+      return -1;
+    }
 
     return 0;
   }
+
+  ssize_t TcpNetworking::sendBytes(int socket, const char *buffer, size_t max) {
+    size_t sentBytes = 0;
+    while (sentBytes < max) {
+      ssize_t sent = send(socket, buffer + sentBytes, max - sentBytes, MSG_NOSIGNAL);
+
+      if (sent < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+          continue; 
+        }
+        logger->log(tablog::ERROR, "Send failed with errno: " + std::string(strerror(errno)));
+        return -1;
+      }
+
+      if (sent == 0) {
+        return -1;
+      }
+
+      sentBytes += sent;
+    }
+    return sentBytes;
+  }
+
 
   Packet::Packet TcpNetworking::receiveMessage(int socket) {
     Packet::Packet data;
@@ -126,16 +160,15 @@ namespace ttp2 {
     while (isConnected()) {
       ssize_t n = recv(socket, temp, sizeof(temp), 0);
       if (n > 0) {
-        sessionBuffers[socket].insert(sessionBuffers[socket].end(), temp,
-                                      temp + n);
+        sessionBuffers[socket].insert(sessionBuffers[socket].end(), temp, temp + n);
       } else if (n < 0) {
         if (errno == EAGAIN || errno == EWOULDBLOCK) {
           break;
         }
-        logger->log(tablog::ERROR, "Error while receiving bytes!");
+        logger->log(tablog::ERROR, "Error while receiving bytes: " + std::string(strerror(errno)));
+        disconnect();
         return data;
       } else {
-        // logger->log(tablog::CRITICAL, "Socket closed!");
         disconnect();
         return data;
       }
@@ -148,37 +181,27 @@ namespace ttp2 {
     }
 
     uint32_t networkSize;
-    memcpy(&networkSize, buffer.data(), sizeof(uint32_t));
+    std::memcpy(&networkSize, buffer.data(), sizeof(uint32_t));
     uint32_t derLen = ntohl(networkSize);
 
-    if (buffer.size() < sizeof(uint32_t) + derLen) {
+    size_t totalMessageSize = sizeof(uint32_t) + derLen;
+    if (buffer.size() < totalMessageSize) {
       return data;
     }
 
-    std::vector<char> derBuffer(buffer.begin() + sizeof(uint32_t),
-                                buffer.begin() + sizeof(uint32_t) + derLen);
+    std::vector<char> derBuffer(
+        buffer.begin() + sizeof(uint32_t),
+        buffer.begin() + totalMessageSize
+    );
 
-    buffer.erase(buffer.begin(), buffer.begin() + sizeof(uint32_t) + derLen);
-
+    buffer.erase(buffer.begin(), buffer.begin() + totalMessageSize);
+    
     try {
       return this->decoder.decode(derBuffer);
     } catch (const std::invalid_argument& invalidArgument) {
       logger->log(tablog::ERROR, invalidArgument.what());
       return data;
     }
-  }
-
-  ssize_t TcpNetworking::sendBytes(int socket, const char *buffer, size_t max) {
-    size_t sentBytes = 0;
-    while (sentBytes < max) {
-      ssize_t sent = send(socket, buffer + sentBytes, max - sentBytes, 0);
-
-      if (sent <= 0)
-        return -1;
-
-      sentBytes += sent;
-    }
-    return sentBytes;
   }
 
   std::string TcpNetworking::getLocalIpAddress(std::string interface) {
