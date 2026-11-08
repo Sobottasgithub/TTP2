@@ -58,7 +58,7 @@ namespace ttp2 {
     std::thread receiveResponseSessionThread([this]() {
       this->receiveResponseSession();
     });
- 
+
     if (sendRequestSessionThread.joinable()) {
       sendRequestSessionThread.join();
     }
@@ -102,6 +102,10 @@ namespace ttp2 {
     while (isConnected()) {
       std::unique_lock<std::mutex> lock(requestMutex);
       requestConditionVariable.wait(lock, [this] { return !requestQueue.empty() || !isConnected(); });
+
+      if (!isConnected()) {
+        return;
+      }
     
       Packet::Packet firstRequest = requestQueue[0];
       requestQueue.erase(requestQueue.begin());
@@ -111,8 +115,13 @@ namespace ttp2 {
   }
 
   void ClientSessionController::disconnect() {
-    std::lock_guard<std::mutex> lock(connectedMutex);
-    close(this->socket);
-    connected = false;
+    {
+      std::lock_guard<std::mutex> lock(connectedMutex);
+      close(this->socket);
+      connected = false;
+    }
+
+    responseConditionVariable.notify_all();
+    requestConditionVariable.notify_all();
   }
 }

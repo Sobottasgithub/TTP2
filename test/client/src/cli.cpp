@@ -31,7 +31,13 @@ namespace test {
     while (this->clientSessionController->isConnected()) {
         int option = test::Helpers::requestInt("Choose option\n(0) Exit\n(1) Send message\n(2) Read messages\n(3) Benchmark\n(4) Open file\n(5) peek index\n(6) Viewport\n(7) TqlQuery\n(8) Error\n(9) TDFS\nnumber: ");
         if (option == 0) {
-          this->clientSessionController->disconnect();  
+          this->clientSessionController->disconnect();
+
+          if(networkThread.joinable()) {
+            networkThread.join();
+          }
+          std::cout << "Terminate!" << std::endl;
+          return;
         } else if (option == 1) {
           sendMessagePacket();
         } else if (option == 2) {
