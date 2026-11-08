@@ -14,23 +14,23 @@ namespace ttp2::Packet {
 
   struct File {
   	std::string filePath = "";
-    int start = -1;
-  	int end = -1;
+    unsigned int start = 0;
+  	unsigned int end = 0;
   	std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
   };
 
   struct ViewportRequest {
-    int xStart = 0;
-    int xEnd = 0;
-    int yStart = 0;
-    int yEnd = 0;
+    unsigned int xStart = 0;
+    unsigned int xEnd = 0;
+    unsigned int yStart = 0;
+    unsigned int yEnd = 0;
   };
 
   struct Viewport {
-    int xStart = 0;
-    int xEnd = 0;
-    int yStart = 0;
-    int yEnd = 0;
+    unsigned int xStart = 0;
+    unsigned int xEnd = 0;
+    unsigned int yStart = 0;
+    unsigned int yEnd = 0;
     std::shared_ptr<arrow::Table> payload = arrow::Table::Make(arrow::schema({}), std::vector<std::shared_ptr<arrow::Array>>{}, 0);
   };
 
@@ -39,7 +39,7 @@ namespace ttp2::Packet {
   };
 
   struct Error {
-    int code = 0;
+    unsigned int code = 0;
     std::string message = "";
   };
 
