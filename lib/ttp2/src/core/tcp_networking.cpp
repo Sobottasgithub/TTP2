@@ -1,4 +1,5 @@
 #include "../../include/core/tcp_networking.h"
+#include "packet_types.h"
 
 #include <tablog_registry.h>
 #include <tablog.h>
@@ -52,6 +53,11 @@ namespace ttp2 {
   Packet::Packet TcpNetworking::popRequest() {
     std::unique_lock<std::mutex> lock(requestMutex);
     requestConditionVariable.wait(lock, [this] { return !requestQueue.empty() || !connected; });
+
+    if (!connected) {
+      Packet::Packet emptyPacket;
+      return emptyPacket;
+    }
     
     Packet::Packet firstRequest = requestQueue[0];
     requestQueue.erase(requestQueue.begin());
@@ -61,6 +67,11 @@ namespace ttp2 {
   Packet::Packet TcpNetworking::popResponse() {
     std::unique_lock<std::mutex> lock(responseMutex);
     responseConditionVariable.wait(lock, [this] { return !responseQueue.empty() || !connected; });
+
+    if (!connected) {
+      Packet::Packet emptyPacket;
+      return emptyPacket;
+    }
     
     Packet::Packet firstResponse = responseQueue[0];
     responseQueue.erase(responseQueue.begin());
