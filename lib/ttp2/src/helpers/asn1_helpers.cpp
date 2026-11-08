@@ -169,7 +169,10 @@ namespace ttp2 {
   std::shared_ptr<arrow::Buffer> Asn1Helpers::tableToBuffer(const std::shared_ptr<arrow::Table>& table) {
     // Create output buffer with table structure
     std::shared_ptr<arrow::io::BufferOutputStream> outputStream = *arrow::io::BufferOutputStream::Create();
-    std::shared_ptr<arrow::ipc::RecordBatchWriter> streamWriter = *arrow::ipc::MakeStreamWriter(outputStream, table->schema());
+
+    auto options = arrow::ipc::IpcWriteOptions::Defaults();
+    options.codec = *arrow::util::Codec::Create(arrow::Compression::LZ4_FRAME);
+    std::shared_ptr<arrow::ipc::RecordBatchWriter> streamWriter = *arrow::ipc::MakeStreamWriter(outputStream, table->schema(), options);
     arrow::Status status = streamWriter->WriteTable(*table);
 
     if (!status.ok()) {
