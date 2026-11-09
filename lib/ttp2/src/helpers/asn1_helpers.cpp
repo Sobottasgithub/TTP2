@@ -26,11 +26,8 @@ extern const asn1_static_node packets_asn1_tab[];
 using namespace std;
 
 namespace ttp2 {
-    asn1_node Asn1Helpers::asn1EncodePayload(std::string payload, asn1_node packet, const char* asn1Key) {
-    const char *standardPayload = payload.c_str();
-
-    int status = asn1_write_value(packet, asn1Key,
-                              standardPayload, std::strlen(standardPayload));
+  asn1_node Asn1Helpers::asn1EncodePayload(std::string payload, asn1_node packet, const char* asn1Key) {
+    int status = asn1_write_value(packet, asn1Key, payload.data(), static_cast<int>(payload.size()));
 
     if (status != ASN1_SUCCESS) {
       std::string asn1KeyString = asn1Key;
