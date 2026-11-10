@@ -31,12 +31,12 @@ namespace test::benchmark {
     std::string receiverIp = requestString("Server ip: ");
     int receiverPort = requestInt("Server port: ");
     int payloadSize = requestInt("Payload size (1024): ");
+    int duration = requestInt("duration (seconds): ");
 
     std::thread sendSessionThread([this, receiverIp, receiverPort, payloadSize] {
       this->sendBenchmarkPackets(receiverIp.c_str(), receiverPort, payloadSize);
     });
 
-    const int duration = 10;
     std::thread timerSessionThread([this, duration] {
       this->timerSession(duration);
     });
@@ -84,9 +84,9 @@ namespace test::benchmark {
 
     std::cout << "---- ---- Benchmark Results ---- ----" << std::endl;
     std::cout << "duration: " << duration << " seconds" << std::endl;
-    std::cout << "Total packets received: " << totalPacketsReceived << " " << totalPacketsReceived * payloadSize / 1000000 << "Mb" << std::endl;
-    std::cout << "Avg packets received: " << totalPacketsReceived / ppsCollection.size() << " " << totalPacketsReceived * payloadSize / 1000000 / ppsCollection.size() << "Mbps" << std::endl;
-    std::cout << "Peak packets received: " << peak << " " << peak * payloadSize / 1000000 << "Mbps" << std::endl;
+    std::cout << "Total: " << totalPacketsReceived << "p " << totalPacketsReceived * payloadSize / 1000000 << "Mb" << std::endl;
+    std::cout << "Avg: " << totalPacketsReceived / ppsCollection.size() << "pps " << totalPacketsReceived * payloadSize / 1000000 / ppsCollection.size() << "Mbps" << std::endl;
+    std::cout << "Peak: " << peak << "pps " << peak * payloadSize / 1000000 << "Mbps" << std::endl;
     
     return;
   }
