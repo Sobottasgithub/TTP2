@@ -2,6 +2,7 @@
 #include "helpers.h"
 
 #include <iostream>
+#include <thread>
 
 namespace test::benchmark {
   Benchmark::Benchmark(std::shared_ptr<ttp2::PeerSessionController> peerSessionController) {
@@ -31,29 +32,51 @@ namespace test::benchmark {
     int receiverPort = requestInt("Server port: ");
     int payloadSize = requestInt("Payload size (1024): ");
 
+    std::thread sendSessionThread([this, receiverIp, receiverPort, payloadSize] {
+        this->sendBenchmarkPackets(receiverIp.c_str(), receiverPort, payloadSize);
+    });
+
+    int count = 10000;
+    while (count > 0) {
+      while(peerSessionController->hasPacket()) {
+        peerSessionController->popReceivedPacket();
+        count--;
+      }
+    }
+
+    // INFO: this only disconnects the send benchmark not the peer session controller
+    disconnect();
+    if (sendSessionThread.joinable()) {
+      sendSessionThread.join();
+    }
+    
+    return;
+  }
+
+  void Benchmark::sendBenchmarkPackets(const char* ip, const int port, const int payloadSize) {
     ttp2::Packet::Standard standardPacket;
     const std::string payload(std::max(0, payloadSize), '0');
     standardPacket.payload = payload;
     ttp2::Packet::Packet packet;
     packet.payload = standardPacket;
     ttp2::PeerSessionController::AddressedPacket addressPacket;
-    addressPacket.ip = receiverIp.c_str();
-    addressPacket.port = receiverPort;
+    addressPacket.ip = ip;
+    addressPacket.port = port;
     addressPacket.packet = packet;
 
-    int count = 10000;
-    while (count > 0) {
-      for (int index = 0; index < 10; index++) {
-        peerSessionController->sendPacket(addressPacket);
-      }
-
-      while(peerSessionController->hasPacket()) {
-        peerSessionController->popReceivedPacket();
-        count--;
-      }
+    while(isConnected()) {
+      peerSessionController->sendPacket(addressPacket);
     }
-    
-    return;
+  }
+
+  bool Benchmark::isConnected() {
+    std::lock_guard<std::mutex> lock(this->connectedMutex);
+    return this->connected;
+  }
+
+  void Benchmark::disconnect() {
+    std::lock_guard<std::mutex> lock(this->connectedMutex);
+    this->connected = false;
   }
 
   void Benchmark::returnSession() {
