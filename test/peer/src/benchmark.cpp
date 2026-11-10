@@ -33,23 +33,34 @@ namespace test::benchmark {
     int payloadSize = requestInt("Payload size (1024): ");
 
     std::thread sendSessionThread([this, receiverIp, receiverPort, payloadSize] {
-        this->sendBenchmarkPackets(receiverIp.c_str(), receiverPort, payloadSize);
+      this->sendBenchmarkPackets(receiverIp.c_str(), receiverPort, payloadSize);
     });
 
-    int count = 10000;
-    while (count > 0) {
+    const int duration = 10;
+    std::thread timerSessionThread([this, duration] {
+      this->timerSession(duration);
+    });
+
+    while (isConnected()) {
       while(peerSessionController->hasPacket()) {
         peerSessionController->popReceivedPacket();
-        count--;
       }
     }
 
-    // INFO: this only disconnects the send benchmark not the peer session controller
-    disconnect();
     if (sendSessionThread.joinable()) {
       sendSessionThread.join();
     }
-    
+
+    if (timerSessionThread.joinable()) {
+      timerSessionThread.join();
+    }
+
+    std::cout << "Cleaning up..." << std::endl;
+    // INFO: Cleanup left over packets
+    while(peerSessionController->hasPacket()) {
+      peerSessionController->popReceivedPacket();
+    }
+
     return;
   }
 
@@ -66,6 +77,25 @@ namespace test::benchmark {
 
     while(isConnected()) {
       peerSessionController->sendPacket(addressPacket);
+    }
+  }
+
+  void Benchmark::timerSession(const int duration) {
+    auto start = std::chrono::steady_clock::now();
+    auto deltaStart = start;
+    
+    while (true) {
+      auto now = std::chrono::steady_clock::now();
+      auto elapsedTotal = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
+      if (elapsedTotal >= duration) {
+        disconnect();
+        break;
+      }
+      
+      auto deltaElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - deltaStart).count();
+      if (deltaElapsed >= 1000) {
+        // TODO: take pps in main thread
+      }
     }
   }
 

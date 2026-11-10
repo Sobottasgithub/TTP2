@@ -15,6 +15,7 @@ namespace test::benchmark {
 
       void sendSession();
       void sendBenchmarkPackets(const char* ip, const int port, const int payloadSize);
+      void timerSession(const int duration);
       bool isConnected();
       void disconnect();
       
