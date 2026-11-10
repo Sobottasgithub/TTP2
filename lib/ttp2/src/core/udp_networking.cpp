@@ -14,15 +14,14 @@
 namespace ttp2 {
   void UdpNetworking::createServerSocket(const char *ip, int port) {
     // INFO: configure receive socket
-    struct sockaddr_in serverAddress; 
-      
     if ((this->receiveSocket = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0)) < 0) {
       throw std::runtime_error("Failed creating the server socket"); 
     }
-      
+
+    struct sockaddr_in serverAddress;
     memset(&serverAddress, 0, sizeof(serverAddress)); 
       
-    serverAddress.sin_family = AF_INET; 
+    serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = inet_addr(ip); 
     serverAddress.sin_port = htons(port);
       
@@ -50,15 +49,36 @@ namespace ttp2 {
     // INFO: configure send socket
     this->sendSocket = socket(AF_INET, SOCK_DGRAM, 0);
     if (this->sendSocket < 0) {
+      close(this->receiveSocket);
+      close(this->epollFd);
       throw std::runtime_error("Socket creation failed");
     }
+
+    struct sockaddr_in sendAddress;
+    memset(&sendAddress, 0, sizeof(sendAddress)); 
+    sendAddress.sin_family = AF_INET;
+    sendAddress.sin_addr.s_addr = inet_addr(ip);
+    // INFO: put send port on port + 1 so that the recieving end can calc the port of the
+    //       receiving peer that has send the request. This may not be perfect
+    sendAddress.sin_port = htons(port+1); 
 
     struct timeval timeValue;
     timeValue.tv_sec = 1;
     timeValue.tv_usec = 0;
     if (setsockopt(this->sendSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeValue, sizeof(timeValue)) < 0) {
       close(this->sendSocket);
+      close(this->receiveSocket);
+      close(this->epollFd);
       throw std::runtime_error("Set timeout socket option failed");
+    }
+
+    if (bind(this->sendSocket,
+        (const struct sockaddr *)&sendAddress,
+        sizeof(sendAddress)) < 0 ) {
+      close(this->sendSocket);
+      close(this->receiveSocket);
+      close(this->epollFd);
+      throw std::runtime_error("bind send failed");
     }
   }
 
