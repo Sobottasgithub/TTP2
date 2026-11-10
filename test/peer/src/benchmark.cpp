@@ -82,11 +82,15 @@ namespace test::benchmark {
       }
     }
 
+    double totalMegaBits = (static_cast<double>(totalPacketsReceived) * payloadSize * 8.0) / 1000000.0;
+    double avgPps = ppsCollection.empty() ? 0.0 : static_cast<double>(totalPacketsReceived) / ppsCollection.size();
+    double avgMbps = ppsCollection.empty() ? 0.0 : (avgPps * payloadSize * 8.0) / 1000000.0;
+    double peakMbps = (static_cast<double>(peak) * payloadSize * 8.0) / 1000000.0;
+    
     std::cout << "---- ---- Benchmark Results ---- ----" << std::endl;
-    std::cout << "duration: " << duration << " seconds" << std::endl;
-    std::cout << "Total: " << totalPacketsReceived << "p " << totalPacketsReceived * payloadSize / 1000000 << "Mb" << std::endl;
-    std::cout << "Avg: " << totalPacketsReceived / ppsCollection.size() << "pps " << totalPacketsReceived * payloadSize / 1000000 / ppsCollection.size() << "Mbps" << std::endl;
-    std::cout << "Peak: " << peak << "pps " << peak * payloadSize / 1000000 << "Mbps" << std::endl;
+    std::cout << "Total: " << totalPacketsReceived << " packets (" << totalMegaBits << " Mb)" << std::endl;
+    std::cout << "Avg: " << avgPps << " pps (" << avgMbps << " Mbps)" << std::endl;
+    std::cout << "Peak: " << peak << " pps (" << peakMbps << " Mbps)" << std::endl;
     
     return;
   }
