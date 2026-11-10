@@ -1,11 +1,11 @@
 #include "cli.h"
 #include "benchmark.h"
+#include "helpers.h"
 
 #include "peer_session_controller.h"
 #include "packet_types.h"
 
 #include <iostream>
-#include <regex>
 #include <thread>
 
 namespace test {
@@ -77,34 +77,6 @@ namespace test {
 
     if (networkingSession.joinable()) {
       networkingSession.join();
-    }
-  }
-
-  bool Cli::isNumeric(const std::string& string) {
-    static const std::regex numberRegex(
-        R"(^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$)"
-    );
-    return std::regex_match(string, numberRegex);
-  }
-  
-  std::string Cli::requestString(const std::string& message) {
-    std::string userInput;
-    std::cout << message << std::flush;
-    std::getline(std::cin, userInput);
-    return userInput;
-  }
-  
-  int Cli::requestInt(const std::string& message) {
-    std::string userInput;
-
-    while (true) {
-        std::cout << message << std::flush;
-        std::getline(std::cin, userInput);
-
-        if (isNumeric(userInput)) {
-            return std::stoi(userInput);
-        }
-        std::cout << "Invalid input! Try again" << std::endl;
     }
   }
 }
