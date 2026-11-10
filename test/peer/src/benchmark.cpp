@@ -32,7 +32,13 @@ namespace test::benchmark {
   }
 
   void Benchmark::returnSession() {
-
+    while(true) {
+      while (peerSessionController->hasPacket()) {
+        ttp2::PeerSessionController::AddressedPacket receivedPacket = peerSessionController->popReceivedPacket();
+        receivedPacket.port = receivedPacket.port - 1;
+        peerSessionController->sendPacket(receivedPacket);
+      }
+    }
     return;
   }
 }
