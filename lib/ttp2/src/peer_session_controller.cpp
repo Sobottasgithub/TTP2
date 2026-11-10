@@ -55,7 +55,7 @@ namespace ttp2 {
       }
 
       for (int index = 0; index < receivedEvents; ++index) {
-        if (events[index].data.fd == this->serverSocket) {
+        if (events[index].data.fd == this->receiveSocket) {
           AddressedPacket addressedPacket;
           std::unique_lock<std::mutex> lock(receiveMutex);
           // type INFO: string, int Packet::Packet
@@ -117,7 +117,7 @@ namespace ttp2 {
     std::lock_guard<std::mutex> lock(connectedMutex);
     logger->log(tablog::DEBUG, "Disconnect");
     this->connected = false;
-    close(this->serverSocket);
+    close(this->receiveSocket);
     close(this->epollFd);
   }
 }

@@ -15,7 +15,7 @@ namespace ttp2 {
   void UdpNetworking::createServerSocket(const char *ip, int port) {
     struct sockaddr_in serverAddress; 
       
-    if ((this->serverSocket = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0)) < 0) {
+    if ((this->receiveSocket = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0)) < 0) {
       throw std::runtime_error("Failed creating the server socket"); 
     }
       
@@ -25,7 +25,7 @@ namespace ttp2 {
     serverAddress.sin_addr.s_addr = inet_addr(ip); 
     serverAddress.sin_port = htons(port);
       
-    if (bind(this->serverSocket,
+    if (bind(this->receiveSocket,
         (const struct sockaddr *)&serverAddress,
         sizeof(serverAddress)) < 0 ) { 
       throw std::runtime_error("bind failed");
@@ -33,15 +33,15 @@ namespace ttp2 {
 
     this->epollFd = epoll_create1(0);
     if (this->epollFd < 0) {
-      close(this->serverSocket);
+      close(this->receiveSocket);
       throw std::runtime_error("epoll_create1 failed");
     }
 
     epoll_event event{};
     event.events = EPOLLIN | EPOLLET;
-    event.data.fd = this->serverSocket;
-    if (epoll_ctl(this->epollFd, EPOLL_CTL_ADD, this->serverSocket, &event) < 0) {
-      close(this->serverSocket);
+    event.data.fd = this->receiveSocket;
+    if (epoll_ctl(this->epollFd, EPOLL_CTL_ADD, this->receiveSocket, &event) < 0) {
+      close(this->receiveSocket);
       close(this->epollFd);
       throw std::runtime_error("epoll_ctl failed");
     }
@@ -52,14 +52,14 @@ namespace ttp2 {
     sockaddr_in clientAddress{};
     socklen_t clientLength = sizeof(clientAddress);
 
-    ssize_t bytes = recvfrom(this->serverSocket, nullptr, 0, MSG_PEEK | MSG_TRUNC, 
+    ssize_t bytes = recvfrom(this->receiveSocket, nullptr, 0, MSG_PEEK | MSG_TRUNC, 
                              (struct sockaddr*)&clientAddress, &clientLength);
     if (bytes < 0) {
       logger->log(tablog::ERROR, "Error while receiving");
       return {"", -1, packet};
     }
     std::vector<unsigned char> buffer(bytes);
-    bytes = recvfrom(this->serverSocket, buffer.data(), buffer.size(), 0, 
+    bytes = recvfrom(this->receiveSocket, buffer.data(), buffer.size(), 0, 
                      (struct sockaddr*)&clientAddress, &clientLength);
     if (bytes < 0) {
       logger->log(tablog::ERROR, "Error while consuming packet");
@@ -69,6 +69,9 @@ namespace ttp2 {
     char clientIP[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(clientAddress.sin_addr), clientIP, INET_ADDRSTRLEN);
     uint16_t clientPort = ntohs(clientAddress.sin_port);
+
+    std::cout << "Ip----> " << clientIP << std::endl;
+    std::cout << "PT----> " << clientPort << std::endl;
 
     uint32_t networkSize;
     memcpy(&networkSize, buffer.data(), sizeof(uint32_t));
@@ -82,7 +85,7 @@ namespace ttp2 {
 
     // INFO: ACKNOWLEDGE
     const char *ackMessage = "1"; 
-    sendto(this->serverSocket, (const char *)ackMessage, strlen(ackMessage),  
+    sendto(this->receiveSocket, (const char *)ackMessage, strlen(ackMessage),  
             MSG_CONFIRM, (const struct sockaddr *)&clientAddress, clientLength);
     
     return {clientIP, clientPort, packet};
@@ -113,11 +116,11 @@ namespace ttp2 {
   }
   
   void UdpNetworking::sendMessageTo(const char *ip, int port, const char *buffer, size_t size) {
-    int serverSocket;
+    int sendSocket;
     struct sockaddr_in serverAddress;
 
-    serverSocket = socket(AF_INET, SOCK_DGRAM, 0);
-    if (serverSocket < 0) {
+    sendSocket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sendSocket < 0) {
       throw std::runtime_error("Socket creation failed");
     }
 
@@ -129,7 +132,7 @@ namespace ttp2 {
 
     int maxResendCount = 10;
     while (maxResendCount > 0) {
-      sendto(serverSocket, buffer, size, MSG_CONFIRM,
+      sendto(sendSocket, buffer, size, MSG_CONFIRM,
              (const struct sockaddr *)&serverAddress, sizeof(serverAddress));
 
 
@@ -137,13 +140,13 @@ namespace ttp2 {
       struct timeval timeValue;
       timeValue.tv_sec = 1;
       timeValue.tv_usec = 0;
-      if (setsockopt(serverSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeValue, sizeof(timeValue)) < 0) {
-        close(serverSocket);
+      if (setsockopt(sendSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeValue, sizeof(timeValue)) < 0) {
+        close(sendSocket);
         throw std::runtime_error("Set timeout socket option failed");
       }
       char receiveBuffer[4];
       socklen_t len = sizeof(serverAddress);
-      int bytesReceived = recvfrom(serverSocket, receiveBuffer, 4, MSG_WAITALL,
+      int bytesReceived = recvfrom(sendSocket, receiveBuffer, 4, MSG_WAITALL,
                            (struct sockaddr *)&serverAddress, &len);
 
       if (bytesReceived < 0) {
@@ -160,6 +163,6 @@ namespace ttp2 {
         maxResendCount--;
       }
     }
-    close(serverSocket);
+    close(sendSocket);
   }
 }
