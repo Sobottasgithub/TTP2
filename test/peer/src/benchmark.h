@@ -12,6 +12,9 @@ namespace test::benchmark {
       std::shared_ptr<ttp2::PeerSessionController> peerSessionController;
       std::mutex connectedMutex;
       bool connected = true;
+      std::mutex takeBenchmarkValuesMutex;
+      bool takeBenchmarkValues = false;
+
 
       void sendSession();
       void sendBenchmarkPackets(const char* ip, const int port, const int payloadSize);

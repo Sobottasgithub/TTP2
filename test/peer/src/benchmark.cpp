@@ -41,9 +41,23 @@ namespace test::benchmark {
       this->timerSession(duration);
     });
 
+    std::vector<int> ppsCollection = {};
+    int totalPacketsReceived = 0;
+    int deltaPacketsReceived = 0;
     while (isConnected()) {
       while(peerSessionController->hasPacket()) {
         peerSessionController->popReceivedPacket();
+        totalPacketsReceived++;
+        deltaPacketsReceived++;
+
+        {
+          std::lock_guard<std::mutex> lock(this->takeBenchmarkValuesMutex);
+          if (this->takeBenchmarkValues) {
+            this->takeBenchmarkValues = false;
+            ppsCollection.emplace_back(deltaPacketsReceived);
+            deltaPacketsReceived = 0;
+          }
+        }
       }
     }
 
@@ -61,6 +75,19 @@ namespace test::benchmark {
       peerSessionController->popReceivedPacket();
     }
 
+    int peak = 0;
+    for (int index = 0; index < ppsCollection.size(); index++) {
+      if (ppsCollection.at(index) > peak) {
+        peak = ppsCollection.at(index);
+      }
+    }
+
+    std::cout << "---- ---- Benchmark Results ---- ----" << std::endl;
+    std::cout << "duration: " << duration << " seconds" << std::endl;
+    std::cout << "Total packets received: " << totalPacketsReceived << " " << totalPacketsReceived * payloadSize / 1000000 << "Mb" << std::endl;
+    std::cout << "Avg packets received: " << totalPacketsReceived / ppsCollection.size() << " " << totalPacketsReceived * payloadSize / 1000000 / ppsCollection.size() << "Mbps" << std::endl;
+    std::cout << "Peak packets received: " << peak << " " << peak * payloadSize / 1000000 << "Mbps" << std::endl;
+    
     return;
   }
 
@@ -94,7 +121,11 @@ namespace test::benchmark {
       
       auto deltaElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - deltaStart).count();
       if (deltaElapsed >= 1000) {
-        // TODO: take pps in main thread
+        {
+          std::lock_guard<std::mutex> lock(this->takeBenchmarkValuesMutex);
+          this->takeBenchmarkValues = true;
+        }
+        deltaStart = now;
       }
     }
   }
