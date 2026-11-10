@@ -9,7 +9,10 @@ namespace test::benchmark {
     public:
       Benchmark(std::shared_ptr<ttp2::PeerSessionController> peerSessionController);
     private:
-      
+      std::shared_ptr<ttp2::PeerSessionController> peerSessionController;
+
+      void sendSession();
+      void returnSession();
   };
 }
 
