@@ -12,7 +12,7 @@ namespace test::benchmark {
   Benchmark::Benchmark(std::shared_ptr<ttp2::ClientSessionController> clientSessionController) {
     this->clientSessionController = clientSessionController;
     std::cout << "~~~~~~ ~~~~~~ 1 Minute Throughput Benchmark ~~~~~~ ~~~~~~" << std::endl;
-    int payloadSize = test::Helpers::requestInt("(Int) payload size (1460): ");
+    int payloadSize = test::Helpers::requestInt("(Int) payload size (1024): ");
 
     std::thread sendSessionThread([this, payloadSize] {
         this->sendSession(payloadSize);
@@ -67,6 +67,7 @@ namespace test::benchmark {
         }
     }
 
+    // INFO: This only disconnects the Benchmark not the clientSessionController
     disconnect();
     packetReceivedSignal.notify_all();
 

@@ -27,7 +27,32 @@ namespace test::benchmark {
   }
 
   void Benchmark::sendSession() {
+    std::string receiverIp = requestString("Server ip: ");
+    int receiverPort = requestInt("Server port: ");
+    int payloadSize = requestInt("Payload size (1024): ");
 
+    ttp2::Packet::Standard standardPacket;
+    const std::string payload(std::max(0, payloadSize), '0');
+    standardPacket.payload = payload;
+    ttp2::Packet::Packet packet;
+    packet.payload = standardPacket;
+    ttp2::PeerSessionController::AddressedPacket addressPacket;
+    addressPacket.ip = receiverIp.c_str();
+    addressPacket.port = receiverPort;
+    addressPacket.packet = packet;
+
+    int count = 10000;
+    while (count > 0) {
+      for (int index = 0; index < 10; index++) {
+        peerSessionController->sendPacket(addressPacket);
+      }
+
+      while(peerSessionController->hasPacket()) {
+        peerSessionController->popReceivedPacket();
+        count--;
+      }
+    }
+    
     return;
   }
 
