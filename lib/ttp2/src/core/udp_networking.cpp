@@ -105,9 +105,6 @@ namespace ttp2 {
     inet_ntop(AF_INET, &(clientAddress.sin_addr), clientIP, INET_ADDRSTRLEN);
     uint16_t clientPort = ntohs(clientAddress.sin_port);
 
-    std::cout << "Ip----> " << clientIP << std::endl;
-    std::cout << "PT----> " << clientPort << std::endl;
-
     uint32_t networkSize;
     memcpy(&networkSize, buffer.data(), sizeof(uint32_t));
     uint32_t derLen = ntohl(networkSize);

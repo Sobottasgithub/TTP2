@@ -50,6 +50,7 @@ namespace test {
             ttp2::PeerSessionController::AddressedPacket receivedPacket = peerSessionController->popReceivedPacket();
             std::cout << "-------------Start-------------" << std::endl;
             std::cout << "IP: " << receivedPacket.ip << std::endl;
+            std::cout << "PORT: " << receivedPacket.port << std::endl;
             std::cout << "ID: " << receivedPacket.packet.id << std::endl;
             if (std::holds_alternative<ttp2::Packet::Standard>(receivedPacket.packet.payload)) {
               ttp2::Packet::Standard standard = std::get<ttp2::Packet::Standard>(receivedPacket.packet.payload);
