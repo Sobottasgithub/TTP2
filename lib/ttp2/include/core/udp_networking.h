@@ -21,6 +21,7 @@ namespace ttp2 {
     protected:
       std::shared_ptr<tablog::Tablog> logger;
 
+      int sendSocket;
       int receiveSocket;
       int epollFd;
 

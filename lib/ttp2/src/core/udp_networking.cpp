@@ -13,6 +13,7 @@
 
 namespace ttp2 {
   void UdpNetworking::createServerSocket(const char *ip, int port) {
+    // INFO: configure receive socket
     struct sockaddr_in serverAddress; 
       
     if ((this->receiveSocket = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0)) < 0) {
@@ -44,6 +45,20 @@ namespace ttp2 {
       close(this->receiveSocket);
       close(this->epollFd);
       throw std::runtime_error("epoll_ctl failed");
+    }
+
+    // INFO: configure send socket
+    this->sendSocket = socket(AF_INET, SOCK_DGRAM, 0);
+    if (this->sendSocket < 0) {
+      throw std::runtime_error("Socket creation failed");
+    }
+
+    struct timeval timeValue;
+    timeValue.tv_sec = 1;
+    timeValue.tv_usec = 0;
+    if (setsockopt(this->sendSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeValue, sizeof(timeValue)) < 0) {
+      close(this->sendSocket);
+      throw std::runtime_error("Set timeout socket option failed");
     }
   }
 
@@ -116,14 +131,7 @@ namespace ttp2 {
   }
   
   void UdpNetworking::sendMessageTo(const char *ip, int port, const char *buffer, size_t size) {
-    int sendSocket;
     struct sockaddr_in serverAddress;
-
-    sendSocket = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sendSocket < 0) {
-      throw std::runtime_error("Socket creation failed");
-    }
-
     memset(&serverAddress, 0, sizeof(serverAddress));
 
     serverAddress.sin_family = AF_INET;
@@ -132,21 +140,13 @@ namespace ttp2 {
 
     int maxResendCount = 10;
     while (maxResendCount > 0) {
-      sendto(sendSocket, buffer, size, MSG_CONFIRM,
+      sendto(this->sendSocket, buffer, size, MSG_CONFIRM,
              (const struct sockaddr *)&serverAddress, sizeof(serverAddress));
 
-
       // INFO: ACKNOWLEDGE
-      struct timeval timeValue;
-      timeValue.tv_sec = 1;
-      timeValue.tv_usec = 0;
-      if (setsockopt(sendSocket, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeValue, sizeof(timeValue)) < 0) {
-        close(sendSocket);
-        throw std::runtime_error("Set timeout socket option failed");
-      }
       char receiveBuffer[4];
       socklen_t len = sizeof(serverAddress);
-      int bytesReceived = recvfrom(sendSocket, receiveBuffer, 4, MSG_WAITALL,
+      int bytesReceived = recvfrom(this->sendSocket, receiveBuffer, 4, MSG_WAITALL,
                            (struct sockaddr *)&serverAddress, &len);
 
       if (bytesReceived < 0) {
@@ -163,6 +163,5 @@ namespace ttp2 {
         maxResendCount--;
       }
     }
-    close(sendSocket);
   }
 }

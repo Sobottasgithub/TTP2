@@ -117,6 +117,7 @@ namespace ttp2 {
     std::lock_guard<std::mutex> lock(connectedMutex);
     logger->log(tablog::DEBUG, "Disconnect");
     this->connected = false;
+    close(this->sendSocket);
     close(this->receiveSocket);
     close(this->epollFd);
   }
