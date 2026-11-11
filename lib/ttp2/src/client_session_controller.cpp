@@ -2,6 +2,7 @@
 
 #include "../include/packet_types.h"
 
+#include <stdexcept>
 #include <tablog.h>
 
 #include <sys/socket.h>
@@ -11,6 +12,7 @@
 #include <thread>
 #include <sys/epoll.h>
 #include <netinet/tcp.h>
+#include <poll.h>
 
 namespace ttp2 {
   ClientSessionController::ClientSessionController(std::string ipV4, int port) {
@@ -27,10 +29,38 @@ namespace ttp2 {
     serverAddress.sin_addr.s_addr = inet_addr(ipV4.c_str());
 
     int connectionResult = connect(this->socket, (struct sockaddr*) &serverAddress, sizeof(serverAddress));
+
+    if (connectionResult < 0) {
+      if (errno == EINPROGRESS) {
+        struct pollfd pfd;
+        pfd.fd = this->socket;
+        pfd.events = POLLOUT;
+
+        // Wait max 10 Seconds for connection
+        int pollResult = poll(&pfd, 1, 10000);
+
+        if (pollResult > 0) {
+          int socketError = 0;
+          socklen_t len = sizeof(socketError);
+          getsockopt(this->socket, SOL_SOCKET, SO_ERROR, &socketError, &len);
+
+          if (socketError != 0) {
+            logger->log(tablog::ERROR, "Connection failed!");
+            throw std::runtime_error("Connection failed!");
+          }
+        } else {
+          logger->log(tablog::ERROR, "Connection failed!");
+          throw std::runtime_error("Connection failed!");
+        }
+      } else {
+        logger->log(tablog::ERROR, "Connection failed!");
+        throw std::runtime_error("Connection failed!");
+      }
+    }
     
     if (connectionResult < 0 && errno != EINPROGRESS) {
-        logger->log(tablog::ERROR, "Connection failed!");
-        return;
+      logger->log(tablog::ERROR, "Connection failed!");
+      throw std::runtime_error("Connection failed!");
     }
 
     {
