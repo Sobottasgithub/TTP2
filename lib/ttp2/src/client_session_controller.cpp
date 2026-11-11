@@ -30,7 +30,19 @@ namespace ttp2 {
     
     if (connectionResult < 0 && errno != EINPROGRESS) {
         logger->log(tablog::ERROR, "Connection failed!");
+        return;
     }
+
+    {
+      std::lock_guard<std::mutex> lock(this->initCompleatMutex);
+      this->initCompleat = true;
+      logger->log(tablog::ERROR, "Init compleat");
+    }
+  }
+
+  bool ClientSessionController::isInitCompleat() {
+    std::lock_guard<std::mutex> lock(this->initCompleatMutex);
+    return this->initCompleat;
   }
 
   ClientSessionController::ClientSessionController(int &socket) {

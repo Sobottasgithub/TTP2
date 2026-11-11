@@ -12,12 +12,16 @@ namespace ttp2 {
         ClientSessionController(int &socket);
         void networkingSession();
         void disconnect() override;
+        bool isInitCompleat();
 
       private:
         int socket;
 
         int epollFd;
         struct epoll_event serverEvent;
+
+        std::mutex initCompleatMutex;
+        bool initCompleat = false;
 
         void sendRequestSession();
         void receiveResponseSession();

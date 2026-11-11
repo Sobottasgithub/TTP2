@@ -23,6 +23,10 @@ namespace test {
     
     this->clientSessionController = std::make_shared<ttp2::ClientSessionController>(ipAddress, port);
 
+    while (!this->clientSessionController->isInitCompleat()) {
+      std::cout << "Init isnt compleat yet" << std::endl;
+    }
+
     std::shared_ptr<ttp2::ClientSessionController> clientSessionController = this->clientSessionController;
     std::thread networkThread([clientSessionController]() {
         clientSessionController->networkingSession();
