@@ -1,6 +1,7 @@
 #include "../include/peer_session_controller.h"
 
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <sys/epoll.h>
 #include <unistd.h>
@@ -20,7 +21,7 @@ namespace ttp2 {
     };
     tablog::Tablog::LoglevelConfig debugConfig;
     debugConfig.visible = false;
-    this->logger->configure(name, true, true, true, false, debugConfig);
+    this->logger->configure(name, true, true, true, false, "", std::nullopt, debugConfig);
     registry->registerLogger(name, logger);
 
     this->createServerSocket(ip, port);
