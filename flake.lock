@@ -43,11 +43,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1784813121,
-        "narHash": "sha256-ixwsmElsnlQE0MHPjS6m5+XmS47bFPHBYtZIxCTwLB8=",
+        "lastModified": 1793694276,
+        "narHash": "sha256-d1FTLTnfP/ViU8lJcM+AqWApEEkpahkdrceBNetA1E4=",
         "owner": "Sobottasgithub",
         "repo": "tablog",
-        "rev": "e47b0796e6a0820315a846fb02a9c9c89b5bda33",
+        "rev": "4b527f9763d1ae03a587c87fee5844b1eedc45f8",
         "type": "github"
       },
       "original": {
