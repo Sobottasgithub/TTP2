@@ -13,19 +13,16 @@ extern const asn1_static_node packets_asn1_tab[];
 namespace ttp2::asn1::decode {
   class Decode {
     public:
-      Decode();
-      ttp2::Packet::Packet decode(std::vector<char> derBuffer);
+      static ttp2::Packet::Packet decode(std::vector<char> derBuffer);
 
     private:
-      asn1_node definition = nullptr;
-
-      ttp2::Packet::Standard decodeStandard(asn1_node packet);
-      ttp2::Packet::File decodeFile(asn1_node packet);
-      ttp2::Packet::ViewportRequest decodeViewportRequest(asn1_node packet);
-      ttp2::Packet::Viewport decodeViewport(asn1_node packet);
-      ttp2::Packet::TqlQuery decodeTqlQuery(asn1_node packet);
-      ttp2::Packet::Error decodeError(asn1_node packet);
-      ttp2::Packet::Universal decodeUniversal(asn1_node packet);      
+      static ttp2::Packet::Standard decodeStandard(asn1_node packet);
+      static ttp2::Packet::File decodeFile(asn1_node packet);
+      static ttp2::Packet::ViewportRequest decodeViewportRequest(asn1_node packet);
+      static ttp2::Packet::Viewport decodeViewport(asn1_node packet);
+      static ttp2::Packet::TqlQuery decodeTqlQuery(asn1_node packet);
+      static ttp2::Packet::Error decodeError(asn1_node packet);
+      static ttp2::Packet::Universal decodeUniversal(asn1_node packet);      
   };
 }
 

@@ -7,19 +7,18 @@
 #include <stdexcept>
 
 namespace ttp2::asn1::decode {
-  Decode::Decode() {
-    char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
-
-    if (asn1_array2tree(packets_asn1_tab, &definition, errorDescription) !=
-        ASN1_SUCCESS) {
-      throw std::runtime_error(errorDescription);
-    }
-  }
+  static asn1_node definition = nullptr;
   
   ttp2::Packet::Packet Decode::decode(std::vector<char> derBuffer) {
     char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
     ttp2::Packet::Packet data;
     asn1_node packet = nullptr;
+
+    if (definition == nullptr) {
+      if (asn1_array2tree(packets_asn1_tab, &definition, errorDescription) != ASN1_SUCCESS) {
+        throw std::runtime_error(errorDescription);
+      }
+    }
 
     asn1_create_element(definition, "Packets.Packet", &packet);
 

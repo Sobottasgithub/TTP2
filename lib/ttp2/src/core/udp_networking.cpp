@@ -1,5 +1,7 @@
 #include "../../include/core/udp_networking.h"
 
+#include "../include/helpers/asn1_decode.h"
+
 #include <bits/stdc++.h> 
 #include <stdexcept>
 #include <stdlib.h> 
@@ -113,7 +115,7 @@ namespace ttp2 {
         reinterpret_cast<const char*>(buffer.data() + sizeof(uint32_t) + derLen)
     );
 
-    packet = this->decoder.decode(derBuffer);
+    packet = asn1::decode::Decode::decode(derBuffer);
 
     // INFO: ACKNOWLEDGE
     const char *ackMessage = "1"; 

@@ -66,7 +66,6 @@ namespace ttp2 {
     {
       std::lock_guard<std::mutex> lock(this->initCompleatMutex);
       this->initCompleat = true;
-      logger->log(tablog::ERROR, "Init compleat");
     }
   }
 
