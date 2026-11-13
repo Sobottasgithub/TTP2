@@ -2,7 +2,6 @@
 #define TCP_NETWORKING_H
 
 #include "../packet_types.h"
-#include "helpers/asn1_encode.h"
 
 #include <tablog.h>
 
@@ -76,8 +75,6 @@ namespace ttp2 {
         std::map<int, std::vector<unsigned char>> sessionBuffers;
 
         int autoId = 0;
-
-        asn1::encode::Encode encoder;
   };
 }
 

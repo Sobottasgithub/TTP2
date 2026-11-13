@@ -7,19 +7,18 @@
 #include <variant>
 
 namespace ttp2::asn1::encode {
-  Encode::Encode() {
-    char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
-
-    if (asn1_array2tree(packets_asn1_tab, &definition, errorDescription) !=
-        ASN1_SUCCESS) {
-      std::string errorDescriptionString = errorDescription;
-      throw std::invalid_argument("Error in sendMessage when loading asn1: " + errorDescriptionString);
-    }
-  }
+  static asn1_node definition = nullptr;
   
   std::vector<unsigned char> Encode::encode(ttp2::Packet::payloadVariants payload, int id) {
     asn1_node packet = nullptr;
     char errorDescription[ASN1_MAX_ERROR_DESCRIPTION_SIZE];
+
+    if (definition == nullptr) {
+      if (asn1_array2tree(packets_asn1_tab, &definition, errorDescription) != ASN1_SUCCESS) {
+        std::string errorDescriptionString = errorDescription;
+        throw std::invalid_argument("Error in encode when loading asn1: " + errorDescriptionString);
+      }
+    }
 
     asn1_create_element(definition, "Packets.Packet", &packet);
     packet = ttp2::Asn1Helpers::asn1EncodePayload(id, packet, "id");

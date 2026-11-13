@@ -1,6 +1,7 @@
 #include "../../include/core/udp_networking.h"
 
 #include "../include/helpers/asn1_decode.h"
+#include "helpers/asn1_encode.h"
 
 #include <bits/stdc++.h> 
 #include <stdexcept>
@@ -131,7 +132,7 @@ namespace ttp2 {
       autoId++;
     }
     
-    std::vector<unsigned char> encodedPacket = this->encoder.encode(packet.payload, packet.id);
+    std::vector<unsigned char> encodedPacket = asn1::encode::Encode::encode(packet.payload, packet.id);
 
     uint32_t dataLen = static_cast<uint32_t>(encodedPacket.size());
     uint32_t networkSize = htonl(dataLen);
