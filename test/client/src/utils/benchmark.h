@@ -18,7 +18,10 @@ namespace test::benchmark {
       long long inFlight = 0;
       const long long maxInFlight = 500;
       std::shared_ptr<ttp2::ClientSessionController> clientSessionController;
+      std::mutex takeBenchmarkValuesMutex;
+      bool takeBenchmarkValues = false;
 
+      void timerSession(const int duration);
       void sendSession(const int packetSize);
       bool isConnected();
       void disconnect();

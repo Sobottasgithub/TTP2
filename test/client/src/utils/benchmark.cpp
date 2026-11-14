@@ -11,99 +11,103 @@
 namespace test::benchmark {
   Benchmark::Benchmark(std::shared_ptr<ttp2::ClientSessionController> clientSessionController) {
     this->clientSessionController = clientSessionController;
-    std::cout << "~~~~~~ ~~~~~~ 1 Minute Throughput Benchmark ~~~~~~ ~~~~~~" << std::endl;
+    std::cout << "~~~~~~ ~~~~~~ TTP2 TCP Benchmark ~~~~~~ ~~~~~~" << std::endl;
     int payloadSize = test::Helpers::requestInt("(Int) payload size (1024): ");
+
+    // TODO: Take user input
+    const int duration = 60;
+    std::vector<int> ppsCollection;
+    ppsCollection.reserve(duration + 5);
+    int totalPacketsReceived = 0;
+    int deltaPacketsReceived = 0;
 
     std::thread sendSessionThread([this, payloadSize] {
         this->sendSession(payloadSize);
     });
 
-    auto start = std::chrono::steady_clock::now();
-    auto deltaStart = start;
+    std::thread timerSessionThread([this, duration] {
+      this->timerSession(duration);
+    });
 
-    std::vector<int> ppsCollection;
-    ppsCollection.reserve(65);
-
-    long long totalBytesSent = 0;
-    int maxPacketsPerSecond = 0;
-    int receivedPacketsThisSecond = 0;
-
-    const int benchmarkDurationSeconds = 60;
-
-    std::cout << "Running benchmark for 60 seconds..." << std::endl;
-    while (true) {
-        auto now = std::chrono::steady_clock::now();
-        auto elapsedTotal = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
-        if (elapsedTotal >= benchmarkDurationSeconds) {
-            break;
-        }
-
-        bool processedAny = false;
+    while (isConnected()) {
         while (this->clientSessionController->hasResponse()) {
             auto responsePacket = this->clientSessionController->popResponse();
-            receivedPacketsThisSecond++;
-            totalBytesSent += payloadSize;
-            processedAny = true;
+            totalPacketsReceived++;
+            deltaPacketsReceived++;
 
             {
                 std::lock_guard<std::mutex> lock(packetMutex);
                 inFlight--;
             }
             packetReceivedSignal.notify_one();
-        }
 
-        auto deltaElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - deltaStart).count();
-        if (deltaElapsed >= 1000) {
-            deltaStart = now;
-            if (receivedPacketsThisSecond > maxPacketsPerSecond) {
-                maxPacketsPerSecond = receivedPacketsThisSecond;
+            {
+              std::lock_guard<std::mutex> lock(this->takeBenchmarkValuesMutex);
+              if (this->takeBenchmarkValues) {
+                this->takeBenchmarkValues = false;
+                ppsCollection.emplace_back(deltaPacketsReceived);
+                deltaPacketsReceived = 0;
+              }
             }
-            ppsCollection.push_back(receivedPacketsThisSecond);
-            receivedPacketsThisSecond = 0;
-        }
-
-        if (!processedAny) {
-            std::this_thread::sleep_for(std::chrono::microseconds(10));
         }
     }
 
-    // INFO: This only disconnects the Benchmark not the clientSessionController
-    disconnect();
     packetReceivedSignal.notify_all();
-
-    auto end = std::chrono::steady_clock::now();
-    auto totalSeconds = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
 
     if (sendSessionThread.joinable()) {
         sendSessionThread.join();
     }
+    
+    if (timerSessionThread.joinable()) {
+      timerSessionThread.join();
+    }
     std::cout << "Done joining threads" << std::endl;
 
-    int avgPps = 0;
-    if (!ppsCollection.empty()) {
-        int sum = 0;
-        for (size_t index = 0; index < ppsCollection.size(); index++) {
-            sum += ppsCollection.at(index);
-        }
-        avgPps = sum / ppsCollection.size();
-    } else {
-        avgPps = receivedPacketsThisSecond;
+    int peak = 0;
+    for (int index = 0; index < ppsCollection.size(); index++) {
+      if (ppsCollection.at(index) > peak) {
+        peak = ppsCollection.at(index);
+      }
     }
 
-    double totalMegabits = (totalBytesSent * 8.0) / 1000000.0;
-    double throughputMbps = (totalSeconds > 0) ? (totalMegabits / totalSeconds) : 0.0;
-
-    std::cout << "\n--- Benchmark Results ---" << std::endl;
-    std::cout << "Duration: " << totalSeconds << " seconds" << std::endl;
-    std::cout << "Total Data Sent: " << (totalBytesSent / 1024 / 1024) << " MB (" << totalMegabits << " Mb)" << std::endl;
-    std::cout << "Throughput: " << throughputMbps << " Mbps" << std::endl;
-    std::cout << maxPacketsPerSecond << " pps max; " << avgPps << " pps AVG" << std::endl;
+    double totalMegaBits = (static_cast<double>(totalPacketsReceived) * payloadSize * 8.0) / 1000000.0;
+    double avgPps = ppsCollection.empty() ? 0.0 : static_cast<double>(totalPacketsReceived) / ppsCollection.size();
+    double avgMbps = ppsCollection.empty() ? 0.0 : (avgPps * payloadSize * 8.0) / 1000000.0;
+    double peakMbps = (static_cast<double>(peak) * payloadSize * 8.0) / 1000000.0;
+    
+    std::cout << "---- ---- Benchmark Results ---- ----" << std::endl;
+    std::cout << "Total: " << totalPacketsReceived << " packets (" << totalMegaBits << " Mb)" << std::endl;
+    std::cout << "Avg: " << avgPps << " pps (" << avgMbps << " Mbps)" << std::endl;
+    std::cout << "Peak: " << peak << " pps (" << peakMbps << " Mbps)" << std::endl;
     
     std::cout << "Cleanup" << std::endl;
     while (this->clientSessionController->hasResponse()) {
         ttp2::Packet::Packet responsePacket = this->clientSessionController->popResponse();
     }
     std::cout << "done" << std::endl;
+  }
+
+  void Benchmark::timerSession(const int duration) {
+    auto start = std::chrono::steady_clock::now();
+    auto deltaStart = start;
+    
+    while (true) {
+      auto now = std::chrono::steady_clock::now();
+      auto elapsedTotal = std::chrono::duration_cast<std::chrono::seconds>(now - start).count();
+      if (elapsedTotal >= duration) {
+        disconnect();
+        break;
+      }
+      
+      auto deltaElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - deltaStart).count();
+      if (deltaElapsed >= 1000) {
+        {
+          std::lock_guard<std::mutex> lock(this->takeBenchmarkValuesMutex);
+          this->takeBenchmarkValues = true;
+        }
+        deltaStart = now;
+      }
+    }
   }
 
   void Benchmark::sendSession(const int packetSize) {
