@@ -12,10 +12,9 @@ namespace test::benchmark {
   Benchmark::Benchmark(std::shared_ptr<ttp2::ClientSessionController> clientSessionController) {
     this->clientSessionController = clientSessionController;
     std::cout << "~~~~~~ ~~~~~~ TTP2 TCP Benchmark ~~~~~~ ~~~~~~" << std::endl;
-    int payloadSize = test::Helpers::requestInt("(Int) payload size (1024): ");
+    const int payloadSize = test::Helpers::requestInt("(Int) payload size (1024): ");
+    const int duration = test::Helpers::requestInt("(seconds) duration: ");
 
-    // TODO: Take user input
-    const int duration = 60;
     std::vector<int> ppsCollection;
     ppsCollection.reserve(duration + 5);
     int totalPacketsReceived = 0;

@@ -6,7 +6,7 @@
 
 namespace test::benchmark {
   Benchmark::Benchmark(std::shared_ptr<ttp2::PeerSessionController> peerSessionController) {
-    std::cout << "BENCHMARK" << std::endl;
+    std::cout << "~~~~~~ ~~~~~~ TTP2 UDP Benchmark ~~~~~~ ~~~~~~" << std::endl;
     this->peerSessionController = peerSessionController;
 
     int benchmarkOption = requestInt("(0) exit\n(1) sender\n(2) returner\ntype:");
