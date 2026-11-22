@@ -20,10 +20,11 @@
       forEachSystem = nixpkgs.lib.genAttrs supportedSystems;
     in
     {
-      packages = forEachSystem (system:
+      packages = forEachSystem (
+        system:
         let
           pkgs = import nixpkgs { inherit system; };
-          version = "3.0.4";
+          version = "3.0.5";
           libtablog = tablog.packages.${system}.lib;
 
           commonDeps = with pkgs; [
@@ -115,7 +116,8 @@
         }
       );
 
-      devShells = forEachSystem (system:
+      devShells = forEachSystem (
+        system:
         let
           pkgs = import nixpkgs { inherit system; };
           libtablog = tablog.packages.${system}.lib;
