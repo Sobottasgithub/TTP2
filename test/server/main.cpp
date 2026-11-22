@@ -1,5 +1,6 @@
 #include "server_session_controller.h"
 #include "packet_types.h"
+#include "network_helpers.h"
 
 #include <iostream>
 #include <string>
@@ -64,12 +65,12 @@ int main() {
     std::string interface = requestString("Interface (string): ");
     int port = requestInt("Server port (int): ");
 
-    if (!ServerSessionController::isValidInterface(interface)) {
+    if (!helpers::isValidInterface(interface)) {
         std::wcout << "Please provide a correct interface" << std::endl;
         return -1;
     }
 
-    std::string containerIP = ServerSessionController::getLocalIpAddress(interface);
+    std::string containerIP = helpers::getLocalIpAddress(interface);
 
     sockaddr_in serverAddress;
     serverAddress.sin_family = AF_INET;
