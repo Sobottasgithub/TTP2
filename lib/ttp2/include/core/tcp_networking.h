@@ -43,11 +43,6 @@ namespace ttp2 {
         PacketInfo peekRequest();
         PacketInfo peekRequest(int index);
 
-        static std::string getBroadcastIpAddress();
-        static std::string getLocalIpAddress(std::string interface);
-        static bool isValidIpV4(std::string &ipString);
-        static bool isValidInterface(std::string &interface);
-
         virtual void disconnect();
         
       protected:
