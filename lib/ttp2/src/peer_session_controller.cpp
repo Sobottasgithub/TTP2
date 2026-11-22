@@ -64,7 +64,7 @@ namespace ttp2 {
           addressedPacket.ip = ip.c_str();
           addressedPacket.port = port;
           addressedPacket.packet = packet;
-          logger->log(tablog::DEBUG, "Received message from ip: " + ip);
+          // logger->log(tablog::DEBUG, "Received message from ip: " + ip);
           receivedQueue.push_back(addressedPacket);
           lock.unlock();
         }
