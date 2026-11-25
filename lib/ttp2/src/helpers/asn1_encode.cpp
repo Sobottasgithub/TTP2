@@ -41,6 +41,8 @@ namespace ttp2::asn1::encode {
       packet = tdfs::encodeLs(packet, std::get<ttp2::Packet::tdfs::Ls>(payload));
     } else if (std::holds_alternative<ttp2::Packet::tdfs::LsSolution>(payload)) {
       packet = tdfs::encodeLsSolution(packet, std::get<ttp2::Packet::tdfs::LsSolution>(payload));
+    } else if (std::holds_alternative<ttp2::Packet::tdfs::CopyFromLocal>(payload)) {
+      packet = tdfs::encodeCopyFromLocal(packet, std::get<ttp2::Packet::tdfs::CopyFromLocal>(payload));
     } else {
       throw std::invalid_argument("Error encoding payload: Unknown type!");
     }

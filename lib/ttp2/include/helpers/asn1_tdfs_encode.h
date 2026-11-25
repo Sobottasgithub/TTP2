@@ -12,6 +12,7 @@ namespace ttp2::asn1::encode {
   namespace tdfs {
     asn1_node encodeLs(asn1_node packet, ttp2::Packet::tdfs::Ls ls);
     asn1_node encodeLsSolution(asn1_node packet, ttp2::Packet::tdfs::LsSolution lsSolution);
+    asn1_node encodeCopyFromLocal(asn1_node packet, ttp2::Packet::tdfs::CopyFromLocal copyFromLocal);
   }
 }
 
