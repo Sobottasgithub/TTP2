@@ -84,7 +84,7 @@ namespace test {
             std::cout << "---------------------" << std::endl;
         } else if (std::holds_alternative<ttp2::Packet::File>(packet.payload)) {
             ttp2::Packet::File file = std::get<ttp2::Packet::File>(packet.payload);
-            std::cout << "------ Viewport  ------" << std::endl;
+            std::cout << "------ File  ------" << std::endl;
             std::cout << "ID: " << packet.id << std::endl;
             std::cout << file.payload->ToString() << std::endl;
             std::cout << "---------------------" << std::endl;
@@ -122,6 +122,12 @@ namespace test {
                 std::cout << item << std::flush;
             }
             std::cout << std::endl;
+            std::cout << "---------------------" << std::endl;
+        } else if (std::holds_alternative<ttp2::Packet::tdfs::CopyFromLocal>(packet.payload)) {
+            ttp2::Packet::tdfs::CopyFromLocal copyFromLocal = std::get<ttp2::Packet::tdfs::CopyFromLocal>(packet.payload);
+            std::cout << "------ TDFS CopyFromLocal ------" << std::endl;
+            std::cout << "ID: " << packet.id << std::endl;
+            std::cout << copyFromLocal.payload->ToString() << std::endl;
             std::cout << "---------------------" << std::endl;
         }
     }
@@ -219,7 +225,7 @@ namespace test {
   }
   
   void Cli::tdfsOptions() {
-      int tdfsOption = test::Helpers::requestInt("(0) back\n(1) ls\n(2) ls Solution\noption:");
+      int tdfsOption = test::Helpers::requestInt("(0) back\n(1) ls\n(2) ls Solution\n(3) CopyFromLocal\noption:");
 
       if (tdfsOption == 0) {
         std::cout << "Back!" << std::endl;
@@ -236,6 +242,17 @@ namespace test {
         lsSolution.content = {"item1.txt", "item2.txt", "dir1/"};
         packet.payload = lsSolution;
         this->clientSessionController->pushRequest(packet);
+        std::cout << "Done!" << std::endl;
+      } else if (tdfsOption == 3) {
+        std::shared_ptr<arrow::Table> table = test::Helpers::openCsvFile();
+        ttp2::Packet::Packet packet;
+        ttp2::Packet::tdfs::CopyFromLocal copyFromLocal;
+        copyFromLocal.start = 0;
+        copyFromLocal.end = table->num_rows();
+        copyFromLocal.payload = table;
+        packet.payload = copyFromLocal;
+        this->clientSessionController->pushRequest(packet);
+
         std::cout << "Done!" << std::endl;
       } else {
         std::cout << "Invalid!" << std::endl;
