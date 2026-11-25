@@ -12,6 +12,7 @@ namespace ttp2::asn1::decode {
   namespace tdfs {
     ttp2::Packet::tdfs::Ls decodeLs(asn1_node packet);
     ttp2::Packet::tdfs::LsSolution decodeLsSolution(asn1_node packet);
+    ttp2::Packet::tdfs::CopyFromLocal decodeCopyFromLocal(asn1_node packet);
   }
 }
 
