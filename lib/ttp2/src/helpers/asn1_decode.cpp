@@ -48,6 +48,8 @@ namespace ttp2::asn1::decode {
         data.payload = tdfs::decodeLs(packet);
       } else if (typeNameString == "lsSolution") {
         data.payload = tdfs::decodeLsSolution(packet);
+      } else if (typeNameString == "copyFromLocal") {
+        data.payload = tdfs::decodeCopyFromLocal(packet);
       } else {
         throw std::invalid_argument("Error decoding payload: Unknown type!");
       }
