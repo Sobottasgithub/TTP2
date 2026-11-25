@@ -49,6 +49,13 @@ LsSolution ::= SEQUENCE {
 	directoryItems SEQUENCE OF UTF8String
 }
 
+CopyFromLocal ::= SEQUENCE {
+	filePath OCTET STRING,
+	start INTEGER,
+	end INTEGER,
+	payload OCTET STRING
+}
+
 Packet ::= SEQUENCE {
 	id INTEGER,
 	payload CHOICE {
@@ -60,7 +67,8 @@ Packet ::= SEQUENCE {
 		error [5] Error,
 		universal [6] Universal,
 		ls [7] Ls,
-		lsSolution [8] LsSolution
+		lsSolution [8] LsSolution,
+		copyFromLocal [9] CopyFromLocal
 	}
 } 
 

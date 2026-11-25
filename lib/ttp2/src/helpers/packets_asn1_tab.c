@@ -38,6 +38,11 @@ const asn1_static_node packets_asn1_tab[] = {
   { "LsSolution", 1610612741, NULL },
   { "directoryItems", 536870923, NULL },
   { NULL, 34, NULL },
+  { "CopyFromLocal", 1610612741, NULL },
+  { "filePath", 1073741831, NULL },
+  { "start", 1073741827, NULL },
+  { "end", 1073741827, NULL },
+  { "payload", 7, NULL },
   { "Packet", 536870917, NULL },
   { "id", 1073741827, NULL },
   { "payload", 536870930, NULL },
@@ -57,7 +62,9 @@ const asn1_static_node packets_asn1_tab[] = {
   { NULL, 2056, "6"},
   { "ls", 1610620930, "Ls"},
   { NULL, 2056, "7"},
-  { "lsSolution", 536879106, "LsSolution"},
+  { "lsSolution", 1610620930, "LsSolution"},
   { NULL, 2056, "8"},
+  { "copyFromLocal", 536879106, "CopyFromLocal"},
+  { NULL, 2056, "9"},
   { NULL, 0, NULL }
 };
