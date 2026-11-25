@@ -11,7 +11,7 @@ namespace ttp2 {
   class PeerSessionController : public UdpNetworking {
     public:
       struct AddressedPacket {
-        const char *ip;
+        std::string ip;
         int port = 0;
         Packet::Packet packet;
       };

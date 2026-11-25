@@ -53,20 +53,22 @@ namespace ttp2 {
       int receivedEvents = epoll_wait(this->epollFd, events, maxEvents, 1000);
       if (receivedEvents == -1) {
         if (errno == EINTR) continue;
+        break;
       }
 
       for (int index = 0; index < receivedEvents; ++index) {
         if (events[index].data.fd == this->receiveSocket) {
-          AddressedPacket addressedPacket;
-          std::unique_lock<std::mutex> lock(receiveMutex);
-          // type INFO: string, int Packet::Packet
           auto [ip, port, packet] = receivePacketFrom();
-          addressedPacket.ip = ip.c_str();
+
+          AddressedPacket addressedPacket;
+          addressedPacket.ip = ip;
           addressedPacket.port = port;
           addressedPacket.packet = packet;
-          // logger->log(tablog::DEBUG, "Received message from ip: " + ip);
-          receivedQueue.push_back(addressedPacket);
-          lock.unlock();
+
+          {
+            std::unique_lock<std::mutex> lock(receiveMutex);
+            receivedQueue.push_back(addressedPacket);
+          }
         }
       }
     }
@@ -79,7 +81,6 @@ namespace ttp2 {
         AddressedPacket addressedPacket = this->sendQueue.at(0);
         this->sendQueue.erase(this->sendQueue.begin());
         sendPacketTo(addressedPacket.ip, addressedPacket.port, addressedPacket.packet);
-        logger->log(tablog::DEBUG, "Packet sent");
       }
       lock.unlock();
     }

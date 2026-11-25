@@ -12,9 +12,9 @@ namespace ttp2 {
   class UdpNetworking {
     public:
       void createServerSocket(const char *ip, int port);
-      void sendMessageTo(const char *ip, int port, const char *buffer, size_t size);
+      void sendMessageTo(std::string ip, int port, const char *buffer, size_t size);
       std::tuple<std::string, int, Packet::Packet> receivePacketFrom();
-      void sendPacketTo(const char *ip, int port, ttp2::Packet::Packet packet);
+      void sendPacketTo(std::string ip, int port, ttp2::Packet::Packet packet);
 
     protected:
       std::shared_ptr<tablog::Tablog> logger;

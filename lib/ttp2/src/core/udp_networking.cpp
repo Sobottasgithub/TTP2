@@ -126,7 +126,7 @@ namespace ttp2 {
     return {clientIP, clientPort, packet};
   }
 
-  void UdpNetworking::sendPacketTo(const char *ip, int port, ttp2::Packet::Packet packet) {
+  void UdpNetworking::sendPacketTo(std::string ip, int port, ttp2::Packet::Packet packet) {
     if (packet.id == -1) {
       packet.id = autoId;
       autoId++;
@@ -150,13 +150,13 @@ namespace ttp2 {
                  );
   }
   
-  void UdpNetworking::sendMessageTo(const char *ip, int port, const char *buffer, size_t size) {
+  void UdpNetworking::sendMessageTo(std::string ip, int port, const char *buffer, size_t size) {
     struct sockaddr_in serverAddress;
     memset(&serverAddress, 0, sizeof(serverAddress));
 
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(port);
-    serverAddress.sin_addr.s_addr = inet_addr(ip);
+    serverAddress.sin_addr.s_addr = inet_addr(ip.c_str());
 
     int maxResendCount = 10;
     while (maxResendCount > 0) {
