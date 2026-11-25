@@ -24,7 +24,7 @@
         system:
         let
           pkgs = import nixpkgs { inherit system; };
-          version = "3.0.6";
+          version = "3.0.7";
           libtablog = tablog.packages.${system}.lib;
 
           commonDeps = with pkgs; [
