@@ -49,7 +49,7 @@ namespace ttp2::Packet {
   };
 
   typedef std::variant<Standard, File, ViewportRequest, Viewport, TqlQuery, Error,
-                       Universal, tdfs::Ls, tdfs::LsSolution> payloadVariants;
+                       Universal, tdfs::Ls, tdfs::LsSolution, tdfs::CopyFromLocal> payloadVariants;
 
   struct Packet {
     int id = -1;
