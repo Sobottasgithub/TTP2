@@ -7,6 +7,10 @@
     tablog = {
       url = "github:Sobottasgithub/tablog";
     };
+
+    tabcrypt = {
+      url = "github:Sobottasgithub/tabcrypt";
+    };
   };
 
   outputs =
@@ -14,6 +18,7 @@
       self,
       nixpkgs,
       tablog,
+      tabcrypt
     }:
     let
       supportedSystems = [ "x86_64-linux" ];
@@ -26,6 +31,7 @@
           pkgs = import nixpkgs { inherit system; };
           version = "3.0.7";
           libtablog = tablog.packages.${system}.lib;
+          libtabcrypt = tabcrypt.packages.${system}.lib;
 
           commonDeps = with pkgs; [
             cmake
@@ -34,6 +40,7 @@
             libtasn1
             arrow-cpp
             libtablog
+            libtabcrypt
           ];
 
           mkTTP2Package =
@@ -80,7 +87,7 @@
           };
         in
         {
-          inherit lib libtablog;
+          inherit lib libtablog tabcrypt;
 
           client = mkTTP2Package {
             pname = "ttp2-client";

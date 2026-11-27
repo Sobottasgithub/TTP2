@@ -18,6 +18,38 @@
     },
     "nixpkgs_2": {
       "locked": {
+        "lastModified": 1795234589,
+        "narHash": "sha256-f/VVvxf5RsQgWVhUtefoca5ktVg0DA2bnkMOcmSnozo=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "2786a2a72088ecf32aea5b3ec52099e6a7cff78f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1784356753,
+        "narHash": "sha256-12KrbMiWLcf8m7pCvAtZh1ZrgF85ZXDXvfR/fWTKy84=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "61b7c44c4073f0b827768aff0049561b5110ea5a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_4": {
+      "locked": {
         "lastModified": 1784356753,
         "narHash": "sha256-12KrbMiWLcf8m7pCvAtZh1ZrgF85ZXDXvfR/fWTKy84=",
         "owner": "nixos",
@@ -35,12 +67,50 @@
     "root": {
       "inputs": {
         "nixpkgs": "nixpkgs",
+        "tabcrypt": "tabcrypt",
+        "tablog": "tablog_2"
+      }
+    },
+    "tabcrypt": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_2",
         "tablog": "tablog"
+      },
+      "locked": {
+        "lastModified": 1795718810,
+        "narHash": "sha256-khKyU3ndLZTWkAaPNhiXPG6WF/c2zyZWkUy8EoKLJho=",
+        "owner": "Sobottasgithub",
+        "repo": "tabcrypt",
+        "rev": "6a40efabf611c6da6e2b5bba7f5a3d0e19c9c9a4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Sobottasgithub",
+        "repo": "tabcrypt",
+        "type": "github"
       }
     },
     "tablog": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_3"
+      },
+      "locked": {
+        "lastModified": 1793694276,
+        "narHash": "sha256-d1FTLTnfP/ViU8lJcM+AqWApEEkpahkdrceBNetA1E4=",
+        "owner": "Sobottasgithub",
+        "repo": "tablog",
+        "rev": "4b527f9763d1ae03a587c87fee5844b1eedc45f8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Sobottasgithub",
+        "repo": "tablog",
+        "type": "github"
+      }
+    },
+    "tablog_2": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_4"
       },
       "locked": {
         "lastModified": 1793694276,

@@ -26,6 +26,7 @@ target_include_directories(ttp2 PUBLIC
 # Link against the libtasn1 library
 target_link_libraries(ttp2 PUBLIC tasn1)
 target_link_libraries(ttp2 PUBLIC tablog)
+target_link_libraries(ttp2 PUBLIC tabcrypt)
 
 target_link_libraries(ttp2 PUBLIC
     Arrow::arrow_shared
