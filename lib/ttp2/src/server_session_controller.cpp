@@ -19,8 +19,10 @@ namespace ttp2 {
     this->clientSocket = clientSocket;
 
     if (!cryptSecret.compare("")) {
-      this->cryptSecret = cryptSecret;
-      useCryption = true;
+      this->encryptSecret = cryptSecret;
+      this->decryptSecret = cryptSecret;
+      this->useEncryption = true;
+      this->useDecryption = true;
     }
   }
 

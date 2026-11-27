@@ -130,8 +130,8 @@ namespace ttp2 {
       return -1;
     }
 
-    if (this->useCryption) {
-      buffer = tabcrypt::encrypt(this->cryptSecret, buffer);
+    if (this->useEncryption) {
+      buffer = tabcrypt::encrypt(this->encryptSecret, buffer);
     }
 
     uint32_t netSize = htonl(static_cast<uint32_t>(buffer.size()));
@@ -193,8 +193,8 @@ namespace ttp2 {
 
     auto &buffer = sessionBuffers[socket];
 
-    if (this->useCryption) {
-      buffer = tabcrypt::decrypt(this->cryptSecret, buffer);
+    if (this->useDecryption) {
+      buffer = tabcrypt::decrypt(this->decryptSecret, buffer);
     }
 
     if (buffer.size() < sizeof(uint32_t)) {

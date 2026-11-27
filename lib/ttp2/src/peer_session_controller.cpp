@@ -16,8 +16,10 @@ namespace ttp2 {
     this->logger = std::make_shared<tablog::Tablog>();
 
     if (!cryptSecret.compare("")) {
-      this->cryptSecret = cryptSecret;
-      this->useCryption = true;
+      this->encryptSecret = cryptSecret;
+      this->decryptSecret = cryptSecret;
+      this->useEncryption = true;
+      this->useDecryption = true;
     }
 
     struct LoglevelConfig {

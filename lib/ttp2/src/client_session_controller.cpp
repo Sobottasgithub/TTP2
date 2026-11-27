@@ -19,8 +19,10 @@ namespace ttp2 {
     configureLogger("TTP2");
 
     if (!cryptSecret.compare("")) {
-      this->cryptSecret = cryptSecret;
-      useCryption = true;
+      this->encryptSecret = cryptSecret;
+      this->decryptSecret = cryptSecret;
+      this->useEncryption = true;
+      this->useDecryption = true;
     }
 
     // WARNING: ::socket is used here because otherwise it would interfere with (int) this->socket
@@ -85,8 +87,10 @@ namespace ttp2 {
     this->socket = socket;
 
     if (!cryptSecret.compare("")) {
-      this->cryptSecret = cryptSecret;
-      useCryption = true;
+      this->encryptSecret = cryptSecret;
+      this->decryptSecret = cryptSecret;
+      this->useEncryption = true;
+      this->useDecryption = true;
     }
   }
 

@@ -110,8 +110,8 @@ namespace ttp2 {
     inet_ntop(AF_INET, &(clientAddress.sin_addr), clientIP, INET_ADDRSTRLEN);
     uint16_t clientPort = ntohs(clientAddress.sin_port);
 
-    if (this->useCryption) {
-      buffer = tabcrypt::decrypt(this->cryptSecret, buffer);
+    if (this->useDecryption) {
+      buffer = tabcrypt::decrypt(this->decryptSecret, buffer);
     }
 
     uint32_t networkSize;
@@ -149,8 +149,8 @@ namespace ttp2 {
     std::memcpy(finalBuffer.data(), &networkSize, sizeof(uint32_t));
     std::memcpy(finalBuffer.data() + sizeof(uint32_t), encodedPacket.data(), encodedPacket.size());
 
-    if (this->useCryption) {
-      finalBuffer = tabcrypt::encrypt(this->cryptSecret, finalBuffer);
+    if (this->useEncryption) {
+      finalBuffer = tabcrypt::encrypt(this->encryptSecret, finalBuffer);
     }
 
     sendMessageTo(ip,
