@@ -11,7 +11,7 @@
 namespace ttp2 {
   class UdpNetworking {
     public:
-      void createServerSocket(const char *ip, int port, const std::string cryptSecret = "");
+      void createServerSocket(const char *ip, int port);
       void sendMessageTo(std::string ip, int port, const char *buffer, size_t size);
       std::tuple<std::string, int, Packet::Packet> receivePacketFrom();
       void sendPacketTo(std::string ip, int port, ttp2::Packet::Packet packet);

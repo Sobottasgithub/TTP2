@@ -17,15 +17,10 @@
 #include <tabcrypt.h>
 
 namespace ttp2 {
-  void UdpNetworking::createServerSocket(const char *ip, int port, const std::string cryptSecret) {
+  void UdpNetworking::createServerSocket(const char *ip, int port) {
     // INFO: configure receive socket
     if ((this->receiveSocket = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0)) < 0) {
       throw std::runtime_error("Failed creating the server socket"); 
-    }
-
-    if (!cryptSecret.compare("")) {
-      this->cryptSecret = cryptSecret;
-      this->useCryption = true;
     }
 
     struct sockaddr_in serverAddress;

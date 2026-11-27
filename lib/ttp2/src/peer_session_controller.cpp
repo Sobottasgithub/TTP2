@@ -10,10 +10,15 @@
 #include <tablog_registry.h>
 
 namespace ttp2 {
-  PeerSessionController::PeerSessionController(const char *ip, int port) {
+  PeerSessionController::PeerSessionController(const char *ip, int port, const std::string cryptSecret) {
     std::string name = "Peer - TTP2";
     tablog::TablogRegistry* registry = &tablog::TablogRegistry::getInstance();
     this->logger = std::make_shared<tablog::Tablog>();
+
+    if (!cryptSecret.compare("")) {
+      this->cryptSecret = cryptSecret;
+      this->useCryption = true;
+    }
 
     struct LoglevelConfig {
       std::string color = "";

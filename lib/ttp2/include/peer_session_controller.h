@@ -16,7 +16,7 @@ namespace ttp2 {
         Packet::Packet packet;
       };
       
-      PeerSessionController(const char *ip, int port);
+      PeerSessionController(const char *ip, int port, const std::string cryptSecret = "");
       void networkingSession();
 
       void sendPacket(AddressedPacket addressedPacket);
