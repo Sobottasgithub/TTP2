@@ -128,6 +128,7 @@
         let
           pkgs = import nixpkgs { inherit system; };
           libtablog = tablog.packages.${system}.lib;
+          libtabcrypt = tabcrypt.packages.${system}.lib;
           commonDeps = with pkgs; [
             cmake
             gcc
@@ -135,6 +136,7 @@
             libtasn1
             arrow-cpp
             libtablog
+            libtabcrypt
           ];
         in
         {

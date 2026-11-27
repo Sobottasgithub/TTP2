@@ -11,13 +11,16 @@
 namespace ttp2 {
   class UdpNetworking {
     public:
-      void createServerSocket(const char *ip, int port);
+      void createServerSocket(const char *ip, int port, const std::string cryptSecret = "");
       void sendMessageTo(std::string ip, int port, const char *buffer, size_t size);
       std::tuple<std::string, int, Packet::Packet> receivePacketFrom();
       void sendPacketTo(std::string ip, int port, ttp2::Packet::Packet packet);
 
     protected:
       std::shared_ptr<tablog::Tablog> logger;
+
+      std::string cryptSecret = "";
+      bool useCryption = false;
 
       int sendSocket;
       int receiveSocket;

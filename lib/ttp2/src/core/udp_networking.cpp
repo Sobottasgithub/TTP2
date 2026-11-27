@@ -14,18 +14,25 @@
 #include <arpa/inet.h> 
 #include <netinet/in.h>
 
+#include <tabcrypt.h>
+
 namespace ttp2 {
-  void UdpNetworking::createServerSocket(const char *ip, int port) {
+  void UdpNetworking::createServerSocket(const char *ip, int port, const std::string cryptSecret) {
     // INFO: configure receive socket
     if ((this->receiveSocket = socket(AF_INET, SOCK_DGRAM | SOCK_NONBLOCK, 0)) < 0) {
       throw std::runtime_error("Failed creating the server socket"); 
+    }
+
+    if (!cryptSecret.compare("")) {
+      this->cryptSecret = cryptSecret;
+      this->useCryption = true;
     }
 
     struct sockaddr_in serverAddress;
     memset(&serverAddress, 0, sizeof(serverAddress)); 
       
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = inet_addr(ip); 
+    serverAddress.sin_addr.s_addr = inet_addr(ip);
     serverAddress.sin_port = htons(port);
       
     if (bind(this->receiveSocket,
@@ -108,6 +115,10 @@ namespace ttp2 {
     inet_ntop(AF_INET, &(clientAddress.sin_addr), clientIP, INET_ADDRSTRLEN);
     uint16_t clientPort = ntohs(clientAddress.sin_port);
 
+    if (this->useCryption) {
+      buffer = tabcrypt::decrypt(this->cryptSecret, buffer);
+    }
+
     uint32_t networkSize;
     memcpy(&networkSize, buffer.data(), sizeof(uint32_t));
     uint32_t derLen = ntohl(networkSize);
@@ -137,11 +148,15 @@ namespace ttp2 {
     uint32_t dataLen = static_cast<uint32_t>(encodedPacket.size());
     uint32_t networkSize = htonl(dataLen);
 
-    std::vector<unsigned char> finalBuffer;
+    std::vector<unsigned char> finalBuffer;    
     finalBuffer.resize(sizeof(uint32_t) + encodedPacket.size());
 
     std::memcpy(finalBuffer.data(), &networkSize, sizeof(uint32_t));
     std::memcpy(finalBuffer.data() + sizeof(uint32_t), encodedPacket.data(), encodedPacket.size());
+
+    if (this->useCryption) {
+      finalBuffer = tabcrypt::encrypt(this->cryptSecret, finalBuffer);
+    }
 
     sendMessageTo(ip,
                   port,
