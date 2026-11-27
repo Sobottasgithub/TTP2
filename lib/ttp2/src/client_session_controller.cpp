@@ -15,8 +15,14 @@
 #include <poll.h>
 
 namespace ttp2 {
-  ClientSessionController::ClientSessionController(std::string ipV4, int port) {
+  ClientSessionController::ClientSessionController(std::string ipV4, int port, const std::string cryptSecret) {
     configureLogger("TTP2");
+
+    if (!cryptSecret.compare("")) {
+      this->cryptSecret = cryptSecret;
+      useCryption = true;
+    }
+
     // WARNING: ::socket is used here because otherwise it would interfere with (int) this->socket
     this->socket = ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 
@@ -74,9 +80,14 @@ namespace ttp2 {
     return this->initCompleat;
   }
 
-  ClientSessionController::ClientSessionController(int &socket) {
+  ClientSessionController::ClientSessionController(int &socket, const std::string cryptSecret) {
     configureLogger("TTP2");
     this->socket = socket;
+
+    if (!cryptSecret.compare("")) {
+      this->cryptSecret = cryptSecret;
+      useCryption = true;
+    }
   }
 
   void ClientSessionController::networkingSession() {

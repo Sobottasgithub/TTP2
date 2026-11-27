@@ -47,7 +47,10 @@ namespace ttp2 {
         
       protected:
         std::shared_ptr<tablog::Tablog> logger;
-        
+
+        std::string cryptSecret = "";
+        bool useCryption = false;
+
         bool connected = true;
         std::condition_variable responseConditionVariable;
         std::condition_variable requestConditionVariable;

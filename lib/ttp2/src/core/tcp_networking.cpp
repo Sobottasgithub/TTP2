@@ -5,6 +5,7 @@
 
 #include <tablog_registry.h>
 #include <tablog.h>
+#include <tabcrypt.h>
 
 #include <arpa/inet.h>
 #include <cstdlib>
@@ -16,7 +17,6 @@
 #include <netinet/in.h>
 #include <string>
 #include <sys/socket.h>
-#include <sstream>
 #include <ifaddrs.h>
 #include <arrow/api.h>
 #include <arrow/ipc/api.h>
@@ -130,6 +130,10 @@ namespace ttp2 {
       return -1;
     }
 
+    if (this->useCryption) {
+      buffer = tabcrypt::encrypt(this->cryptSecret, buffer);
+    }
+
     uint32_t netSize = htonl(static_cast<uint32_t>(buffer.size()));
     
     if (sendBytes(socket, reinterpret_cast<const char *>(&netSize), sizeof(netSize)) != sizeof(netSize)) {
@@ -188,6 +192,10 @@ namespace ttp2 {
     }
 
     auto &buffer = sessionBuffers[socket];
+
+    if (this->useCryption) {
+      buffer = tabcrypt::decrypt(this->cryptSecret, buffer);
+    }
 
     if (buffer.size() < sizeof(uint32_t)) {
       return data;

@@ -8,7 +8,7 @@ namespace ttp2 {
   class ServerSessionController: public TcpNetworking
   {
       public:
-        ServerSessionController(int serverSocket, int clientSocket);
+        ServerSessionController(int serverSocket, int clientSocket, const std::string cryptSecret = "");
         void networkingSession();
         void disconnect() override;
         

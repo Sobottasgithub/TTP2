@@ -8,8 +8,8 @@ namespace ttp2 {
   class ClientSessionController: public TcpNetworking
   {
       public:
-        ClientSessionController(std::string ipV4, int port);
-        ClientSessionController(int &socket);
+        ClientSessionController(std::string ipV4, int port, const std::string cryptSecret = "");
+        ClientSessionController(int &socket, const std::string cryptSecret = "");
         void networkingSession();
         void disconnect() override;
         bool isInitCompleat();

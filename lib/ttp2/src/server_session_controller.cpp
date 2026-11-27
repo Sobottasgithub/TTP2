@@ -13,10 +13,15 @@
 #include <sys/epoll.h>
 
 namespace ttp2 {
-  ServerSessionController::ServerSessionController(int serverSocket, int clientSocket) {
+  ServerSessionController::ServerSessionController(int serverSocket, int clientSocket, const std::string cryptSecret) {
     configureLogger("TTP2");
     this->serverSocket = serverSocket;
     this->clientSocket = clientSocket;
+
+    if (!cryptSecret.compare("")) {
+      this->cryptSecret = cryptSecret;
+      useCryption = true;
+    }
   }
 
   void ServerSessionController::networkingSession() {
