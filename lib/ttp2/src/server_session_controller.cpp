@@ -18,7 +18,7 @@ namespace ttp2 {
     this->serverSocket = serverSocket;
     this->clientSocket = clientSocket;
 
-    if (!cryptSecret.compare("")) {
+    if (cryptSecret.compare("") != 0) {
       this->encryptSecret = cryptSecret;
       this->decryptSecret = cryptSecret;
       this->useEncryption = true;

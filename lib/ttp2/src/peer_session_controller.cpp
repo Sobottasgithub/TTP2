@@ -15,7 +15,7 @@ namespace ttp2 {
     tablog::TablogRegistry* registry = &tablog::TablogRegistry::getInstance();
     this->logger = std::make_shared<tablog::Tablog>();
 
-    if (!cryptSecret.compare("")) {
+    if (cryptSecret.compare("") != 0) {
       this->encryptSecret = cryptSecret;
       this->decryptSecret = cryptSecret;
       this->useEncryption = true;

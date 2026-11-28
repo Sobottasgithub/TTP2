@@ -18,7 +18,7 @@ namespace ttp2 {
   ClientSessionController::ClientSessionController(std::string ipV4, int port, const std::string cryptSecret) {
     configureLogger("TTP2");
 
-    if (!cryptSecret.compare("")) {
+    if (cryptSecret.compare("") != 0) {
       this->encryptSecret = cryptSecret;
       this->decryptSecret = cryptSecret;
       this->useEncryption = true;
@@ -86,7 +86,7 @@ namespace ttp2 {
     configureLogger("TTP2");
     this->socket = socket;
 
-    if (!cryptSecret.compare("")) {
+    if (cryptSecret.compare("") != 0) {
       this->encryptSecret = cryptSecret;
       this->decryptSecret = cryptSecret;
       this->useEncryption = true;
