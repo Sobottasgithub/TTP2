@@ -18,7 +18,7 @@
       self,
       nixpkgs,
       tablog,
-      tabcrypt
+      tabcrypt,
     }:
     let
       supportedSystems = [ "x86_64-linux" ];
@@ -29,7 +29,7 @@
         system:
         let
           pkgs = import nixpkgs { inherit system; };
-          version = "3.0.7";
+          version = "3.0.8";
           libtablog = tablog.packages.${system}.lib;
           libtabcrypt = tabcrypt.packages.${system}.lib;
 
