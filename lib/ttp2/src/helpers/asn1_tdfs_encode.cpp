@@ -12,7 +12,9 @@ namespace ttp2::asn1::encode {
       }
 
       // Write contents
-      return ttp2::Asn1Helpers::asn1EncodePayload(ls.directory, packet, "payload.ls.directory");
+      ttp2::Asn1Helpers::asn1EncodePayload(ls.requestId, packet, "payload.ls.requestId");
+      ttp2::Asn1Helpers::asn1EncodePayload(ls.directory, packet, "payload.ls.directory");
+      return packet;
     }
     
     asn1_node encodeLsSolution(asn1_node packet, ttp2::Packet::tdfs::LsSolution lsSolution) {
@@ -24,7 +26,9 @@ namespace ttp2::asn1::encode {
       }
 
       // Write contents
-      return ttp2::Asn1Helpers::asn1EncodePayload(lsSolution.content, packet, "payload.lsSolution.directoryItems");
+      ttp2::Asn1Helpers::asn1EncodePayload(lsSolution.requestId, packet, "payload.lsSolution.requestId");
+      ttp2::Asn1Helpers::asn1EncodePayload(lsSolution.content, packet, "payload.lsSolution.directoryItems");
+      return packet;
     }
 
     asn1_node encodeCopyFromLocal(asn1_node packet, ttp2::Packet::tdfs::CopyFromLocal copyFromLocal) {

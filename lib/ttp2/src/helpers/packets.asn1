@@ -42,10 +42,12 @@ Universal ::= SEQUENCE {
 
 -- TDFS specific
 Ls ::= SEQUENCE {
+	requestId INTEGER,
 	directory OCTET STRING
 }
 
 LsSolution ::= SEQUENCE {
+	requestId INTEGER,
 	directoryItems SEQUENCE OF UTF8String
 }
 

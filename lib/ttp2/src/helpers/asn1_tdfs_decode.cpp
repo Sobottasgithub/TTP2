@@ -5,12 +5,14 @@ namespace ttp2::asn1::decode {
   namespace tdfs {
     ttp2::Packet::tdfs::Ls decodeLs(asn1_node packet) {
       ttp2::Packet::tdfs::Ls ls;
+      ls.requestId = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.ls.requestId");
       ls.directory = ttp2::Asn1Helpers::asn1DecodePayloadString(packet, "payload.ls.directory");
       return ls;
     }
     
     ttp2::Packet::tdfs::LsSolution decodeLsSolution(asn1_node packet) {
       ttp2::Packet::tdfs::LsSolution lsSolution;
+      lsSolution.requestId = ttp2::Asn1Helpers::asn1DecodePayloadInt(packet, "payload.lsSolution.requestId");
       lsSolution.content = ttp2::Asn1Helpers::asn1DecodePayloadVector(packet, "payload.lsSolution.directoryItems");
       return lsSolution;
     }

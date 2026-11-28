@@ -111,12 +111,14 @@ namespace test {
             ttp2::Packet::tdfs::Ls ls = std::get<ttp2::Packet::tdfs::Ls>(packet.payload);
             std::cout << "------ TDFS LS ------" << std::endl;
             std::cout << "ID: " << packet.id << std::endl;
+            std::cout << "RequestId: " << ls.requestId << std::endl;
             std::cout << "Directory: " << ls.directory << std::endl;
             std::cout << "---------------------" << std::endl;
         } else if (std::holds_alternative<ttp2::Packet::tdfs::LsSolution>(packet.payload)) {
             ttp2::Packet::tdfs::LsSolution lsSolution = std::get<ttp2::Packet::tdfs::LsSolution>(packet.payload);
-            std::cout << "------ TDFS LS ------" << std::endl;
+            std::cout << "------ TDFS LS Solution ------" << std::endl;
             std::cout << "ID: " << packet.id << std::endl;
+            std::cout << "RequestId: " << lsSolution.requestId << std::endl;
             std::cout << "CONTENT: " << std::flush;
             for (const std::string& item : lsSolution.content) {
                 std::cout << item << std::flush;
@@ -232,6 +234,7 @@ namespace test {
       } else if (tdfsOption == 1) {
         ttp2::Packet::Packet packet;
         ttp2::Packet::tdfs::Ls ls;
+        ls.requestId = 1;
         ls.directory = "/home/test";
         packet.payload = ls;
         this->clientSessionController->pushRequest(packet);
@@ -239,6 +242,7 @@ namespace test {
       } else if (tdfsOption == 2) {
         ttp2::Packet::Packet packet;
         ttp2::Packet::tdfs::LsSolution lsSolution;
+        lsSolution.requestId = 1;
         lsSolution.content = {"item1.txt", "item2.txt", "dir1/"};
         packet.payload = lsSolution;
         this->clientSessionController->pushRequest(packet);
